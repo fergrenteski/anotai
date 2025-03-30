@@ -1,0 +1,171 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: sans-serif;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(45deg, #7367f0, #43a047);
+}
+
+.container {
+    position: relative;
+    width: 800px;
+    height: 400px;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.form-container {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 30px;
+    transition: all 0.5s;
+}
+
+.login-container {
+    left: 0;
+}
+
+.signup-container {
+    left: 50%;
+    opacity: 0;
+}
+
+.info-container {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(45deg, #7367f0, #43a047);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: #fff;
+    text-align: center;
+    padding: 30px;
+    transition: all 0.5s;
+}
+
+h1 {
+    margin-bottom: 20px;
+}
+
+p {
+    margin-bottom: 15px;
+}
+
+input {
+    width: 100%;
+    padding: 10px 0;
+    margin-bottom: 15px;
+    border: none;
+    border-bottom: 1px solid #ddd;
+    outline: none;
+    font-size: 15px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background: #7367f0;
+    color: #fff;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+.toggle-btn {
+    background: transparent;
+    border: 1px solid #fff;
+    margin-top: 15px;
+}
+
+.container.active .login-container {
+    opacity: 0;
+}
+
+.container.active .signup-container {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.container.active .info-container {
+    transform: translateX(-100%);
+}
+
+input.valid {
+    border-color: green;
+    color: green;
+}
+input.invalid {
+    border-color: red;
+    color: red;
+}
+
+.error-message {
+    font-size: 12px;
+    color: red;
+}
+
+#button-signup.enabled {
+    cursor: pointer;
+    opacity: 1;
+}
+
+#button-signup {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+@media (max-width: 768px) {
+    .container {
+        width: 90%;
+        height: 800px;
+    }
+
+    .form-container {
+        width: 100%;
+        position: relative;
+        height: 50%;
+    }
+
+    .signup-container {
+        left: 0;
+        opacity: 0;
+        height: 50%;
+    }
+    .info-container {
+        display: block;
+        transform: translateY(50%);
+        left: 0;
+        width: 100%;
+    }
+
+    #signup-info {
+        margin-top: 40px;
+    }
+
+    #login-info {
+        margin-top: 80px;
+    }
+    .container.active .info-container {
+        transform: translateY(0%);
+        height: 50%;
+    }
+}

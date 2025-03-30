@@ -1,0 +1,12 @@
+# Node.js
+node_modules/
+.env
+
+# Logs
+logs
+*.log
+
+# Docker
+pgdata/
+postgres_data/
+frontend/nginx/default.conf~

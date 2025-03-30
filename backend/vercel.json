@@ -1,0 +1,47 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "./routes/*",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "./controllers/*",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "./middlewares/*",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "./queries/*",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "./services/*",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "./utils/*",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "./database/database.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "/sql/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/server.js"
+    }
+  ]
+}
