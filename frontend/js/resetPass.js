@@ -7,7 +7,7 @@ async function resetPassword() {
         document.getElementById("mensagem").innerText = "E-mail Invalido!";
         return;
     }
-    const response = await fetch(`${url}/resetarSenha`, {
+    const response = await fetch(`${url}/redefinir-senha`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ email })

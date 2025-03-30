@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const pool = require("../database/database");
 const { loadQueries } = require("../utils/queries");
@@ -50,6 +51,33 @@ class UserService {
         await this.registrarLog(queries.insert_user_log_login, [usuario.rows[0].user_id]);
 
         return { message: "Login realizado com sucesso!", token };
+    }
+
+    async redefinirSenha(email) {
+        const queries = await loadQueries();
+        try {
+            const result = await pool.query(queries.select_user_by_email, [email]);
+
+            if (result.rows.length === 0) {
+                return { message: "E-mail não encontrado!" };
+            }
+
+            const userId = result.rows[0].user_id;
+            const token = crypto.randomBytes(20).toString("hex");
+            const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // Expira em 1 hora
+
+            // Remove as chaves antigas e insere a nova
+            await pool.query(queries.remove_user_reset_password_keys, [userId]);
+            await pool.query(queries.insert_user_reset_password_keys, [userId, token, expiresAt]);
+
+            // Registra o log de redefinição de senha
+            await pool.query(queries.insert_user_log_reset_password, [userId]);
+
+            return { message: "E-mail enviado com sucesso!", token: token };
+        } catch (error) {
+            console.error("Erro na redefinição de senha:", error);
+            return { message: "Erro ao redefinir senha." };
+        }
     }
 
     gerarToken(usuario) {

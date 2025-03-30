@@ -1,4 +1,5 @@
 const UserService = require('../services/UserService');
+const EmailService = require("../services/EmailService");
 
 class UserController {
     static async cadastro(req, res) {

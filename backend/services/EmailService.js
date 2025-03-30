@@ -9,14 +9,14 @@ class EmailService {
 
     // Função para enviar e-mail com o link de redefinição de senha
     async enviarEmail(email, token) {
-        gerarLinkRedefinicao(email, token);
+        const link = gerarLinkRedefinicao(email, token);
 
         const msg = {
             to: email,
             from: 'luizgrenfer@gmail.com',  // Seu e-mail do qual o e-mail será enviado
             templateId: process.env.TEMPLATE_ID_RESET_EMAIL, // ID do template no SendGrid
             dynamicTemplateData: {
-                resetPassUrl: link,  // Substitui o marcador {{resetPassUrl}} no template com o link
+                resetPassUrl: link  // Substitui o marcador {{resetPassUrl}} no template com o link
             }
         };
 
