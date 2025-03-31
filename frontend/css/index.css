@@ -132,6 +132,21 @@ input.invalid {
     cursor: not-allowed;
     opacity: 0.5;
 }
+.pass-container {
+    position: relative;
+    display: inline-block;
+}
+.pass-container button {
+    position: absolute;
+    width: 30px;
+    right: 5px;
+    top: 30%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color:black;
+}
 
 @media (max-width: 768px) {
     .container {

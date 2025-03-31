@@ -6,6 +6,10 @@ const inputEmailLogin = document.getElementById("emailLogin");
 const inputSenhaLogin = document.getElementById("senhaLogin");
 const formLogin = document.getElementById("form-login");
 const formSignup = document.getElementById("form-signup");
+const buttonMostrarSenha = document.getElementById("btn-show-pass");
+const buttonMostrarConfirmarSenha = document.getElementById("btn-show-confirm-pass");
+const confirmarInput = document.getElementById("confirmarSenhaCadastro");
+const senhaInput = document.getElementById("senhaCadastro");
 
 // Função para alternar entre as telas de login e cadastro
 function toggleForms(showSignup) {
@@ -19,9 +23,7 @@ function toggleForms(showSignup) {
 // Função de validação de senhas
 function validarSenhas() {
     const senha = document.getElementById("senhaCadastro").value;
-    const senhaInput = document.getElementById("senhaCadastro");
     const confirmarSenha = document.getElementById("confirmarSenhaCadastro").value;
-    const confirmarInput = document.getElementById("confirmarSenhaCadastro");
     const mensagem = document.getElementById("mensagemCadastro");
     const buttonCriar = document.getElementById("button-signup");
 
@@ -55,7 +57,7 @@ function validarSenhas() {
 async function autenticar(url, dados) {
     const resposta = await fetch(url, {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dados)
     });
 
@@ -67,7 +69,7 @@ async function login() {
     const email = document.getElementById("emailLogin").value;
     const senha = document.getElementById("senhaLogin").value;
 
-    const data = await autenticar(`${url}/login`, {email, senha});
+    const data = await autenticar(`${url}/login`, { email, senha });
 
     if (data.token) {
         sessionStorage.setItem("token", data.token);
@@ -96,7 +98,7 @@ async function cadastrar() {
         return;
     }
 
-    const data = await autenticar(`${url}/cadastro`, {nome, email, senha});
+    const data = await autenticar(`${url}/cadastro`, { nome, email, senha });
 
     if (data.token) {
         sessionStorage.setItem("token", data.token);
@@ -143,3 +145,16 @@ document.getElementById('show-login').addEventListener('click', () => toggleForm
 document.getElementById("senhaCadastro").addEventListener("input", validarSenhas);
 
 document.getElementById("confirmarSenhaCadastro").addEventListener("input", validarSenhas);
+
+buttonMostrarSenha.addEventListener('click', () => {
+    senhaInput.type = senhaInput.type === "password" ? "text" : "password";
+    document.getElementById("pass-i").classList.toggle("fa-eye");
+    document.getElementById("pass-i").classList.toggle("fa-eye-slash");
+}
+);
+buttonMostrarConfirmarSenha.addEventListener('click', () => {
+
+    confirmarInput.type = confirmarInput.type === "password" ? "text" : "password";
+    document.getElementById("conf-i").classList.toggle("fa-eye");
+    document.getElementById("conf-i").classList.toggle("fa-eye-slash");
+});
