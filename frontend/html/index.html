@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="../css/index.css">
+    <script src="https://kit.fontawesome.com/08264effb9.js" crossorigin="anonymous"></script>
     <title>Login e Cadastro</title>
 </head>
 <body>
@@ -21,8 +22,18 @@
         <h1>Cadastro</h1>
         <input type="text" placeholder="Nome" id="nomeCadastro" required>
         <input type="email" placeholder="E-mail" id="emailCadastro" required>
-        <input type="password" placeholder="Senha" id="senhaCadastro" oninput="validarSenhas()" required>
-        <input type="password" placeholder="Confirmar senha" id="confirmarSenhaCadastro" oninput="validarSenhas()" required>
+        <div class="pass-container">
+            <input type="password" placeholder="Senha" id="senhaCadastro" required>
+            <button id="btn-show-pass">
+                <i id="pass-i" class="fa-solid fa-eye"></i>
+            </button>
+        </div>
+        <div class="pass-container">
+            <input type="password" placeholder="Confirmar senha" id="confirmarSenhaCadastro" oninput="validarSenhas()" required>
+            <button id="btn-show-confirm-pass">
+                <i  id="conf-i" class="fa-solid fa-eye"></i>
+            </button>
+        </div>
         <p class="error-message" id="mensagemCadastro" ></p>
         <button type="submit" id="button-signup" disabled>Cadastrar</button>
     </form>
