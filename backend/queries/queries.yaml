@@ -4,12 +4,15 @@ queries:
     VALUES ($1, $2, $3, $4, $5);
 
   select_user_by_email: >
-    SELECT user_id, nome, email, senha FROM users WHERE email = $1;
+    SELECT user_id, name, email, password_hash FROM users
+     WHERE email = $1
+     AND expired_at IS NULL
+     AND email_verified IS TRUE;
 
   insert_user: >
-    INSERT INTO users (nome, email, senha) 
+    INSERT INTO users (name, email, password_hash) 
     VALUES ($1, $2, $3) 
-    RETURNING user_id, nome, email;
+    RETURNING user_id, name, email;
 
   insert_user_log_register: >
     INSERT INTO user_logs (user_id, action) 

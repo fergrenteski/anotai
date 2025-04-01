@@ -20,7 +20,7 @@ async function verificarLogin() {
     }
 
     const data = await response.json();
-    document.getElementById("nomeUsuario").innerText = data.nome;
+    document.getElementById("nomeUsuario").innerText = data.name;
   } catch (error) {
     sessionStorage.removeItem("token");
     window.location.href = "index.html";

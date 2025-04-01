@@ -31,7 +31,7 @@ class UserService {
         return { message: "Cadastro realizado com sucesso!", token };
     }
 
-    async loginUsuario(email, senha) {
+    async loginUsuario(email, password) {
         const queries = await loadQueries();
         const usuario = await pool.query(queries.select_user_by_email, [email]);
 
@@ -39,9 +39,9 @@ class UserService {
             throw new Error("E-mail ou senha inválidos!");
         }
 
-        const senhaCorreta = await bcrypt.compare(senha, usuario.rows[0].senha);
+        const correctPassword = await bcrypt.compare(password, usuario.rows[0].password_hash);
 
-        if (!senhaCorreta) {
+        if (!correctPassword) {
             throw new Error("E-mail ou senha inválidos!");
         }
 
@@ -82,7 +82,7 @@ class UserService {
 
     gerarToken(usuario) {
         return jwt.sign(
-            { id: usuario.id, nome: usuario.nome, email: usuario.email },
+            { id: usuario.id, name: usuario.name, email: usuario.email },
             JWT_SECRET,
             { expiresIn: JWT_EXPIRATION }
         );
@@ -91,7 +91,7 @@ class UserService {
     async verificarToken(token) {
         try {
             const decoded = jwt.verify(token, JWT_SECRET);
-            return { valid: true, nome: decoded.nome };
+            return { valid: true, name: decoded.name };
         } catch (err) {
             throw new Error("Token inválido");
         }
