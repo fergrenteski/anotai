@@ -1,9 +1,14 @@
 DROP TABLE IF EXISTS users CASCADE;
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL,
+    name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
-    senha VARCHAR(255) NOT NULL
+    email_verified BOOLEAN NOT NULL DEFAULT TRUE,
+    password_hash VARCHAR(255) NOT NULL,
+    profile_img BYTEA,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expired_at TIMESTAMP 
 );
 
 DROP TABLE IF EXISTS request_logs CASCADE;
