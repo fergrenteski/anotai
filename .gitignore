@@ -11,5 +11,6 @@ pgdata/
 postgres_data/
 frontend/nginx/default.conf~
 frontend/js/utils/env.js
-backend/database/database.js
+./backend/database/database.js
 .vscode/launch.json
+docker-compose.yaml
