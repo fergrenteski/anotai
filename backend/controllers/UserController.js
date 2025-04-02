@@ -1,78 +1,130 @@
-const UserService = require('../services/UserService');
+const UserService = require("../services/UserService");
 const EmailService = require("../services/EmailService");
 
 class UserController {
-    static async cadastro(req, res) {
+    constructor() {
+        this.userService = new UserService();
+        this.emailService = new EmailService();
+    }
+
+    /**
+     * Cadastra um novo usuário e envia um e-mail de confirmação.
+     * @param {Object} req - Requisição HTTP.
+     * @param {Object} res - Resposta HTTP.
+     */
+    async cadastro(req, res) {
         const { nome, email, senha } = req.body;
 
         if (!nome || !email || !senha) {
-            return res.status(400).json({ error: "Todos os campos são obrigatórios!" });
+            return res.status(400).json({ success: false, message: "Todos os campos são obrigatórios!" });
         }
 
         try {
-            const userService = new UserService();
-            const { message, token } = await userService.cadastrarUsuario(nome, email, senha);
-            res.json({ message, token });
+            const data = await this.userService.cadastrarUsuario(nome, email, senha);
+            await this.emailService.enviarConfirmacaoEmail(data.email, data.emailToken);
+            return res.status(201).json({ success: true, message: data.message });
         } catch (error) {
             console.error("Erro no cadastro:", error);
-            res.status(500).json({ error: "Erro ao cadastrar usuário." });
+            return res.status(500).json({ success: false, message: error.message });
         }
     }
 
-    static async login(req, res) {
+    /**
+     * Realiza o login do usuário e retorna um token.
+     * @param {Object} req - Requisição HTTP.
+     * @param {Object} res - Resposta HTTP.
+     */
+    async login(req, res) {
         const { email, senha } = req.body;
 
         if (!email || !senha) {
-            return res.status(400).json({ error: "E-mail e senha são obrigatórios!" });
+            return res.status(400).json({ success: false, message: "E-mail e senha são obrigatórios!" });
         }
 
         try {
-            const userService = new UserService();
-            const { message, token } = await userService.loginUsuario(email, senha);
-            res.json({ message, token });
+            const { message, token } = await this.userService.loginUsuario(email, senha);
+            return res.status(200).json({ success: true, message, token });
         } catch (error) {
             console.error("Erro no login:", error);
-            res.status(500).json({ error: "Erro ao realizar login." });
+            return res.status(401).json({ success: false, message: "E-mail ou senha inválidos!" });
         }
     }
 
-    static async verificarToken(req, res) {
-        const token = req.headers.authorization?.split(" ")[1];
+    /**
+     * Verifica se o token de autenticação é válido.
+     * @param {Object} req - Requisição HTTP.
+     * @param {Object} res - Resposta HTTP.
+     */
+    async verificarToken(req, res) {
+        if (!req.headers.authorization) {
+            return res.status(401).json({ success: false, message: "Cabeçalho de autorização não fornecido." });
+        }
+
+        // Obtém o token do cabeçalho Authorization
+        const token = req.headers.authorization.split(" ")[1];
 
         if (!token) {
-            return res.status(401).json({ message: "Token não fornecido" });
+            return res.status(401).json({ success: false, message: "Token não fornecido." });
         }
 
         try {
-            const userService = new UserService();
-            const result = await userService.verificarToken(token);
-            res.json(result);
-        } catch (err) {
-            res.status(401).json({ message: "Token inválido" });
+            const result = await this.userService.verificarToken(token);
+            return res.status(200).json({ success: true, ...result });
+        } catch (error) {
+            console.error("Erro na verificação do token:", error);
+            return res.status(401).json({ success: false, message: "Token inválido." });
         }
     }
-// Função para redefinir senha
-    static async redefinirSenha(req, res) {
+
+    /**
+     * Solicita a redefinição de senha e envia um e-mail com o token de redefinição.
+     * @param {Object} req - Requisição HTTP.
+     * @param {Object} res - Resposta HTTP.
+     */
+    async redefinirSenha(req, res) {
         const { email } = req.body;
 
         if (!email) {
-            return res.status(400).json({ error: "E-mail é obrigatório!" });
+            return res.status(400).json({ success: false, message: "E-mail é obrigatório!" });
         }
 
         try {
-            const userService = new UserService();
-            const { message, token } = await userService.redefinirSenha(email);
-
-            // Aqui, você utiliza o serviço de e-mail
-            const emailService = new EmailService();
-            await emailService.enviarEmail(email, token);  // Envia o link de redefinição
-
-            res.json({ message, token });
+            const { message, token } = await this.userService.redefinirSenha(email);
+            await this.emailService.enviarRedefinicaoEmail(email, token);
+            return res.status(200).json({ success: true, message });
         } catch (error) {
             console.error("Erro ao redefinir senha:", error);
-            res.status(500).json({ error: "Erro ao redefinir senha." });
+            return res.status(500).json({ success: false, message: "Erro ao redefinir senha." });
+        }
+    }
+
+    /**
+     * Confirma a verificação do e-mail do usuário.
+     * @param {Object} req - Requisição HTTP.
+     * @param {Object} res - Resposta HTTP.
+     */
+    async confirmarEmail(req, res) {
+        const { email, token } = req.body;
+
+        if (!email || !token) {
+            return res.status(400).json({ success: false, message: "Verificação de e-mail inválida!" });
+        }
+
+        try {
+            const response = await this.userService.verificarTokenEmail(token);
+
+            // Verifica se o e-mail fornecido corresponde ao e-mail associado ao token
+            if (email !== response.email) {
+                return res.status(403).json({ success: false, message: "O e-mail fornecido não corresponde ao e-mail vinculado ao token." });
+            }
+
+            const { message } = await this.userService.confirmarEmail(email);
+            return res.status(200).json({ success: true, message });
+        } catch (error) {
+            console.error("Erro na verificação de e-mail:", error);
+            return res.status(500).json({ success: false, message: error.message });
         }
     }
 }
 
-module.exports = UserController
+module.exports = new UserController();

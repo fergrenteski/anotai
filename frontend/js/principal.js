@@ -1,13 +1,16 @@
 import API_URLS from "./utils/env.js";
+
 const url = API_URLS.AUTH_URL;
 
-async function verificarLogin() {
-  const token = sessionStorage.getItem("token");
+// Função para redirecionar para a tela de login
+const redirecionarParaLogin = () => {
+  window.location.href = "index.html";
+};
 
-  if (!token) {
-    window.location.href = "index.html";
-    return;
-  }
+// Verificar login
+const verificarLogin = async () => {
+  const token = sessionStorage.getItem("token");
+  if (!token) return redirecionarParaLogin();
 
   try {
     const response = await fetch(`${url}/verificar-token`, {
@@ -15,21 +18,25 @@ async function verificarLogin() {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    if (!response.ok) {
-      throw new Error("Token inválido");
+    const data = await response.json();
+
+    if (!data.success) {
+      sessionStorage.removeItem("token");
+      return redirecionarParaLogin();
     }
 
-    const data = await response.json();
     document.getElementById("nomeUsuario").innerText = data.name;
-  } catch (error) {
+  } catch {
     sessionStorage.removeItem("token");
-    window.location.href = "index.html";
+    redirecionarParaLogin();
   }
-}
+};
 
-function logout() {
+// Logout
+const logout = () => {
   sessionStorage.removeItem("token");
-  window.location.href = "index.html";
-}
+  redirecionarParaLogin();
+};
 
+// Executar verificação de login
 verificarLogin();
