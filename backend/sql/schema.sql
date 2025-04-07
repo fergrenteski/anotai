@@ -3,7 +3,7 @@ CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
-    email_verified BOOLEAN NOT NULL DEFAULT TRUE,
+    email_verified BOOLEAN NOT NULL DEFAULT FALSE,
     password_hash VARCHAR(255) NOT NULL,
     profile_img BYTEA,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -40,6 +40,18 @@ CREATE TABLE user_reset_password_keys (
    expires_at TIMESTAMP NOT NULL,
    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
+DROP TABLE IF EXISTS user_email_verified_keys CASCADE;
+CREATE TABLE user_email_verified_keys (
+    email_verified_token_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    email TEXT NOT NULL,
+    token TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
 
 
 

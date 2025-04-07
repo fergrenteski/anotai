@@ -1,160 +1,148 @@
 import API_URLS from "./utils/env.js";
+
 const url = API_URLS.AUTH_URL;
 
-const inputEmailCadastro = document.getElementById("emailCadastro");
-const inputEmailLogin = document.getElementById("emailLogin");
-const inputSenhaLogin = document.getElementById("senhaLogin");
-const formLogin = document.getElementById("form-login");
-const formSignup = document.getElementById("form-signup");
-const buttonMostrarSenha = document.getElementById("btn-show-pass");
-const buttonMostrarConfirmarSenha = document.getElementById("btn-show-confirm-pass");
-const confirmarInput = document.getElementById("confirmarSenhaCadastro");
-const senhaInput = document.getElementById("senhaCadastro");
+// Elementos do DOM
+const elements = {
+    inputEmailCadastro: document.getElementById("emailCadastro"),
+    inputEmailLogin: document.getElementById("emailLogin"),
+    inputSenhaLogin: document.getElementById("senhaLogin"),
+    formLogin: document.getElementById("form-login"),
+    formSignup: document.getElementById("form-signup"),
+    buttonMostrarSenha: document.getElementById("btn-show-pass"),
+    buttonMostrarConfirmarSenha: document.getElementById("btn-show-confirm-pass"),
+    confirmarInput: document.getElementById("confirmarSenhaCadastro"),
+    senhaInput: document.getElementById("senhaCadastro"),
+    mensagemCadastro: document.getElementById("mensagemCadastro"),
+    buttonCriar: document.getElementById("button-signup"),
+    mensagemLogin: document.getElementById("mensagemLogin"),
+    showSignup: document.getElementById("show-signup"),
+    showLogin: document.getElementById("show-login"),
+};
 
-// Função para alternar entre as telas de login e cadastro
-function toggleForms(showSignup) {
+// Alternar entre telas de login e cadastro
+const toggleForms = (showSignup) => {
     document.querySelector('.container').classList.toggle('active', showSignup);
     document.getElementById('login-info').style.display = showSignup ? 'none' : 'block';
     document.getElementById('signup-info').style.display = showSignup ? 'block' : 'none';
     document.getElementById('login-container').style.display = showSignup ? 'none' : 'block';
     document.getElementById('signup-container').style.display = showSignup ? 'block' : 'none';
-}
+};
 
-// Função de validação de senhas
-function validarSenhas() {
-    const senha = document.getElementById("senhaCadastro").value;
-    const confirmarSenha = document.getElementById("confirmarSenhaCadastro").value;
-    const mensagem = document.getElementById("mensagemCadastro");
-    const buttonCriar = document.getElementById("button-signup");
+// Validação de senha
+const validarSenhas = () => {
+    const { senhaInput, confirmarInput, mensagemCadastro, buttonCriar } = elements;
+    const senha = senhaInput.value;
+    const confirmarSenha = confirmarInput.value;
 
-    if (senha.length >= 8 || confirmarSenha.length >= 8) {
-        if (senha === confirmarSenha) {
-            confirmarInput.classList.add("valid");
-            confirmarInput.classList.remove("invalid");
-            mensagem.innerHTML = "";
-            buttonCriar.disabled = false;
-            buttonCriar.classList.add("enabled");
-            senhaInput.classList.remove("invalid");
-            senhaInput.classList.add("valid");
-        } else {
-            confirmarInput.classList.add("invalid");
-            confirmarInput.classList.remove("valid");
-            mensagem.innerHTML = "As senhas não coincidem!";
-            buttonCriar.disabled = true;
-            buttonCriar.classList.remove("enabled");
-            senhaInput.classList.remove("invalid", "valid");
-        }
-    } else {
-        confirmarInput.classList.remove("valid", "invalid");
+    if (senha.length < 8) {
+        mensagemCadastro.innerHTML = "A senha deve ter pelo menos 8 caracteres!";
         buttonCriar.disabled = true;
-        mensagem.innerHTML = "A Senha deve conter pelo menos 8 caracteres!";
-        buttonCriar.classList.remove("enabled");
         senhaInput.classList.add("invalid");
+        return;
     }
-}
 
-// Função para fazer o login
-async function autenticar(url, dados) {
-    const resposta = await fetch(url, {
+    if (senha === confirmarSenha) {
+        confirmarInput.classList.add("valid");
+        confirmarInput.classList.remove("invalid");
+        mensagemCadastro.innerHTML = "";
+        buttonCriar.disabled = false;
+        buttonCriar.classList.add("enabled");
+        senhaInput.classList.add("valid");
+        senhaInput.classList.remove("invalid");
+    } else {
+        confirmarInput.classList.add("invalid");
+        confirmarInput.classList.remove("valid");
+        mensagemCadastro.innerHTML = "As senhas não coincidem!";
+        buttonCriar.disabled = true;
+        senhaInput.classList.remove("valid");
+    }
+};
+
+// Função genérica para requisições de autenticação
+const autenticar = async (endpoint, dados) => {
+    const resposta = await fetch(`${url}/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(dados)
+        body: JSON.stringify(dados),
+    });
+    return resposta.json();
+};
+
+// Login
+const login = async () => {
+    const { inputEmailLogin, inputSenhaLogin, mensagemLogin } = elements;
+    const data = await autenticar("login", {
+        email: inputEmailLogin.value,
+        senha: inputSenhaLogin.value,
     });
 
-    return await resposta.json();
-}
-
-// Função para o login
-async function login() {
-    const email = document.getElementById("emailLogin").value;
-    const senha = document.getElementById("senhaLogin").value;
-
-    const data = await autenticar(`${url}/login`, { email, senha });
-
-    if (data.token) {
+    if (data.success) {
         sessionStorage.setItem("token", data.token);
         window.location.href = "home.html";
     } else {
-        document.getElementById("mensagemLogin").innerText = data.error;
-        document.getElementById("emailLogin").classList.add("invalid");
-        document.getElementById("senhaLogin").classList.add("invalid");
+        mensagemLogin.innerText = data.message;
+        inputEmailLogin.classList.add("invalid");
+        inputSenhaLogin.classList.add("invalid");
     }
-}
+};
 
-// Função para cadastrar o usuário
-async function cadastrar() {
-    const nome = document.getElementById("nomeCadastro").value;
-    const email = document.getElementById("emailCadastro").value;
-    const senha = document.getElementById("senhaCadastro").value;
-    const confirmacaoSenha = document.getElementById("confirmarSenhaCadastro").value;
+// Cadastro
+const cadastrar = async () => {
+    const { senhaInput, confirmarInput, mensagemCadastro, inputEmailCadastro } = elements;
 
-    if (senha !== confirmacaoSenha) {
-        document.getElementById("mensagemCadastro").innerText = "As senhas não coincidem!";
+    if (senhaInput.value !== confirmarInput.value) {
+        mensagemCadastro.innerText = "As senhas não coincidem!";
         return;
     }
 
-    if (senha.length < 8) {
-        document.getElementById("mensagemCadastro").innerText = "A senha deve ter pelo menos 8 caracteres";
-        return;
-    }
+    const data = await autenticar("cadastro", {
+        nome: document.getElementById("nomeCadastro").value,
+        email: inputEmailCadastro.value,
+        senha: senhaInput.value,
+    });
 
-    const data = await autenticar(`${url}/cadastro`, { nome, email, senha });
-
-    if (data.token) {
-        sessionStorage.setItem("token", data.token);
-        window.location.href = "index.html";
+    if (data.success) {
+        mensagemCadastro.innerText = data.message;
     } else {
-        document.getElementById("mensagemCadastro").innerText = data.error;
+        mensagemCadastro.innerText = data.message;
         inputEmailCadastro.classList.add("invalid");
     }
-}
+};
 
-// Submissão do formulário de cadastro
-formSignup.addEventListener("submit", (event) => {
-    event.preventDefault();
+// Eventos
+elements.formSignup.addEventListener("submit", (e) => {
+    e.preventDefault();
     cadastrar();
 });
 
-// Submissão do formulário de login
-formLogin.addEventListener("submit", (event) => {
-    event.preventDefault();
+elements.formLogin.addEventListener("submit", (e) => {
+    e.preventDefault();
     login();
 });
 
-// Remove a classe de cor vermelha do Input
-inputEmailLogin.addEventListener("focus", () => {
-    inputEmailLogin.classList.remove("invalid");
-})
+elements.inputEmailLogin.addEventListener("focus", () => elements.inputEmailLogin.classList.remove("invalid"));
 
-// Remove a classe de cor vermelha do Input
-inputEmailCadastro.addEventListener("focus", () => {
-    inputEmailCadastro.classList.remove("invalid");
-})
+elements.inputEmailCadastro.addEventListener("focus", () => elements.inputEmailCadastro.classList.remove("invalid"));
 
-// Remove a classe de cor vermelha do Input
-inputSenhaLogin.addEventListener("focus", () => {
-    inputSenhaLogin.classList.remove("invalid");
-})
+elements.inputSenhaLogin.addEventListener("focus", () => elements.inputSenhaLogin.classList.remove("invalid"));
 
-// Alterar a tela para o cadastro
-document.getElementById('show-signup').addEventListener('click', () => toggleForms(true));
+elements.showSignup.addEventListener("click", () => toggleForms(true));
 
-// Alterar a tela para o login
-document.getElementById('show-login').addEventListener('click', () => toggleForms(false));
+elements.showLogin.addEventListener("click", () => toggleForms(false));
 
-document.getElementById("senhaCadastro").addEventListener("input", validarSenhas);
+elements.senhaInput.addEventListener("input", validarSenhas);
 
-document.getElementById("confirmarSenhaCadastro").addEventListener("input", validarSenhas);
+elements.confirmarInput.addEventListener("input", validarSenhas);
 
-buttonMostrarSenha.addEventListener('click', () => {
-    senhaInput.type = senhaInput.type === "password" ? "text" : "password";
+elements.buttonMostrarSenha.addEventListener("click", () => {
+    elements.senhaInput.type = elements.senhaInput.type === "password" ? "text" : "password";
     document.getElementById("pass-i").classList.toggle("fa-eye");
     document.getElementById("pass-i").classList.toggle("fa-eye-slash");
-}
-);
-buttonMostrarConfirmarSenha.addEventListener('click', () => {
+});
 
-    confirmarInput.type = confirmarInput.type === "password" ? "text" : "password";
+elements.buttonMostrarConfirmarSenha.addEventListener("click", () => {
+    elements.confirmarInput.type = elements.confirmarInput.type === "password" ? "text" : "password";
     document.getElementById("conf-i").classList.toggle("fa-eye");
     document.getElementById("conf-i").classList.toggle("fa-eye-slash");
 });
