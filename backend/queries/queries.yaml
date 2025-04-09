@@ -63,3 +63,11 @@ queries:
     INSERT INTO user_email_verified_keys (user_id, email, token, expires_at)
     VALUES ($1, $2, $3, $4)
     RETURNING *;
+  
+  select_user_reset_password_keys_by_token: >
+    SELECT t.token, u.user_id, u.email, u.name, t.expires_at
+    FROM user_reset_password_keys t
+    LEFT JOIN users u 
+    ON t.user_id = u.user_id
+    AND u.expired_at IS NULL
+    WHERE t.token = $1; 

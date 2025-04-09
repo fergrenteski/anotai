@@ -8,10 +8,23 @@ const params = new URLSearchParams(window.location.search);
 const email = params.get("email");
 const token = params.get("token");
 
-const response = await fetch(`${url}/alterar-senha`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, token, senha, confirmacaoSenha }),
+const alterarSenha = async () => {
+    const senha = document.getElementById("senha").value;
+    const confirmacaoSenha = document.getElementById("confirmarSenha").value;
+    try {
+        const response = await fetch(`${url}/alterar-senha`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, token, senha, confirmacaoSenha }),
+        });
+        const data = await response.json();
+        document.getElementById("mensagem").innerText = data.message;
+    } catch(error) {
+        document.getElementById("mensagem").innerText = "Erro ao alterar senha!";
+    }
+}
+
+document.getElementById("form-confirm-reset-pass").addEventListener("submit", (e) => {
+    e.preventDefault();
+    alterarSenha();
 });
-const data = await response.json();
-document.getElementById("mensagem").innerText = data.message;
