@@ -15,9 +15,8 @@ async function resetPassword() {
 
     const data = await response.json();
 
-    if(data.error){
-        document.getElementById("mensagem").innerText = data.error;
-    }
+    document.getElementById("mensagem").innerText = data.message;
+
 
 }
 

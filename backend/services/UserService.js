@@ -1,102 +1,148 @@
 const bcrypt = require("bcryptjs");
-const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const pool = require("../database/database");
 const { loadQueries } = require("../utils/queries");
-// Importa queries de um arquivo centralizado
+const { gerarTokenEmail } = require("../utils/validators");
+
 const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRATION = "1h"; // Tempo de expiração do token
-const SALT_ROUNDS = 10; // Quantidade de rounds para o bcrypt
+const JWT_EXPIRATION = "1h";
+const SALT_ROUNDS = 10;
 
 class UserService {
-
+    /**
+     * Cadastra um novo usuário no sistema.
+     * @param {string} nome - Nome do usuário.
+     * @param {string} email - E-mail do usuário.
+     * @param {string} senha - Senha do usuário.
+     * @returns {Promise<Object>} - Retorna um objeto indicando o sucesso ou falha do cadastro.
+     */
     async cadastrarUsuario(nome, email, senha) {
         const queries = await loadQueries();
-        const existe = await pool.query(queries.select_user_by_email, [email]);
+        const { rows } = await pool.query(queries.select_user_by_email, [email]);
 
-        if (existe.rows.length > 0) {
+        if (rows.length > 0) {
             throw new Error("E-mail já cadastrado!");
         }
 
-        const salt = await bcrypt.genSalt(SALT_ROUNDS);
-        const senhaHash = await bcrypt.hash(senha, salt);
-
+        // Criptografa a senha antes de armazenar no banco de dados
+        const senhaHash = await bcrypt.hash(senha, SALT_ROUNDS);
         const result = await pool.query(queries.insert_user, [nome, email, senhaHash]);
+        const userId = result.rows[0].user_id;
 
-        const token = this.gerarToken(result.rows[0]);
+        // Gera um token de confirmação de e-mail
+        const { emailToken, expiresAt } = gerarTokenEmail();
+        await pool.query(queries.insert_user_email_confirm_keys, [userId, email, emailToken, expiresAt]);
+        await this.registrarLog(queries.insert_user_log_register, [userId]);
 
-        // Registra o log de cadastro
-        await this.registrarLog(queries.insert_user_log_register, [result.rows[0].user_id]);
-
-        return { message: "Cadastro realizado com sucesso!", token };
+        return { success: true, message: "Cadastro realizado com sucesso! Verifique seu e-mail.", email, emailToken };
     }
 
+    /**
+     * Realiza o login do usuário.
+     * @param {string} email - E-mail do usuário.
+     * @param {string} password - Senha do usuário.
+     * @returns {Promise<Object>} - Retorna um objeto indicando o sucesso ou falha do login.
+     */
     async loginUsuario(email, password) {
         const queries = await loadQueries();
-        const usuario = await pool.query(queries.select_user_by_email, [email]);
+        const { rows } = await pool.query(queries.select_user_by_email, [email]);
 
-        if (usuario.rows.length === 0) {
+        if (rows.length === 0 || !(await bcrypt.compare(password, rows[0].password_hash))) {
             throw new Error("E-mail ou senha inválidos!");
         }
 
-        const correctPassword = await bcrypt.compare(password, usuario.rows[0].password_hash);
+        const token = this.gerarToken(rows[0]);
+        await this.registrarLog(queries.insert_user_log_login, [rows[0].user_id]);
 
-        if (!correctPassword) {
-            throw new Error("E-mail ou senha inválidos!");
-        }
-
-        const token = this.gerarToken(usuario.rows[0]);
-
-        // Registra o log de login
-        await this.registrarLog(queries.insert_user_log_login, [usuario.rows[0].user_id]);
-
-        return { message: "Login realizado com sucesso!", token };
+        return { success: true, message: "Login realizado com sucesso!", token };
     }
 
+    /**
+     * Gera um token de redefinição de senha e o associa ao usuário.
+     * @param {string} email - E-mail do usuário.
+     * @returns {Promise<Object>} - Retorna um objeto indicando o sucesso ou falha da solicitação de redefinição de senha.
+     */
     async redefinirSenha(email) {
         const queries = await loadQueries();
-        try {
-            const result = await pool.query(queries.select_user_by_email, [email]);
+        const { rows } = await pool.query(queries.select_user_by_email, [email]);
 
-            if (result.rows.length === 0) {
-                return { message: "E-mail não encontrado!" };
-            }
-
-            const userId = result.rows[0].user_id;
-            const token = crypto.randomBytes(20).toString("hex");
-            const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // Expira em 1 hora
-
-            // Remove as chaves antigas e insere a nova
-            await pool.query(queries.remove_user_reset_password_keys, [userId]);
-            await pool.query(queries.insert_user_reset_password_keys, [userId, token, expiresAt]);
-
-            // Registra o log de redefinição de senha
-            await pool.query(queries.insert_user_log_reset_password, [userId]);
-
-            return { message: "E-mail enviado com sucesso!", token: token };
-        } catch (error) {
-            console.error("Erro na redefinição de senha:", error);
-            return { message: "Erro ao redefinir senha." };
+        if (rows.length === 0) {
+            throw new Error("E-mail não encontrado.");
         }
+
+        const userId = rows[0].user_id;
+        const { emailToken, expiresAt } = gerarTokenEmail();
+
+        // Remove tokens antigos e insere um novo
+        await pool.query(queries.delete_user_reset_password_keys, [userId]);
+        await pool.query(queries.insert_user_reset_password_keys, [userId, emailToken, expiresAt]);
+        await this.registrarLog(queries.insert_user_log_reset_password, [userId]);
+
+        return { success: true, message: "E-mail enviado com sucesso!", emailToken };
     }
 
+    /**
+     * Gera um token JWT para autenticação do usuário.
+     * @param {Object} usuario - Objeto contendo os dados do usuário.
+     * @returns {string} - Token JWT gerado.
+     */
     gerarToken(usuario) {
         return jwt.sign(
-            { id: usuario.id, name: usuario.name, email: usuario.email },
+            { id: usuario.user_id, name: usuario.name, email: usuario.email },
             JWT_SECRET,
             { expiresIn: JWT_EXPIRATION }
         );
     }
 
+    /**
+     * Verifica a validade do token JWT.
+     * @param {string} token - Token JWT a ser verificado.
+     * @returns {Promise<Object>} - Retorna um objeto indicando se o token é válido.
+     */
     async verificarToken(token) {
         try {
             const decoded = jwt.verify(token, JWT_SECRET);
-            return { valid: true, name: decoded.name };
+            return { success: true, valid: true, name: decoded.name };
         } catch (err) {
-            throw new Error("Token inválido");
+            return { success: false, message: "Token inválido." };
         }
     }
 
+    /**
+     * Verifica se o token de confirmação de e-mail é válido.
+     * @param {string} token - Token de confirmação de e-mail.
+     * @returns {Promise<Object>} - Retorna um objeto indicando se o token de e-mail é válido.
+     */
+    async verificarTokenEmail(token) {
+        const queries = await loadQueries();
+        const { rows } = await pool.query(queries.select_user_by_token, [token]);
+
+        if (rows.length === 0) {
+            return { success: false, message: "Nenhum usuário encontrado!" };
+        }
+
+        return { success: true, message: "Token verificado com sucesso!", email: rows[0].email };
+    }
+
+    /**
+     * Confirma o e-mail do usuário e remove o token utilizado.
+     * @param {string} email - E-mail do usuário.
+     * @param {string} token - Token de confirmação de e-mail.
+     * @returns {Promise<Object>} - Retorna um objeto indicando o sucesso da verificação do e-mail.
+     */
+    async confirmarEmail(email, token) {
+        const queries = await loadQueries();
+        await pool.query(queries.delete_token_email_by_token, [token]);
+        const user = await pool.query(queries.update_verified_user_by_email, [email]);
+        await pool.query(queries.insert_user_log_email_confirm, [user.rows[0].user_id])
+        return { success: true, message: "E-mail verificado com sucesso!" };
+    }
+
+    /**
+     * Registra logs de atividades do usuário.
+     * @param {string} query - Query SQL para inserção do log.
+     * @param {Array} params - Parâmetros da query.
+     */
     async registrarLog(query, params) {
         await pool.query(query, params);
     }

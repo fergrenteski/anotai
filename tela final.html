@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Grupos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: sans-serif;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(45deg, #7367f0, #43a047);
+            padding: 20px;
+        }
+        .container {
+            position: relative;
+            width: 500px;
+            padding: 40px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+        p {
+            margin-bottom: 25px;
+            color: #666;
+            line-height: 1.5;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: none;
+            border-bottom: 1px solid #ddd;
+            outline: none;
+            font-size: 15px;
+            background: transparent;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            background: #7367f0;
+            color: #fff;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #5d52d8;
+        }
+        .success-message {
+            color: #43a047;
+            font-weight: bold;
+            margin-top: 15px;
+            display: none;
+        }
+        .empty-state {
+            padding: 40px 0;
+            text-align: center;
+        }
+        .empty-state h2 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 22px;
+        }
+        .group-list {
+            margin-bottom: 20px;
+        }
+        .group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #7367f0;
+            text-align: left;
+        }
+        .group-info {
+            flex: 1;
+        }
+        .group-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .group-type {
+            font-size: 14px;
+            color: #666;
+        }
+        .group-members {
+            font-size: 14px;
+            color: #888;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .edit-btn, .delete-btn, .toggle-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            width: auto;
+            margin-top: 0;
+        }
+        .edit-btn {
+            background: #ffc107;
+            color: #333;
+        }
+        .edit-btn:hover {
+            background: #e5ac06;
+        }
+        .delete-btn {
+            background: #f44336;
+            color: white;
+        }
+        .delete-btn:hover {
+            background: #d32f2f;
+        }
+        .toggle-btn {
+            background: #2196F3;
+            color: white;
+        }
+        .toggle-btn:hover {
+            background: #0b7dda;
+        }
+        .group-members-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+            border-radius: 5px;
+            padding: 10px;
+        }
+        .member-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .member-item:last-child {
+            border-bottom: none;
+        }
+        .remove-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+            width: auto;
+            margin-top: 0;
+        }
+        .remove-btn:hover {
+            background: #d32f2f;
+        }
+        /* Estilos para as visualizações */
+        #groups-view, #edit-group-view {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .hidden {
+            display: none;
+        }
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 30px;
+            }
+            .action-buttons {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Vista da Lista de Grupos -->
+        <div id="groups-view">
+            <h1>Meus Grupos</h1>
+            <!-- Estado vazio - quando não há grupos -->
+            <div id="empty-state" class="empty-state">
+                <h2>Você não tem grupos</h2>
+                <p>Crie um novo grupo para começar a colaborar com outras pessoas.</p>
+                <button id="create-group-btn">Criar Grupo</button>
+            </div>
+            <!-- Lista de grupos - quando existem grupos -->
+            <div id="groups-list" class="group-list" style="display: none;">
+                <div class="group-item">
+                    <div class="group-info">
+                        <div class="group-title">Churrasco</div>
+                        <div class="group-type">Outro</div>
+                        <div class="group-members">6 membros</div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="edit-btn" data-group-id="1">Editar</button>
+                        <button class="delete-btn" data-group-id="1">Excluir</button>
+                    </div>
+                </div>
+                <div class="group-item">
+                    <div class="group-info">
+                        <div class="group-title">Lista do Mercado</div>
+                        <div class="group-type">Outro</div>
+                        <div class="group-members">3 membros</div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="edit-btn" data-group-id="2">Editar</button>
+                        <button class="delete-btn" data-group-id="2">Excluir</button>
+                    </div>
+                </div>
+                <div class="group-item">
+                    <div class="group-info">
+                        <div class="group-title">Farmácia</div>
+                        <div class="group-type">Outro</div>
+                        <div class="group-members">2 membros</div>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="edit-btn" data-group-id="3">Editar</button>
+                        <button class="delete-btn" data-group-id="3">Excluir</button>
+                    </div>
+                </div>
+                <button id="create-new-group-btn">Criar Novo Grupo</button>
+            </div>
+            <!-- Para demonstração - botão para alternar entre estados -->
+            <div style="margin-top: 20px; text-align: center;">
+                <button id="toggle-view-btn" class="toggle-btn" style="width: auto; padding: 8px 15px;">
+                    Alternar demonstração: Lista/Vazio
+                </button>
+            </div>
+        </div>
+        <!-- Vista de Edição/Criação de Grupo -->
+        <div id="edit-group-view" class="hidden">
+            <h1 id="group-action-title">Criar Novo Grupo</h1>
+            <p>Configure seu grupo, adicione membros e defina permissões.</p>
+            <div id="group-form">
+                <input type="text" id="group-name" placeholder="Nome do Grupo" required>
+                <select id="group-type">
+                    <option value="" disabled selected>Tipo de Grupo</option>
+                    <option value="trabalho">Trabalho</option>
+                    <option value="estudo">Estudo</option>
+                    <option value="projeto">Projeto</option>
+                    <option value="outro">Outro</option>
+                </select>
+                <h3 style="text-align: left; margin: 15px 0 10px 0;">Membros do Grupo</h3>
+                <div class="group-members-list" id="members-list">
+                    <div class="member-item">
+                        <span>maria@email.com (Administrador)</span>
+                        <button class="remove-btn" disabled>Admin</button>
+                    </div>
+                    <div class="member-item">
+                        <span>joao@email.com</span>
+                        <button class="remove-btn">Remover</button>
+                    </div>
+                    <div class="member-item">
+                        <span>ana@email.com</span>
+                        <button class="remove-btn">Remover</button>
+                    </div>
+                </div>
+                <input type="email" id="new-member" placeholder="E-mail do novo membro">
+                <button id="add-member-btn">Adicionar Membro</button>
+                <button id="save-group-btn" style="margin-top: 20px;">Salvar Grupo</button>
+                <p class="success-message" id="success-msg">Grupo salvo com sucesso!</p>
+            </div>
+            <button id="back-btn">Voltar para Meus Grupos</button>
+        </div>
+    </div>
+    <script>
+        // Elementos principais
+        const groupsView = document.getElementById('groups-view');
+        const editGroupView = document.getElementById('edit-group-view');
+        const emptyState = document.getElementById('empty-state');
+        const groupsList = document.getElementById('groups-list');
+        const groupActionTitle = document.getElementById('group-action-title');
+        // Variável para armazenar o ID do grupo em edição (null se for um novo grupo)
+        let currentGroupId = null;
+        // Função para mostrar a vista de grupos
+        function showGroupsView() {
+            editGroupView.classList.add('hidden');
+            groupsView.classList.remove('hidden');
+        }
+        // Função para mostrar a vista de edição/criação de grupo
+        function showEditView(groupId = null) {
+            currentGroupId = groupId;
+            // Atualizar o título conforme a ação (editar ou criar)
+            groupActionTitle.textContent = groupId ? "Editar Grupo" : "Criar Novo Grupo";
+            
+            // Se for edição, preencher os campos com os dados do grupo
+            if (groupId) {
+                // Aqui você buscaria os dados do grupo pelo ID e preencheria os campos
+                // Por enquanto, vamos simular com dados fixos para demonstração
+                const groupTitles = {
+                    "1": "Churrasco",
+                    "2": "Lista do Mercado",
+                    "3": "Farmácia"
+                };
+                document.getElementById('group-name').value = groupTitles[groupId] || "";
+                document.getElementById('group-type').value = "outro"; // Por padrão
+            } else {
+                // Limpar os campos para um novo grupo
+                document.getElementById('group-name').value = "";
+                document.getElementById('group-type').value = "";
+            }
+            groupsView.classList.add('hidden');
+            editGroupView.classList.remove('hidden');
+        }
+        // Botão para alternar entre visualizações (para demonstração)
+        document.getElementById('toggle-view-btn').addEventListener('click', function() {
+            if (emptyState.style.display === 'none') {
+                emptyState.style.display = 'block';
+                groupsList.style.display = 'none';
+            } else {
+                emptyState.style.display = 'none';
+                groupsList.style.display = 'block';
+            }
+        });
+        // Botão de criar grupo no estado vazio
+        document.getElementById('create-group-btn').addEventListener('click', function() {
+            showEditView();
+        });
+        // Botão de criar novo grupo na lista de grupos
+        document.getElementById('create-new-group-btn').addEventListener('click', function() {
+            showEditView();
+        });
+        // Botão para voltar à lista de grupos
+        document.getElementById('back-btn').addEventListener('click', function() {
+            showGroupsView();
+        });
+        // Adicionar eventos aos botões de editar
+        document.querySelectorAll('.edit-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const groupId = this.getAttribute('data-group-id');
+                showEditView(groupId);
+            });
+        });
+        // Adicionar eventos aos botões de excluir
+        document.querySelectorAll('.delete-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const groupName = this.parentElement.parentElement.querySelector('.group-title').textContent;
+                if (confirm('Tem certeza que deseja excluir o grupo "' + groupName + '"?')) {
+                    // Aqui viria o código para excluir o grupo
+                    alert('Grupo "' + groupName + '" excluído com sucesso!');
+                    this.parentElement.parentElement.remove();
+                    // Verificar se ainda há grupos na lista
+                    if (document.querySelectorAll('.group-item').length === 0) {
+                        emptyState.style.display = 'block';
+                        groupsList.style.display = 'none';
+                    }
+                }
+            });
+        });
+        // Adicionar membro ao grupo
+        document.getElementById('add-member-btn').addEventListener('click', function() {
+            const email = document.getElementById('new-member').value;
+            if (!email) {
+                alert('Por favor, informe o e-mail do novo membro!');
+                return;
+            }
+            const membersList = document.getElementById('members-list');
+            // Criar novo elemento de membro
+            const memberItem = document.createElement('div');
+            memberItem.className = 'member-item';
+            const memberSpan = document.createElement('span');
+            memberSpan.textContent = email;
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-btn';
+            removeBtn.textContent = 'Remover';
+            // Adicionar evento para remover membro
+            removeBtn.addEventListener('click', function() {
+                membersList.removeChild(memberItem);
+            });
+            memberItem.appendChild(memberSpan);
+            memberItem.appendChild(removeBtn);
+            membersList.appendChild(memberItem);
+            // Limpar campo de e-mail
+            document.getElementById('new-member').value = '';
+        });
+        // Remover membros existentes
+        document.querySelectorAll('.remove-btn').forEach(function(btn) {
+            if (!btn.disabled) {
+                btn.addEventListener('click', function() {
+                    const memberItem = this.parentElement;
+                    document.getElementById('members-list').removeChild(memberItem);
+                });
+            }
+        });
+        // Salvar grupo
+        document.getElementById('save-group-btn').addEventListener('click', function() {
+            const groupName = document.getElementById('group-name').value;
+            const groupType = document.getElementById('group-type').value;
+            if (!groupName) {
+                alert('Por favor, informe o nome do grupo!');
+                return;
+            } 
+            if (!groupType) {
+                alert('Por favor, selecione o tipo do grupo!');
+                return;
+            }
+            // Exibe a mensagem de sucesso
+            document.getElementById('success-msg').style.display = 'block';
+            // Após 2 segundos, volta para a lista de grupos
+            setTimeout(function() {
+                document.getElementById('success-msg').style.display = 'none';
+                showGroupsView();
+                // Se for um novo grupo, adiciona à lista
+                if (!currentGroupId) {
+                    // Para demonstração, também mostra a lista se estiver no estado vazio
+                    emptyState.style.display = 'none';
+                    groupsList.style.display = 'block';
+                    // Criar elemento para o novo grupo
+                    const memberCount = document.querySelectorAll('#members-list .member-item').length;
+                    const newGroupItem = document.createElement('div');
+                    newGroupItem.className = 'group-item';
+                    newGroupItem.innerHTML = `
+                        <div class="group-info">
+                            <div class="group-title">${groupName}</div>
+                            <div class="group-type">${groupType.charAt(0).toUpperCase() + groupType.slice(1)}</div>
+                            <div class="group-members">${memberCount} membros</div>
+                        </div>
+                        <div class="action-buttons">
+                            <button class="edit-btn">Editar</button>
+                            <button class="delete-btn">Excluir</button>
+                        </div>
+                    `;
+                    // Adicionar antes do botão de criar
+                    groupsList.insertBefore(newGroupItem, document.getElementById('create-new-group-btn'));
+                    
+                    // Adicionar evento aos novos botões
+                    const newEditBtn = newGroupItem.querySelector('.edit-btn');
+                    newEditBtn.addEventListener('click', function() {
+                        showEditView("new"); // Um ID temporário
+                    });
+                    
+                    const newDeleteBtn = newGroupItem.querySelector('.delete-btn');
+                    newDeleteBtn.addEventListener('click', function() {
+                        if (confirm('Tem certeza que deseja excluir o grupo "' + groupName + '"?')) {
+                            alert('Grupo "' + groupName + '" excluído com sucesso!');
+                            newGroupItem.remove();
+                            
+                            // Verificar se ainda há grupos
+                            if (document.querySelectorAll('.group-item').length === 0) {
+                                emptyState.style.display = 'block';
+                                groupsList.style.display = 'none';
+                            }
+                        }
+                    });
+                }
+            }, 1500);
+        });
+        // Inicializar: mostrar a lista de grupos por padrão
+        showGroupsView()
+        // Para demonstração, mostrar o estado com grupos por padrão
+        emptyState.style.display = 'none';
+        groupsList.style.display = 'block';
+    </script>
+</body>
+</html>
