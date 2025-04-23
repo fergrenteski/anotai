@@ -5,8 +5,26 @@ let groups = [];
 let members = [];
 let categories = [];
 
+async function fetchComToken(url, options = {}) {
+    const token = sessionStorage.getItem('token'); // ou sessionStorage, se preferir
+    if (!options.headers) {
+        options.headers = {};
+    }
+    // Adiciona o token se estiver disponível
+    if (token) {
+        options.headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await fetch(url, options);
+    // Se não autorizado, redireciona
+    if (response.status === 401) {
+        window.location.href = '/index.html'; // ou a rota de login
+        return Promise.reject(new Error('Não autorizado. Redirecionando...'));
+    }
+    return response;
+}
+
 async function fetchCategories() {
-    const response = await fetch('http://localhost:3000/api/categories');
+    const response = await fetchComToken('http://localhost:3000/api/categories');
     categories = await response.json();
     populateCategorySelect();
 }
@@ -62,7 +80,7 @@ function closeGroupForm() {
 }
 
 async function fetchGroups() {
-    const response = await fetch('http://localhost:3000/api/groups');
+    const response = await fetchComToken('http://localhost:3000/api/groups');
     // groups = await response.json();
     groups = [{id: 1, name: "grupo", description: "descricao", admin: true, category: { id: 1, name: "categoria" } },
         {id: 2, name: "grupo 2", description: "descricao", admin: false, category: { id: 1, name: "categoria" } }
@@ -117,7 +135,7 @@ document.getElementById('groupForm').addEventListener('submit', async (e) => {
 
     const method = currentGroupId ? 'PUT' : 'POST';
 
-    const response = await fetch(url, {
+    const response = await fetchComToken(url, {
         method: method,
         headers: {
             'Content-Type': 'application/json',
@@ -136,7 +154,7 @@ document.getElementById('groupForm').addEventListener('submit', async (e) => {
 });
 
 async function deleteGroup(groupId) {
-    await fetch(`http://localhost:3000/api/groups/${groupId}`, {
+    await fetchComToken(`http://localhost:3000/api/groups/${groupId}`, {
         method: 'DELETE',
     });
     alert('Grupo deletado!');
@@ -172,7 +190,7 @@ function updateMemberList() {
 async function removeMember(memberId) {
     if (!currentGroupId) return alert("Grupo ainda não foi criado!");
 
-    const response = await fetch(`http://localhost:3000/api/groups/${currentGroupId}/members/${memberId}`, {
+    const response = await fetchComToken(`http://localhost:3000/api/groups/${currentGroupId}/members/${memberId}`, {
         method: 'DELETE',
     });
 
@@ -190,11 +208,11 @@ async function addMemberByEmail() {
 
     if (!currentGroupId) return alert("Você precisa criar o grupo antes de adicionar membros!");
 
-    const response = await fetch(`http://localhost:3000/api/members?email=${email}`);
+    const response = await fetchComToken(`http://localhost:3000/api/members?email=${email}`);
     if (response.ok) {
         const data = await response.json();
 
-        const addResponse = await fetch(`http://localhost:3000/api/groups/${currentGroupId}/members`, {
+        const addResponse = await fetchComToken(`http://localhost:3000/api/groups/${currentGroupId}/members`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
