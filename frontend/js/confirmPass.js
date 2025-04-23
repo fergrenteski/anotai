@@ -1,5 +1,4 @@
-import API_URLS from "./utils/env.js";
-const url = API_URLS.EMAIL_URL;
+const url = "http://localhost:3000/api/user";
 
 // Captura os parâmetros da URL
 const params = new URLSearchParams(window.location.search);

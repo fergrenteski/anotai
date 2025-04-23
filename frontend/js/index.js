@@ -1,6 +1,4 @@
-import API_URLS from "./utils/env.js";
-
-const url = API_URLS.AUTH_URL;
+const url = "http://localhost:3000/api/user";
 
 // Elementos do DOM
 const elements = {

@@ -1,3 +1,5 @@
+const url = "http://localhost:3000/api/user";
+
 let currentGroupId = null;
 let groups = [];
 let members = [];
@@ -62,7 +64,9 @@ function closeGroupForm() {
 async function fetchGroups() {
     const response = await fetch('http://localhost:3000/api/groups');
     // groups = await response.json();
-    groups = [{id: 1, name: "grupo", description: "descricao", category: { id: 1, name: "categoria" } } ]
+    groups = [{id: 1, name: "grupo", description: "descricao", admin: true, category: { id: 1, name: "categoria" } },
+        {id: 2, name: "grupo 2", description: "descricao", admin: false, category: { id: 1, name: "categoria" } }
+     ]
     const groupListContainer = document.getElementById('groupList');
     groupListContainer.innerHTML = '';
 
@@ -72,11 +76,32 @@ async function fetchGroups() {
         groupDiv.innerHTML = `
             <strong>${group.name}</strong> - ${group.category.name}
             <p>${group.description}</p>
-            <button onclick="openGroupForm(${group.id})">Editar</button>
-            <button onclick="deleteGroup(${group.id})">Deletar</button>
         `;
+        // Redirecionamento ao clicar na div
+        groupDiv.addEventListener('click', () => {
+            window.location.href = `lists.html?groupId=${group.id}`;
+        });
+        // Adiciona botões se for admin
+        if(group.admin) {
+            const editButton = document.createElement('button');
+            editButton.textContent = 'E';
+            editButton.onclick = (event) => {
+                event.stopPropagation(); // Impede o clique da div
+                openGroupForm(group.id);
+            };
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = 'X';
+            deleteButton.onclick = (event) => {
+                event.stopPropagation(); // Impede o clique da div
+                deleteGroup(group.id);
+            };
+            groupDiv.appendChild(editButton);
+            groupDiv.appendChild(deleteButton);
+        }
+    
         groupListContainer.appendChild(groupDiv);
     });
+    
 }
 
 document.getElementById('groupForm').addEventListener('submit', async (e) => {

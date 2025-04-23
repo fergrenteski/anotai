@@ -1,6 +1,4 @@
-import API_URLS from "./utils/env.js";
-
-const url = API_URLS.AUTH_URL;
+const url = "http://localhost:3000/api/user";
 
 // Função para redirecionar para a tela de login
 const redirecionarParaLogin = () => {
@@ -25,7 +23,6 @@ const verificarLogin = async () => {
       return redirecionarParaLogin();
     }
 
-    document.getElementById("nomeUsuario").innerText = data.user.name;
   } catch {
     sessionStorage.removeItem("token");
     redirecionarParaLogin();
