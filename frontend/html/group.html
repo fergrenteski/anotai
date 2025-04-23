@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/group.css">
+    <title>Gestão de Grupos</title>
+</head>
+<body>
+    <div class="container">
+        <!-- Vista da Lista de Grupos -->
+        <div id="groups-view">
+            <h1>Meus Grupos</h1>
+            <!-- Estado vazio - quando não há grupos -->
+            <div id="empty-state" class="empty-state">
+                <h2>Você não tem grupos</h2>
+                <p>Crie um novo grupo para começar a colaborar com outras pessoas.</p>
+                <button id="create-group-btn">Criar Grupo</button>
+            </div>
+            <!-- Lista de grupos - quando existem grupos -->
+            <div id="groups-list" class="group-list" style="display: none;">
+              <button id="create-new-group-btn">Criar Novo Grupo</button>
+            </div>
+        </div>
+        <!-- Vista de Edição/Criação de Grupo -->
+        <div id="edit-group-view" class="hidden">
+            <h1 id="group-action-title">Criar Novo Grupo</h1>
+            <p>Configure seu grupo, adicione membros e defina permissões.</p>
+            <div id="group-form">
+                <input type="text" id="group-name" placeholder="Nome do Grupo" required>
+                <select id="group-type">
+                    <option value="" disabled selected>Tipo de Grupo</option>
+                </select>
+                <h3 style="text-align: left; margin: 15px 0 10px 0;">Membros do Grupo</h3>
+                <div class="group-members-list" id="members-list">
+                </div>
+                <input type="email" id="new-member" placeholder="E-mail do novo membro">
+                <button id="add-member-btn">Adicionar Membro</button>
+                <button id="save-group-btn" style="margin-top: 20px;">Salvar Grupo</button>
+                <p class="success-message" id="success-msg">Grupo salvo com sucesso!</p>
+            </div>
+            <button id="back-btn">Voltar para Meus Grupos</button>
+        </div>
+    </div>
+</body>
+<script type="module" src="../js/group.js"></script>
+</html>
