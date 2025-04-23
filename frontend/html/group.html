@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,40 +8,38 @@
 </head>
 <body>
     <div class="container">
-        <!-- Vista da Lista de Grupos -->
-        <div id="groups-view">
-            <h1>Meus Grupos</h1>
-            <!-- Estado vazio - quando não há grupos -->
-            <div id="empty-state" class="empty-state">
-                <h2>Você não tem grupos</h2>
-                <p>Crie um novo grupo para começar a colaborar com outras pessoas.</p>
-                <button id="create-group-btn">Criar Grupo</button>
-            </div>
-            <!-- Lista de grupos - quando existem grupos -->
-            <div id="groups-list" class="group-list" style="display: none;">
-              <button id="create-new-group-btn">Criar Novo Grupo</button>
-            </div>
+        <h1>Gestão de Grupos</h1>
+        <div class="group-list">
+            <h2>Grupos</h2>
+            <div id="groupList"></div>
         </div>
-        <!-- Vista de Edição/Criação de Grupo -->
-        <div id="edit-group-view" class="hidden">
-            <h1 id="group-action-title">Criar Novo Grupo</h1>
-            <p>Configure seu grupo, adicione membros e defina permissões.</p>
-            <div id="group-form">
-                <input type="text" id="group-name" placeholder="Nome do Grupo" required>
-                <select id="group-type">
-                    <option value="" disabled selected>Tipo de Grupo</option>
-                </select>
-                <h3 style="text-align: left; margin: 15px 0 10px 0;">Membros do Grupo</h3>
-                <div class="group-members-list" id="members-list">
+        <button onclick="openGroupForm()">Criar Novo Grupo</button>
+    </div>
+
+    <div id="groupFormModal" class="form-modal">
+        <div class="form-modal-content">
+            <span class="close-btn" onclick="closeGroupForm()">&times;</span>
+            <h2 id="formTitle">Criar Novo Grupo</h2>
+            <form id="groupForm">
+                <input type="text" id="groupName" placeholder="Nome do grupo" required><br>
+                <select id="categorySelect" required>
+                    <option value="">Selecione uma Categoria</option>
+                </select><br>
+                <textarea id="groupDescription" placeholder="Descrição do grupo" required></textarea><br>
+                <button type="submit" id="submitGroupBtn">Criar Grupo</button>
+            </form>
+
+            <div class="member-list">
+                <h3>Membros</h3>
+                <div id="membersContainer">
+                    <p id="noMembersText" class="no-members">Sem membros</p>
                 </div>
-                <input type="email" id="new-member" placeholder="E-mail do novo membro">
-                <button id="add-member-btn">Adicionar Membro</button>
-                <button id="save-group-btn" style="margin-top: 20px;">Salvar Grupo</button>
-                <p class="success-message" id="success-msg">Grupo salvo com sucesso!</p>
+                <input type="email" id="memberEmail" placeholder="Email do membro" />
+                <button onclick="addMemberByEmail()">Adicionar Membro</button>
+                <p id="memberErrorMessage" style="color: red; display: none;">Membro não encontrado.</p>
             </div>
-            <button id="back-btn">Voltar para Meus Grupos</button>
         </div>
     </div>
+    <script src="../js/group.js"></script>
 </body>
-<script type="module" src="../js/group.js"></script>
 </html>

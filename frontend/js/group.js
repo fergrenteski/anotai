@@ -1,262 +1,194 @@
-import API_URLS from "./utils/env.js";
-
-const url = API_URLS.GROUP_URL;
-
-/**
- * Realiza uma requisição autenticada com JWT via sessionStorage.
- * @param {string} url - URL da API.
- * @param {object} [options={}] - Configurações adicionais do fetch.
- * @returns {Promise<Response>} - Promessa da resposta da API.
- */
-function authFetch(url, options = {}) {
-  const token = sessionStorage.getItem('token');
-  options.headers = {
-    ...options.headers,
-    Authorization: `Bearer ${token}`
-  };
-  return fetch(url, options);
-}
-
-//  Elementos da interface 
-const groupsView = document.getElementById('groups-view');
-const editGroupView = document.getElementById('edit-group-view');
-const emptyState = document.getElementById('empty-state');
-const groupsList = document.getElementById('groups-list');
-const groupActionTitle = document.getElementById('group-action-title');
 let currentGroupId = null;
+let groups = [];
+let members = [];
+let categories = [];
 
-/**
- * Exibe a visualização da lista de grupos.
- */
-function showGroupsView() {
-  editGroupView.classList.add('hidden');
-  groupsView.classList.remove('hidden');
+async function fetchCategories() {
+    const response = await fetch('http://localhost:3000/api/categories');
+    categories = await response.json();
+    populateCategorySelect();
 }
 
-/**
- * Carrega e popula o select com os tipos de grupo.
- * @returns {Promise<void>}
- */
-async function loadGroupTypes() {
-  // const res = await authFetch(url + '/group_types');
-  // const types = await res.json();
-  const types = [
-    { id: 1, name: "Família" },
-    { id: 2, name: "Trabalho" },
-    { id: 3, name: "Amigos" },
-    { id: 4, name: "Projeto X" },
-    { id: 5, name: "Turma da Faculdade" }
-  ];
-  const select = document.getElementById('group-type');
-  select.innerHTML = '<option value="">Selecione</option>';
-  types.forEach(type => {
-    const opt = document.createElement('option');
-    opt.value = type.id;
-    opt.textContent = type.name;
-    select.appendChild(opt);
-  });
+function populateCategorySelect() {
+    const categorySelect = document.getElementById('categorySelect');
+    categorySelect.innerHTML = '<option value="">Selecione uma Categoria</option>';
+    categories.forEach(category => {
+        const option = document.createElement('option');
+        option.value = category.id;
+        option.textContent = category.name;
+        categorySelect.appendChild(option);
+    });
 }
 
-/**
- * Exibe o formulário de edição ou criação de grupo.
- * @param {string|null} [groupId=null] - ID do grupo a ser editado (null para novo grupo).
- * @returns {Promise<void>}
- */
-async function showEditView(groupId = null) {
-  currentGroupId = groupId;
-  await loadGroupTypes();
-  groupActionTitle.textContent = groupId ? "Editar Grupo" : "Criar Novo Grupo";
+function openGroupForm(groupId = null) {
+    currentGroupId = groupId;
+    const modal = document.getElementById("groupFormModal");
+    const form = document.getElementById("groupForm");
+    const title = document.getElementById("formTitle");
+    const submitButton = document.getElementById("submitGroupBtn");
+    const membersContainer = document.getElementById("membersContainer");
 
-  const membersList = document.getElementById('members-list');
-  membersList.innerHTML = '';
+    if (!groupId) {
+        title.textContent = "Criar Novo Grupo";
+        submitButton.textContent = "Criar Grupo";
+        form.reset();
+        document.getElementById("categorySelect").value = "";
+        members = [];
+        membersContainer.innerHTML = `<p id="noMembersText" class="no-members">Sem membros</p>`;
+    } else {
+        title.textContent = "Editar Grupo";
+        submitButton.textContent = "Editar Grupo";
 
-  if (groupId) {
-    const response = await authFetch(`${url}/${groupId}`);
-    const result = await response.json();
+        const group = groups.find(g => g.id === groupId);
+        document.getElementById("groupName").value = group.name;
+        document.getElementById("categorySelect").value = group.category.id;
+        document.getElementById("groupDescription").value = group.description;
 
-    const group = result.groups;
-    
-    document.getElementById('group-name').value = group.group_name;
-    document.getElementById('group-type').value = group.category_id;
-
-    // const membersRes = await authFetch(`${url}/${groupId}/members`);
-    // const members = await membersRes.json();
-    // members.forEach(member => {
-    //   const item = document.createElement('div');
-    //   item.className = 'member-item';
-    //   item.innerHTML = `
-    //     <span>${member.email}</span>
-    //     <button class="remove-btn">Remover</button>
-    //   `;
-    //   item.querySelector('.remove-btn').addEventListener('click', () => item.remove());
-    //   membersList.appendChild(item);
-    // });
-  } else {
-    document.getElementById('group-name').value = '';
-    document.getElementById('group-type').value = '';
-  }
-
-  groupsView.classList.add('hidden');
-  editGroupView.classList.remove('hidden');
-}
-
-/**
- * Carrega e exibe todos os grupos cadastrados.
- * @returns {Promise<void>}
- */
-async function loadGroups() {
-  try {
-    const response = await authFetch(url);
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || 'Erro ao carregar os grupos.');
+        fetch(`http://localhost:3000/api/groups/${groupId}/members`)
+            .then(res => res.json())
+            .then(res => {
+                members = res.data;
+                updateMemberList();
+            });
     }
 
-    const groupData = result.groups;
+    modal.style.display = "block";
+}
 
-    groupsList.innerHTML = '';
-    if (!groupData || groupData.length === 0) {
-      emptyState.style.display = 'block';
-      groupsList.style.display = 'none';
-      return;
-    }
+function closeGroupForm() {
+    document.getElementById("groupFormModal").style.display = "none";
+}
 
-    groupData.forEach(group => {
-      const item = document.createElement('div');
-      item.className = 'group-item';
-      item.innerHTML = `
-        <div class="group-info">
-          <div class="group-title">${group.group_name}</div>
-          <div class="group-type">${group.category_name}</div>
-          <div class="group-members">${group.members_count} membros</div>
-        </div>
-        <div class="action-buttons">
-          <button class="edit-btn" data-group-id="${group.group_id}">Editar</button>
-          <button class="delete-btn" data-group-id="${group.group_id}">Excluir</button>
-        </div>
-      `;
+async function fetchGroups() {
+    const response = await fetch('http://localhost:3000/api/groups');
+    // groups = await response.json();
+    groups = [{id: 1, name: "grupo", description: "descricao", category: { id: 1, name: "categoria" } } ]
+    const groupListContainer = document.getElementById('groupList');
+    groupListContainer.innerHTML = '';
 
-      groupsList.appendChild(item);
+    groups.forEach(group => {
+        const groupDiv = document.createElement('div');
+        groupDiv.classList.add('group');
+        groupDiv.innerHTML = `
+            <strong>${group.name}</strong> - ${group.category.name}
+            <p>${group.description}</p>
+            <button onclick="openGroupForm(${group.id})">Editar</button>
+            <button onclick="deleteGroup(${group.id})">Deletar</button>
+        `;
+        groupListContainer.appendChild(groupDiv);
+    });
+}
 
-      item.querySelector('.edit-btn').addEventListener('click', () => showEditView(group.group_id));
-      item.querySelector('.delete-btn').addEventListener('click', () => deleteGroup(group.group_id, group.category_name, item));
+document.getElementById('groupForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const groupName = document.getElementById('groupName').value;
+    const categoryId = document.getElementById('categorySelect').value;
+    const groupDescription = document.getElementById('groupDescription').value;
+
+    const url = currentGroupId
+        ? `http://localhost:3000/api/groups/${currentGroupId}`
+        : 'http://localhost:3000/api/groups';
+
+    const method = currentGroupId ? 'PUT' : 'POST';
+
+    const response = await fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            name: groupName,
+            category: { id: categoryId },
+            description: groupDescription
+        }),
     });
 
-    emptyState.style.display = 'none';
-    groupsList.style.display = 'block';
-
-  } catch (error) {
-    console.error('Erro ao carregar os grupos:', error);
-    alert(`Erro ao carregar os grupos: ${error.message}`);
-    groupsList.innerHTML = '';
-    emptyState.style.display = 'block';
-    groupsList.style.display = 'none';
-  }
-}
-
-/**
- * Exclui um grupo e remove da lista.
- * @param {string} id - ID do grupo.
- * @param {string} name - Nome do grupo (para confirmação).
- * @param {HTMLElement} element - Elemento DOM a ser removido da lista.
- * @returns {Promise<void>}
- */
-async function deleteGroup(id, name, element) {
-  if (confirm(`Tem certeza que deseja excluir o grupo "${name}"?`)) {
-    await authFetch(`${url}/${id}`, { method: 'DELETE' });
-    element.remove();
-    if (document.querySelectorAll('.group-item').length === 0) {
-      emptyState.style.display = 'block';
-      groupsList.style.display = 'none';
-    }
-  }
-}
-
-/**
- * Evento do botão "Criar Grupo" (quando lista está vazia).
- */
-document.getElementById('create-group-btn').addEventListener('click', () => showEditView());
-
-/**
- * Evento do botão "Criar Novo Grupo" (quando lista já está visível).
- */
-document.getElementById('create-new-group-btn').addEventListener('click', () => showEditView());
-
-/**
- * Evento do botão "Voltar" da view de edição.
- */
-document.getElementById('back-btn').addEventListener('click', showGroupsView);
-
-/**
- * Evento de adicionar novo membro ao grupo.
- */
-document.getElementById('add-member-btn').addEventListener('click', () => {
-  const email = document.getElementById('new-member').value;
-  if (!email) {
-    alert('Por favor, informe o e-mail do novo membro!');
-    return;
-  }
-
-  const membersList = document.getElementById('members-list');
-  const item = document.createElement('div');
-  item.className = 'member-item';
-  item.innerHTML = `
-    <span>${email}</span>
-    <button class="remove-btn">Remover</button>
-  `;
-  item.querySelector('.remove-btn').addEventListener('click', () => item.remove());
-  membersList.appendChild(item);
-  document.getElementById('new-member').value = '';
+    const data = await response.json();
+    alert(`${currentGroupId ? 'Grupo editado' : 'Grupo criado'} com sucesso!`);
+    closeGroupForm();
+    fetchGroups();
 });
 
-/**
- * Evento do botão de salvar grupo (criar ou editar).
- */
-document.getElementById('save-group-btn').addEventListener('click', async () => {
-  const name = document.getElementById('group-name').value;
-  const typeId = document.getElementById('group-type').value;
-
-  if (!name || !typeId) {
-    alert('Preencha todos os campos obrigatórios.');
-    return;
-  }
-
-  const members = Array.from(document.querySelectorAll('#members-list .member-item span'))
-    .map(span => span.textContent);
-
-  const payload = {
-    name,
-    type_id: typeId,
-    members
-  };
-
-  if (currentGroupId) {
-    await authFetch(`${url}/${currentGroupId}`, {
-      method: 'PUT',
-      body: JSON.stringify(payload),
-      headers: {
-        'Content-Type': 'application/json'
-      }
+async function deleteGroup(groupId) {
+    await fetch(`http://localhost:3000/api/groups/${groupId}`, {
+        method: 'DELETE',
     });
-  } else {
-    await authFetch(url, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-      headers: {
-        'Content-Type': 'application/json'
-      }
+    alert('Grupo deletado!');
+    fetchGroups();
+}
+
+function updateMemberList() {
+    const membersContainer = document.getElementById("membersContainer");
+    const noMembersText = document.getElementById("noMembersText");
+
+    if (members.length === 0) {
+        noMembersText.style.display = "block";
+        membersContainer.innerHTML = noMembersText.outerHTML;
+    } else {
+        noMembersText.style.display = "none";
+        membersContainer.innerHTML = '';
+
+        members.forEach(member => {
+            const memberItem = document.createElement('div');
+            memberItem.classList.add('member');
+            memberItem.innerHTML = `
+                <span class="member-name">${member.name} - ${member.email}</span>
+                <span class="member-status ${member.verified ? 'verified' : 'not-verified'}">
+                    ${member.verified ? 'Verificado' : 'Não Verificado'}
+                </span>
+                <button onclick="removeMember('${member.id}')">Remover</button>
+            `;
+            membersContainer.appendChild(memberItem);
+        });
+    }
+}
+
+async function removeMember(memberId) {
+    if (!currentGroupId) return alert("Grupo ainda não foi criado!");
+
+    const response = await fetch(`http://localhost:3000/api/groups/${currentGroupId}/members/${memberId}`, {
+        method: 'DELETE',
     });
-  }
 
-  document.getElementById('success-msg').style.display = 'block';
-  setTimeout(() => {
-    document.getElementById('success-msg').style.display = 'none';
-    showGroupsView();
-    loadGroups(); // Recarrega a lista com o novo grupo
-  }, 1500);
-});
+    if (response.ok) {
+        members = members.filter(m => m.id !== memberId);
+        updateMemberList();
+        alert("Membro removido com sucesso!");
+    } else {
+        alert("Erro ao remover membro.");
+    }
+}
 
-// Inicialização padrão da tela 
-showGroupsView();
-loadGroups();
+async function addMemberByEmail() {
+    const email = document.getElementById("memberEmail").value;
+
+    if (!currentGroupId) return alert("Você precisa criar o grupo antes de adicionar membros!");
+
+    const response = await fetch(`http://localhost:3000/api/members?email=${email}`);
+    if (response.ok) {
+        const data = await response.json();
+
+        const addResponse = await fetch(`http://localhost:3000/api/groups/${currentGroupId}/members`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ member_id: data.id })
+        });
+
+        if (addResponse.ok) {
+            members.push(data);
+            updateMemberList();
+            document.getElementById("memberEmail").value = "";
+            document.getElementById("memberErrorMessage").style.display = "none";
+        } else {
+            alert("Erro ao adicionar membro.");
+        }
+    } else {
+        document.getElementById("memberErrorMessage").style.display = "block";
+    }
+}
+
+fetchCategories();
+fetchGroups();
