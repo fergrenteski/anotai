@@ -95,20 +95,6 @@ class UserService {
     }
 
     /**
-     * Verifica a validade do token JWT.
-     * @param {string} token - Token JWT a ser verificado.
-     * @returns {Promise<Object>} - Retorna um objeto indicando se o token é válido.
-     */
-    async verificarToken(token) {
-        try {
-            const decoded = jwt.verify(token, JWT_SECRET);
-            return { success: true, valid: true, name: decoded.name };
-        } catch (err) {
-            return { success: false, message: "Token inválido." };
-        }
-    }
-
-    /**
      * Verifica se o token de confirmação de e-mail é válido.
      * @param {string} token - Token de confirmação de e-mail.
      * @returns {Promise<Object>} - Retorna um objeto indicando se o token de e-mail é válido.

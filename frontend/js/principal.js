@@ -25,7 +25,7 @@ const verificarLogin = async () => {
       return redirecionarParaLogin();
     }
 
-    document.getElementById("nomeUsuario").innerText = data.name;
+    document.getElementById("nomeUsuario").innerText = data.user.name;
   } catch {
     sessionStorage.removeItem("token");
     redirecionarParaLogin();

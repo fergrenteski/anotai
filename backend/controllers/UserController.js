@@ -56,24 +56,7 @@ class UserController {
      * @param {Object} res - Resposta HTTP.
      */
     async verificarToken(req, res) {
-        if (!req.headers.authorization) {
-            return res.status(401).json({ success: false, message: "Cabeçalho de autorização não fornecido." });
-        }
-
-        // Obtém o token do cabeçalho Authorization
-        const token = req.headers.authorization.split(" ")[1];
-
-        if (!token) {
-            return res.status(401).json({ success: false, message: "Token não fornecido." });
-        }
-
-        try {
-            const result = await this.userService.verificarToken(token);
-            return res.status(200).json({ success: true, ...result });
-        } catch (error) {
-            console.error("Erro na verificação do token:", error);
-            return res.status(401).json({ success: false, message: "Token inválido." });
-        }
+        return res.status(200).json({ success: true, message: "Usuário Autenticado", user: req.usuario });
     }
 
     /**
