@@ -8,7 +8,7 @@ CREATE TABLE users (
     profile_img BYTEA,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expired_at TIMESTAMP 
+    expired_at TIMESTAMP
 );
 
 DROP TABLE IF EXISTS request_logs CASCADE;
@@ -35,6 +35,7 @@ DROP TABLE IF EXISTS user_reset_password_keys CASCADE;
 CREATE TABLE user_reset_password_keys (
    reset_pass_token_id SERIAL PRIMARY KEY,
    user_id INT NOT NULL,
+   email TEXT NOT NULL,
    token TEXT NOT NULL,
    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
    expires_at TIMESTAMP NOT NULL,
