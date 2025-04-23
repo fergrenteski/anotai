@@ -75,7 +75,7 @@ class UserService {
 
         // Remove tokens antigos e insere um novo
         await pool.query(queries.delete_user_reset_password_keys, [userId]);
-        await pool.query(queries.insert_user_reset_password_keys, [userId, emailToken, expiresAt]);
+        await pool.query(queries.insert_user_reset_password_keys, [userId, email, emailToken, expiresAt]);
         await this.registrarLog(queries.insert_user_log_reset_password, [userId]);
 
         return { success: true, message: "E-mail enviado com sucesso!", emailToken };
@@ -122,6 +122,30 @@ class UserService {
         }
 
         return { success: true, message: "Token verificado com sucesso!", email: rows[0].email };
+    }
+
+    async verificarTokenResetPass(token) {
+        const queries = await loadQueries();
+        const { rows } = await pool.query(queries.select_user_by_token_resetpass, [token]);
+
+        if (rows.length === 0) {
+            return { success: false, message: "Nenhum usuário encontrado!" };
+        }
+
+        return { success: true, message: "Token verificado com sucesso!", email: rows[0].email };
+
+    }
+
+    async alterarSenha(email, senha) {
+        const queries = await loadQueries();
+        // Criptografa a senha antes de armazenar no banco de dados
+        const senhaHash = await bcrypt.hash(senha, SALT_ROUNDS);
+        const { rows } = await pool.query(queries.update_password_by_email, [email, senhaHash]);
+        if (rows.length === 0) {
+            throw new Error("Erro ao alterar senha!");
+        }
+        return { success: true, message: "Senha alterada com sucesso!"};
+
     }
 
     /**

@@ -31,10 +31,12 @@ const gerarLink = (tipo, email, token) => {
  * Gera um token de verificação por e-mail e define sua expiração.
  * @returns {{ emailToken: string, expiresAt: Date }} Retorna um objeto contendo o token e a data de expiração.
  */
-const gerarTokenEmail = () => ({
-    emailToken: crypto.randomBytes(20).toString("hex"),
-    expiresAt: new Date(Date.now() + 60 * 60 * 1000) // Expira em 1 hora
-});
+const gerarTokenEmail = () => {
+    return {
+        emailToken: crypto.randomBytes(20).toString("hex"),
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000) // Expira em 1 hora
+    }
+};
 
 module.exports = {
     validarEmail,

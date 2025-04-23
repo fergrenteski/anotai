@@ -89,8 +89,8 @@ class UserController {
         }
 
         try {
-            const { message, token } = await this.userService.redefinirSenha(email);
-            await this.emailService.enviarRedefinicaoEmail(email, token);
+            const { message, emailToken } = await this.userService.redefinirSenha(email);
+            await this.emailService.enviarRedefinicaoEmail(email, emailToken);
             return res.status(200).json({ success: true, message });
         } catch (error) {
             console.error("Erro ao redefinir senha:", error);
@@ -98,6 +98,26 @@ class UserController {
         }
     }
 
+    async alterarSenha(req, res) {
+        const { email, token, senha, confirmacaoSenha } = req.body;
+        if (senha !== confirmacaoSenha) {
+            return res.status(400).json({ success: false, message: "As senhas não são iguais!" });
+        }
+        try {
+            const response = await this.userService.verificarTokenResetPass(token);
+
+            // Verifica se o e-mail fornecido corresponde ao e-mail associado ao token
+            if (email !== response.email) {
+                return res.status(403).json({ success: false, message: "O e-mail fornecido não corresponde ao e-mail vinculado ao token." });
+            }
+
+            const { message } = await this.userService.alterarSenha(email, senha);
+            return res.status(200).json({ success: true, message });
+        } catch (error) {
+            console.error("Erro ao alterar senha:",email, error);
+            return res.status(500).json({ success: false, message: error.message });
+        }
+    }
     /**
      * Confirma a verificação do e-mail do usuário.
      * @param {Object} req - Requisição HTTP.

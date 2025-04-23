@@ -22,6 +22,20 @@ queries:
     DELETE FROM user_email_verified_keys 
     WHERE token = $1;
 
+  select_user_by_token_resetpass: >
+    SELECT user_id, email 
+        FROM user_reset_password_keys
+        WHERE token = $1
+          AND expires_at > CURRENT_TIMESTAMP
+        LIMIT 1;
+
+  update_password_by_email: >
+    UPDATE users
+       SET password_hash = $2,
+           updated_at = CURRENT_TIMESTAMP
+       WHERE email = $1
+       RETURNING user_id;
+    
   update_verified_user_by_email: >
     UPDATE users
     SET email_verified = TRUE,
@@ -51,8 +65,8 @@ queries:
     VALUES ($1, 'CONFIRMED EMAIL');
 
   insert_user_reset_password_keys: >
-    INSERT INTO user_reset_password_keys (user_id, token, expires_at)
-    VALUES ($1, $2, $3)
+    INSERT INTO user_reset_password_keys (user_id, email, token, expires_at)
+    VALUES ($1, $2, $3, $4)
     RETURNING *;
 
   delete_user_reset_password_keys: >
@@ -63,3 +77,11 @@ queries:
     INSERT INTO user_email_verified_keys (user_id, email, token, expires_at)
     VALUES ($1, $2, $3, $4)
     RETURNING *;
+  
+  select_user_reset_password_keys_by_token: >
+    SELECT t.token, u.user_id, u.email, u.name, t.expires_at
+    FROM user_reset_password_keys t
+    LEFT JOIN users u 
+    ON t.user_id = u.user_id
+    AND u.expired_at IS NULL
+    WHERE t.token = $1; 
