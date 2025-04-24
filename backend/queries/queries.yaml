@@ -88,13 +88,9 @@ queries:
 
   select_groups_by_user_id: >
     SELECT 
-      group_id,
-      group_name,
-      description,
-      category_id,
-      category_name
-      FROM vw_groups
-    WHERE user_admin_id = $1;
+      *
+      FROM vw_user_groups
+    WHERE user_id = $1;
 
   select_group_by_id: >
     SELECT 
@@ -106,3 +102,42 @@ queries:
       FROM vw_groups
     WHERE group_id = $1
     LIMIT 1;
+
+  select_list_by_group_id: >
+    SELECT 
+      *
+      FROM vw_lists
+    WHERE group_id = $1;
+
+  select_groups_categories: >
+    SELECT 
+      groups_category_id as id,
+      name
+    FROM groups_category
+
+  insert_group: >
+    INSERT INTO groups (name, description, category_id, user_admin_id) 
+    VALUES ($1, $2, $3, $4) 
+    RETURNING group_id;
+
+  update_group: >
+    UPDATE groups 
+    SET
+      name = $1,
+      description = $2,
+      category_id = $3,
+      updated_at = CURRENT_TIMESTAMP
+    WHERE group_id = $4;
+
+  expire_group: >
+    UPDATE groups
+    SET expired_at = CURRENT_TIMESTAMP 
+    WHERE group_id = $1
+
+  insert_user_groups: >
+    INSERT INTO group_users (user_id, group_id)
+    VALUES ($1, $2)
+
+  expire_user_groups: >
+    DELETE FROM group_users
+    WHERE group_id = $1

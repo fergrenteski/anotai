@@ -1,5 +1,3 @@
-const url = "http://localhost:3000/api/user";
-
 let currentGroupId = null;
 let groups = [];
 let members = [];
@@ -13,6 +11,7 @@ async function fetchComToken(url, options = {}) {
     // Adiciona o token se estiver disponível
     if (token) {
         options.headers['Authorization'] = `Bearer ${token}`;
+        options.headers['Content-Type'] = "application/json";
     }
     const response = await fetch(url, options);
     // Se não autorizado, redireciona
@@ -24,8 +23,10 @@ async function fetchComToken(url, options = {}) {
 }
 
 async function fetchCategories() {
-    const response = await fetchComToken('http://localhost:3000/api/categories');
-    categories = await response.json();
+    const response = await fetchComToken('http://localhost:3000/api/groups/categories');
+    const data = await response.json();
+    //
+    categories = data.data;
     populateCategorySelect();
 }
 
@@ -40,13 +41,13 @@ function populateCategorySelect() {
     });
 }
 
-function openGroupForm(groupId = null) {
+async function openGroupForm(groupId = null) {
     currentGroupId = groupId;
     const modal = document.getElementById("groupFormModal");
     const form = document.getElementById("groupForm");
     const title = document.getElementById("formTitle");
     const submitButton = document.getElementById("submitGroupBtn");
-    const membersContainer = document.getElementById("membersContainer");
+    const membersDiv = document.getElementById("memberList")
 
     if (!groupId) {
         title.textContent = "Criar Novo Grupo";
@@ -54,14 +55,22 @@ function openGroupForm(groupId = null) {
         form.reset();
         document.getElementById("categorySelect").value = "";
         members = [];
-        membersContainer.innerHTML = `<p id="noMembersText" class="no-members">Sem membros</p>`;
+        membersDiv.style.display = "none";
     } else {
+        membersDiv.style.display = "block";
         title.textContent = "Editar Grupo";
         submitButton.textContent = "Editar Grupo";
 
-        const group = groups.find(g => g.id === groupId);
-        document.getElementById("groupName").value = group.name;
-        document.getElementById("categorySelect").value = group.category.id;
+        const response = await fetchComToken(`http://localhost:3000/api/groups/${groupId}`);
+        const data = await response.json();
+        if(data.status) {
+            alert(data.message);
+            return
+        }
+        const group = data.data;
+
+        document.getElementById("groupName").value = group.group_name;
+        document.getElementById("categorySelect").value = group.category_id;
         document.getElementById("groupDescription").value = group.description;
 
         fetch(`http://localhost:3000/api/groups/${groupId}/members`)
@@ -81,37 +90,41 @@ function closeGroupForm() {
 
 async function fetchGroups() {
     const response = await fetchComToken('http://localhost:3000/api/groups');
-    // groups = await response.json();
-    groups = [{id: 1, name: "grupo", description: "descricao", admin: true, category: { id: 1, name: "categoria" } },
-        {id: 2, name: "grupo 2", description: "descricao", admin: false, category: { id: 1, name: "categoria" } }
-     ]
+    const data = await response.json();
+    //
+    groups = data.data;
+    //
     const groupListContainer = document.getElementById('groupList');
     groupListContainer.innerHTML = '';
+
+    if(groups.length === 0 ) {
+        groupListContainer.innerHTML = 'Nenhum grupo encontrado!';
+    }
 
     groups.forEach(group => {
         const groupDiv = document.createElement('div');
         groupDiv.classList.add('group');
         groupDiv.innerHTML = `
-            <strong>${group.name}</strong> - ${group.category.name}
+            <strong>${group.name}</strong> - ${group.category_name}
             <p>${group.description}</p>
         `;
         // Redirecionamento ao clicar na div
         groupDiv.addEventListener('click', () => {
-            window.location.href = `lists.html?groupId=${group.id}`;
+            window.location.href = `lists.html?groupId=${group.group_id}`;
         });
         // Adiciona botões se for admin
-        if(group.admin) {
+        if(group.is_admin) {
             const editButton = document.createElement('button');
             editButton.textContent = 'E';
             editButton.onclick = (event) => {
                 event.stopPropagation(); // Impede o clique da div
-                openGroupForm(group.id);
+                openGroupForm(group.group_id);
             };
             const deleteButton = document.createElement('button');
             deleteButton.textContent = 'X';
             deleteButton.onclick = (event) => {
                 event.stopPropagation(); // Impede o clique da div
-                deleteGroup(group.id);
+                deleteGroup(group.group_id);
             };
             groupDiv.appendChild(editButton);
             groupDiv.appendChild(deleteButton);
@@ -137,17 +150,12 @@ document.getElementById('groupForm').addEventListener('submit', async (e) => {
 
     const response = await fetchComToken(url, {
         method: method,
-        headers: {
-            'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
             name: groupName,
-            category: { id: categoryId },
+            category: categoryId,
             description: groupDescription
         }),
     });
-
-    const data = await response.json();
     alert(`${currentGroupId ? 'Grupo editado' : 'Grupo criado'} com sucesso!`);
     closeGroupForm();
     fetchGroups();

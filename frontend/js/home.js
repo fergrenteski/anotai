@@ -1,5 +1,3 @@
-const url = "http://localhost:3000/api/user";
-
 // Função para redirecionar para a tela de login
 const redirecionarParaLogin = () => {
   window.location.href = "index.html";
@@ -11,17 +9,18 @@ const verificarLogin = async () => {
   if (!token) return redirecionarParaLogin();
 
   try {
-    const response = await fetch(`${url}/verificar-token`, {
+    const response = await fetch("http://localhost:3000/api/user/verificar-token", {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });
 
+    if (response.status !== 200) {
+      sessionStorage.removeItem("token");
+    }
+
     const data = await response.json();
 
-    if (!data.success) {
-      sessionStorage.removeItem("token");
-      return redirecionarParaLogin();
-    }
+    document.getElementById("nomeUsuario").innerText = data.user?.name || 'User';
 
   } catch {
     sessionStorage.removeItem("token");

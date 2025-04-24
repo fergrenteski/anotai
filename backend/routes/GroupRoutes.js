@@ -7,15 +7,15 @@ const ProductController = require("../controllers/ProductController");
 const verificarToken = require("../middlewares/authMiddleware")
 const router = express.Router();
 
+// Rotas de Categorias de Grupo
+router.get("/categories", verificarToken, (req, res) => CategoryController.getAll(req, res));
+
 // Rotas de Grupo
 router.get("/", verificarToken, (req, res) => GroupController.getAll(req, res));
-router.get("/:groupId", verificarToken, (req, res) => GroupController.getById(req, res));
 router.post("/", verificarToken, (req, res) => GroupController.create(req, res));
+router.get("/:groupId", verificarToken, (req, res) => GroupController.getById(req, res));
 router.put("/:groupId", verificarToken, (req, res) => GroupController.update(req, res));
 router.delete("/:groupId", verificarToken, (req, res) => GroupController.delete(req, res));
-
-// Rotas de Categorias de Grupo
-router.get("/group_types", verificarToken, (req, res) => CategoryController.getAll(req, res));
 
 // Rotas de Membros de grupo
 router.get("/:groupId/members", verificarToken, (req, res) => MemberController.getAll(req, res));

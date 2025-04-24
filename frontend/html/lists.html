@@ -3,12 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Listas de Compras do Grupo</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .shopping-list { border: 1px solid #ccc; border-radius: 8px; padding: 10px; margin-bottom: 10px; cursor: pointer; }
-        .actions { margin-top: 5px; }
-        form { margin-top: 20px; }
-    </style>
 </head>
 <body>
     <h1>Listas de Compras do Grupo</h1>
@@ -20,100 +14,6 @@
         <textarea id="listDescription" placeholder="Descrição (opcional)"></textarea>
         <button type="submit">Criar Lista</button>
     </form>
-
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const groupId = urlParams.get('groupId');
-        const shoppingListsContainer = document.getElementById('shoppingListsContainer');
-
-        if (!groupId) {
-            // Implementar buscar por ID de usuário todas as listas
-        } else {
-            fetchLists();
-
-            function fetchLists() {
-                fetch(`http://localhost:3000/api/groups/${groupId}/shopping_lists`)
-                    .then() // adicionar json
-                    .then(lists => {
-                        shoppingListsContainer.innerHTML = '';
-
-                        if (lists.length === 0) {
-                            shoppingListsContainer.textContent = 'Nenhuma lista de compras encontrada.';
-                            return;
-                        }
-                        const teste = [{id: 1, name: "teste lista", created_at: "2025-05-01 00:00:00.000"}];
-                        teste.forEach(list => {
-                            const listDiv = document.createElement('div');
-                            listDiv.classList.add('shopping-list');
-
-                            // Clique leva para os produtos da lista
-                            listDiv.addEventListener('click', () => {
-                                window.location.href = `/products.html?listId=${list.id}`;
-                            });
-
-                            listDiv.innerHTML = `
-                                <strong>${list.name}</strong><br>
-                                <small>${new Date(list.created_at).toLocaleDateString()}</small>
-                                <p>${list.description || ''}</p>
-                                <div class="actions">
-                                    <button onclick="event.stopPropagation(); editList(${list.id})">Editar</button>
-                                    <button onclick="event.stopPropagation(); deleteList(${list.id})">Excluir</button>
-                                </div>
-                            `;
-                            shoppingListsContainer.appendChild(listDiv);
-                        });
-                    })
-                    .catch(error => {
-                        shoppingListsContainer.textContent = `Erro: ${error.message}`;
-                    });
-            }
-
-            // Adicionar nova lista
-            document.getElementById('addListForm').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const name = document.getElementById('listName').value;
-                const description = document.getElementById('listDescription').value;
-
-                fetch(`/api/groups/${groupId}/shopping_lists`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, description })
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Erro ao criar lista.');
-                    return response.json();
-                })
-                .then(() => {
-                    fetchLists();
-                    e.target.reset();
-                })
-                .catch(error => alert(error.message));
-            });
-        }
-
-        function editList(listId) {
-            const newName = prompt('Novo nome da lista:');
-            const newDescription = prompt('Nova descrição (opcional):');
-            if (!newName) return;
-
-            fetch(`/api/shopping_lists/${listId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newName, description: newDescription })
-            })
-            .then(() => fetchLists())
-            .catch(error => alert('Erro ao editar lista: ' + error.message));
-        }
-
-        function deleteList(listId) {
-            if (!confirm('Deseja realmente excluir esta lista?')) return;
-
-            fetch(`/api/shopping_lists/${listId}`, {
-                method: 'DELETE'
-            })
-            .then(() => fetchLists())
-            .catch(error => alert('Erro ao excluir lista: ' + error.message));
-        }
-    </script>
+    <script src="../js/lists.js"></script>
 </body>
 </html>

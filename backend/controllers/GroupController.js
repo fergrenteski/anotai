@@ -1,57 +1,81 @@
-const UserService = require("../services/UserService");
-const EmailService = require("../services/EmailService");
 const GroupService = require("../services/GroupService");
+const MemberService = require("../services/MemberService");
 
-class UserController {
+class GroupController {
     constructor() {
-        this.userService = new UserService();
-        this.emailService = new EmailService();
         this.groupService = new GroupService();
+        this.memberService = new MemberService();
     }
 
-    /**
-     * Retorna todos os grupos associados ao usuário autenticado.
-     * @param {import("express").Request} req - Requisição HTTP com token JWT decodificado (req.usuario).
-     * @param {import("express").Response} res - Resposta HTTP.
-     * @returns {Promise<void>}
-     */
     async getAll(req, res) {
         try {
-            const userId = req.usuario.id; // <- Aqui está o userId do token!
-            const data = await this.groupService.getAllGroupsByUserId(userId);
-            return res.status(200).json({ 
-                success: true, 
-                message: data.message, 
-                groups: data.rows 
-            });
-
+            const userId = req.usuario.id;
+            const { rows } = await this.groupService.getAllGroupsByUserId(userId);
+            return res.status(200).json({ data: rows });
         } catch (error) {
             console.error("Erro na Busca de Grupos:", error);
-            return res.status(500).json({ success: false, message: error.message });
+            return res.status(500).json({ error: error.message });
         }
     }
 
-    /**
-     * Retorna todos os grupos associados ao usuário autenticado.
-     * @param {import("express").Request} req - Requisição HTTP com token JWT decodificado (req.usuario).
-     * @param {import("express").Response} res - Resposta HTTP.
-     * @returns {Promise<void>}
-     */
     async getById(req, res) {
       try {
-          const groupId = req.params.id; // <- Aqui está o userId do token!
-          const data = await this.groupService.getById(groupId);
-          return res.status(200).json({ 
-              success: true, 
-              message: data.message, 
-              groups: data.rows[0] 
-          });
-
+          const groupId = req.params.groupId;
+          const { rows } = await this.groupService.getById(groupId);
+          return res.status(200).json({ data: rows[0] });
       } catch (error) {
           console.error("Erro na Busca do Grupo", error);
-          return res.status(500).json({ success: false, message: error.message });
+          return res.status(500).json({ error: error.message });
       }
-  }
+    }
+
+    async create(req, res) {
+        const { name, category, description } = req.body;
+        const userId = req.usuario.id;
+        if(!name || !category) return res.status(400).json({error: "Todos os campos são obrigatórios"});
+
+        try {
+            // Cria o grupo
+            const { rows } = await this.groupService.create(name, category, description, userId);
+            // Obtem o Id do Grupo criado
+            const groupId = rows[0].group_id
+            // Adiciona na Relação de usuários e grupos
+            await this.memberService.create(userId, groupId);
+            return res.status(200).json({ data: rows });
+        } catch (error) {
+            console.error("Erro na Busca de Grupos:", error);
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
+    async update(req, res) {
+        const { name, category, description } = req.body;
+        const groupId = req.params.groupId;
+        if(!name || !category || !groupId) return res.status(400).json({success: false, message: "Todos os campos são obrigatórios"});
+        try {
+            const data = await this.groupService.update(name, category, description, groupId);
+            return res.status(200).json({ data: data.rows });
+
+        } catch (error) {
+            console.error("Erro ao Atualizar Grupo:", groupId, error);
+            return res.status(500).json({ error: error.message });
+        }
+    }
+
+    async delete(req, res) {
+        const groupId = req.params.groupId;
+        try {
+            // Deleta o grupo
+            const { rows } = await this.groupService.delete(groupId);
+            // Deleta a relação de usuário e grupos
+            await this.memberService.delete(groupId);
+            return res.status(200).json({ data: rows });
+
+        } catch (error) {
+            console.error("Erro ao Deletar Grupo:", groupId, error);
+            return res.status(500).json({ error: error.message });
+        }
+    }
 }
 
-module.exports = new UserController();
+module.exports = new GroupController();

@@ -3,8 +3,8 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("express");
 
-const userRoutes = require("./routes/UserRoutes"); // Importa rotas de autenticação
-const groupRoutes = require("./routes/GroupRoutes"); // Importa rotas de autenticação
+const userRoutes = require("./routes/UserRoutes"); // Importa rotas de Usuário
+const groupRoutes = require("./routes/GroupRoutes"); // Importa rotas de Grupo
 const requestLoggerMiddleware = require("./middlewares/requestLoggerMiddleware"); // Importa o middleware de log de requisição
 // Inicializa o aplicativo Express
 const app = express();

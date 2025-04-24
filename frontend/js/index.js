@@ -1,5 +1,3 @@
-const url = "http://localhost:3000/api/user";
-
 // Elementos do DOM
 const elements = {
     inputEmailCadastro: document.getElementById("emailCadastro"),
@@ -59,23 +57,24 @@ const validarSenhas = () => {
 
 // Função genérica para requisições de autenticação
 const autenticar = async (endpoint, dados) => {
-    const resposta = await fetch(`${url}/${endpoint}`, {
+    return await fetch(`http://localhost:3000/api/user/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dados),
     });
-    return resposta.json();
 };
 
 // Login
 const login = async () => {
     const { inputEmailLogin, inputSenhaLogin, mensagemLogin } = elements;
-    const data = await autenticar("login", {
+    const response = await autenticar("login", {
         email: inputEmailLogin.value,
         senha: inputSenhaLogin.value,
     });
 
-    if (data.success) {
+    const data = await response.json();
+
+    if (response.status === 200) {
         sessionStorage.setItem("token", data.token);
         window.location.href = "home.html";
     } else {
