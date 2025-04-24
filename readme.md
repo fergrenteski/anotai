@@ -47,16 +47,16 @@ Crie um arquivo `.env` com base nas seguintes configurações:
 | Variável                    | Descrição                                               | Exemplo                                                                 |
 |-----------------------------|---------------------------------------------------------|-------------------------------------------------------------------------|
 | `PORT`                      | Porta de execução do servidor backend                   | `3000`                                                                  |
-| `JWT_SECRET`                | Chave secreta para geração e verificação dos tokens JWT | `5fb9fivsnv1pawi46hjb`                                                  |
+| `JWT_SECRET`                | Chave secreta para geração e verificação dos tokens JWT | `secret`                                                  |
 | `POSTGRES_USER`             | Usuário do banco de dados                               | `anotaai_user`                                                          |
 | `POSTGRES_PASSWORD`         | Senha do banco de dados                                 | `2wsx3edc`                                                              |
 | `POSTGRES_DB`               | Nome do banco de dados                                  | `postgres`                                                              |
 | `DB_HOST`                   | Host do banco de dados                                  | `anotaai_db`                                                            |
 | `DB_PORT`                   | Porta do banco de dados                                 | `5432`                                                                  |
-| `SENDGRID_API_KEY`          | Chave de API do SendGrid                                | `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` |
-| `SENDER_EMAIL`              | E-mail remetente para envio via SendGrid                | `luizgrenfer@gmail.com`                                                 |
-| `TEMPLATE_ID_RESET_EMAIL`   | Template para e-mail de redefinição de senha (SendGrid) | `d-cfa7d200e0f6408a9d00ee4cd4275f9a`                                    |
-| `TEMPLATE_ID_CONFIRM_EMAIL` | Template para confirmação de e-mail (SendGrid)          | `d-ab335a1887b740e3bb9c1212946d3537`                                    |
+| `SENDGRID_API_KEY`          | Chave de API do SendGrid                                | `SG.apikey` |
+| `SENDER_EMAIL`              | E-mail remetente para envio via SendGrid                | `email@gmail.com`                                                 |
+| `TEMPLATE_ID_RESET_EMAIL`   | Template para e-mail de redefinição de senha (SendGrid) | `templateid`                                    |
+| `TEMPLATE_ID_CONFIRM_EMAIL` | Template para confirmação de e-mail (SendGrid)          | `templateid`                                    |
 | `FRONTEND_URL`              | URL do frontend que se comunica com o backend           | `http://localhost:8080`                                                 |
 
 ---
