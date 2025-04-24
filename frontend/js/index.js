@@ -14,10 +14,19 @@ const elements = {
     mensagemLogin: document.getElementById("mensagemLogin"),
     showSignup: document.getElementById("show-signup"),
     showLogin: document.getElementById("show-login"),
+    inputName: document.getElementById("nomeCadastro"),
 };
 
 // Alternar entre telas de login e cadastro
 const toggleForms = (showSignup) => {
+    // Limpeza de campos 
+    elements.inputEmailLogin.value = "";
+    elements.inputEmailCadastro.value = "";
+    elements.senhaInput.value = "";
+    elements.confirmarInput.value = "";
+    elements.inputSenhaLogin.value = "";
+    elements.inputName.value = "";
+    // Troca de formularios LOGIN/CADASTRO
     document.querySelector('.container').classList.toggle('active', showSignup);
     document.getElementById('login-info').style.display = showSignup ? 'none' : 'block';
     document.getElementById('signup-info').style.display = showSignup ? 'block' : 'none';
