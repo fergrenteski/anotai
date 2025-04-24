@@ -111,38 +111,51 @@ const cadastrar = async () => {
     }
 };
 
-// Eventos
+// Evento para realizar o cadastro do sistema
 elements.formSignup.addEventListener("submit", (e) => {
     e.preventDefault();
     cadastrar();
 });
 
+// Evento para realizar o login do sistema
 elements.formLogin.addEventListener("submit", (e) => {
     e.preventDefault();
     login();
 });
 
+// Evento de remocao do estado invalido do campo email de login
 elements.inputEmailLogin.addEventListener("focus", () => elements.inputEmailLogin.classList.remove("invalid"));
 
+// Evento de remocao do estado invalido do campo email do cadastro
 elements.inputEmailCadastro.addEventListener("focus", () => elements.inputEmailCadastro.classList.remove("invalid"));
 
+// Evento de remocao do estado invalido do campo senha do login
 elements.inputSenhaLogin.addEventListener("focus", () => elements.inputSenhaLogin.classList.remove("invalid"));
 
+// Evento para troca de formularios
 elements.showSignup.addEventListener("click", () => toggleForms(true));
 
 elements.showLogin.addEventListener("click", () => toggleForms(false));
 
+// Evento para realizar a validacao de senha
 elements.senhaInput.addEventListener("input", validarSenhas);
 
 elements.confirmarInput.addEventListener("input", validarSenhas);
 
-elements.buttonMostrarSenha.addEventListener("click", () => {
+// Adicionando evento do botao responsavel por mostrar e esconder senha
+// Campo de senha
+elements.buttonMostrarSenha.addEventListener("click", (e) => {
+    e.preventDefault();
     elements.senhaInput.type = elements.senhaInput.type === "password" ? "text" : "password";
     document.getElementById("pass-i").classList.toggle("fa-eye");
     document.getElementById("pass-i").classList.toggle("fa-eye-slash");
 });
 
-elements.buttonMostrarConfirmarSenha.addEventListener("click", () => {
+
+// Adicionando evento do botao responsavel por mostrar e esconder senha
+// Campo de confirmar a senha
+elements.buttonMostrarConfirmarSenha.addEventListener("click", (e) => {
+    e.preventDefault();
     elements.confirmarInput.type = elements.confirmarInput.type === "password" ? "text" : "password";
     document.getElementById("conf-i").classList.toggle("fa-eye");
     document.getElementById("conf-i").classList.toggle("fa-eye-slash");
