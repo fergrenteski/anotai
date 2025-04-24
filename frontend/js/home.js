@@ -1,7 +1,3 @@
-import API_URLS from "./utils/env.js";
-
-const url = API_URLS.AUTH_URL;
-
 // Função para redirecionar para a tela de login
 const redirecionarParaLogin = () => {
   window.location.href = "index.html";
@@ -13,7 +9,7 @@ const verificarLogin = async () => {
   if (!token) return redirecionarParaLogin();
 
   try {
-    const response = await fetch(`${url}/verificar-token`, {
+    const response = await fetch("http://localhost:3000/api/user/verificar-token", {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -22,10 +18,11 @@ const verificarLogin = async () => {
 
     if (!data.success) {
       sessionStorage.removeItem("token");
-      return redirecionarParaLogin();
+      redirecionarParaLogin();
     }
 
-    document.getElementById("nomeUsuario").innerText = data.name;
+    document.getElementById("nomeUsuario").innerText = data.user?.name || 'User';
+
   } catch {
     sessionStorage.removeItem("token");
     redirecionarParaLogin();

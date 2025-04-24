@@ -1,7 +1,3 @@
-import API_URLS from "./utils/env.js";
-
-const url = API_URLS.AUTH_URL;
-
 // Elementos do DOM
 const elements = {
     inputEmailCadastro: document.getElementById("emailCadastro"),
@@ -61,21 +57,22 @@ const validarSenhas = () => {
 
 // Função genérica para requisições de autenticação
 const autenticar = async (endpoint, dados) => {
-    const resposta = await fetch(`${url}/${endpoint}`, {
+    return await fetch(`http://localhost:3000/api/user/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dados),
     });
-    return resposta.json();
 };
 
 // Login
 const login = async () => {
     const { inputEmailLogin, inputSenhaLogin, mensagemLogin } = elements;
-    const data = await autenticar("login", {
+    const response = await autenticar("login", {
         email: inputEmailLogin.value,
         senha: inputSenhaLogin.value,
     });
+
+    const data = await response.json();
 
     if (data.success) {
         sessionStorage.setItem("token", data.token);
@@ -96,17 +93,21 @@ const cadastrar = async () => {
         return;
     }
 
-    const data = await autenticar("cadastro", {
+    const response = await autenticar("cadastro", {
         nome: document.getElementById("nomeCadastro").value,
         email: inputEmailCadastro.value,
         senha: senhaInput.value,
     });
 
+    const data = await response.json()
+
     if (data.success) {
         mensagemCadastro.innerText = data.message;
+        mensagemCadastro.style.color = "green";
     } else {
         mensagemCadastro.innerText = data.message;
         inputEmailCadastro.classList.add("invalid");
+        mensagemCadastro.style.color = "red";
     }
 };
 

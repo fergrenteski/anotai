@@ -1,6 +1,5 @@
-import API_URLS from "./utils/env.js";
+const url = "http://localhost:3000/api/user";
 
-const url = API_URLS.EMAIL_URL;
 async function resetPassword() {
     const email = document.getElementById("email").value;
     if (email.length < 5) {
@@ -16,7 +15,6 @@ async function resetPassword() {
     const data = await response.json();
 
     document.getElementById("mensagem").innerText = data.message;
-
 
 }
 

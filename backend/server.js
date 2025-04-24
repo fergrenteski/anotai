@@ -3,7 +3,8 @@ const express = require("express");
 const cors = require("cors");
 const bodyParser = require("express");
 
-const userRoutes = require("./routes/UserRoutes"); // Importa rotas de autenticação
+const userRoutes = require("./routes/UserRoutes"); // Importa rotas de Usuário
+const groupRoutes = require("./routes/GroupRoutes"); // Importa rotas de Grupo
 const requestLoggerMiddleware = require("./middlewares/requestLoggerMiddleware"); // Importa o middleware de log de requisição
 // Inicializa o aplicativo Express
 const app = express();
@@ -17,6 +18,7 @@ app.use(requestLoggerMiddleware);
 
 // Importa as rotas
 app.use("/api/user", userRoutes);
+app.use("/api/groups", groupRoutes);
 
 // Inicia o servidor
 const PORT = process.env.PORT || 3000;
