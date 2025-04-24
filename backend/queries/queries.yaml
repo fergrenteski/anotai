@@ -141,3 +141,7 @@ queries:
   expire_user_groups: >
     DELETE FROM group_users
     WHERE group_id = $1
+
+  select_user_group_member: >
+    SELECT * FROM group_users
+    WHERE user_id = $1 AND group_id = $2 AND verified = TRUE;
