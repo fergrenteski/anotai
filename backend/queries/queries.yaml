@@ -132,8 +132,8 @@ queries:
     WHERE group_id = $1
 
   insert_user_groups: >
-    INSERT INTO group_users (user_id, group_id)
-    VALUES ($1, $2)
+    INSERT INTO group_users (user_id, group_id, verified)
+    VALUES ($1, $2, $3)
 
   expire_user_groups: >
     DELETE FROM group_users

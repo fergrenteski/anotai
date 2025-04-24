@@ -74,7 +74,7 @@ const login = async () => {
 
     const data = await response.json();
 
-    if (response.status === 200) {
+    if (data.success) {
         sessionStorage.setItem("token", data.token);
         window.location.href = "home.html";
     } else {
@@ -101,12 +101,13 @@ const cadastrar = async () => {
 
     const data = await response.json()
 
-    if (response.status === 200) {
+    if (data.success) {
         mensagemCadastro.innerText = data.message;
         mensagemCadastro.style.color = "green";
     } else {
         mensagemCadastro.innerText = data.message;
         inputEmailCadastro.classList.add("invalid");
+        mensagemCadastro.style.color = "red";
     }
 };
 

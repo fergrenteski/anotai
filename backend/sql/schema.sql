@@ -1,5 +1,4 @@
-DROP TABLE IF EXISTS users CASCADE;
-CREATE TABLE users
+CREATE OR ALTER TABLE users
 (
     user_id        SERIAL PRIMARY KEY,
     name           VARCHAR(100)        NOT NULL,
@@ -12,7 +11,6 @@ CREATE TABLE users
     expired_at     TIMESTAMP
 );
 
-DROP TABLE IF EXISTS request_logs CASCADE;
 CREATE TABLE request_logs
 (
     request_id  SERIAL PRIMARY KEY,
@@ -24,7 +22,6 @@ CREATE TABLE request_logs
     timestamp   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-DROP TABLE IF EXISTS user_logs CASCADE;
 CREATE TABLE user_logs
 (
     log_id    SERIAL PRIMARY KEY,
@@ -34,7 +31,6 @@ CREATE TABLE user_logs
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 
-DROP TABLE IF EXISTS user_reset_password_keys CASCADE;
 CREATE TABLE user_reset_password_keys
 (
     reset_pass_token_id SERIAL PRIMARY KEY,
@@ -46,7 +42,6 @@ CREATE TABLE user_reset_password_keys
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 
-DROP TABLE IF EXISTS user_email_verified_keys CASCADE;
 CREATE TABLE user_email_verified_keys
 (
     email_verified_token_id SERIAL PRIMARY KEY,
@@ -59,7 +54,6 @@ CREATE TABLE user_email_verified_keys
 );
 
 -- Tabela de categorias (ANT-31)
-DROP TABLE IF EXISTS groups_category CASCADE;
 CREATE TABLE groups_category
 (
     groups_category_id SERIAL PRIMARY KEY,
@@ -77,7 +71,6 @@ VALUES ('Família'),
        ('Outros');
 
 -- Tabela de grupos (ANT-15)
-DROP TABLE IF EXISTS groups CASCADE;
 CREATE TABLE groups
 (
     group_id      SERIAL PRIMARY KEY,
@@ -113,7 +106,6 @@ FROM groups g
 WHERE g.expired_at IS NULL;
 
 --Criação da tabela de Produtos/Categoria (ANT-33)
-DROP TABLE IF EXISTS products_category CASCADE;
 CREATE TABLE products_category
 (
     products_category_id SERIAL PRIMARY KEY,
@@ -163,7 +155,6 @@ VALUES ('Alimentos'),
        ('Diversos');
 
 --Criaçao da Tabela dos Produtos (ANT-32)
-DROP TABLE IF EXISTS products CASCADE;
 CREATE TABLE products
 (
     product_id  SERIAL PRIMARY KEY,

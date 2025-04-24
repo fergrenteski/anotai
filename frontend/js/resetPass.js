@@ -16,7 +16,6 @@ async function resetPassword() {
 
     document.getElementById("mensagem").innerText = data.message;
 
-
 }
 
 document.getElementById("resetForm").addEventListener("submit", (e) => {

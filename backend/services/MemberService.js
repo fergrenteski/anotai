@@ -3,9 +3,9 @@ const { loadQueries } = require("../utils/queries");
 
 class MemberService {
 
-    async create(userId, groupId) {
+    async create(userId, groupId, verified = false) {
         const queries = await loadQueries();
-        const { rows } = await pool.query(queries.insert_user_groups, [userId, groupId]);
+        const { rows } = await pool.query(queries.insert_user_groups, [userId, groupId, verified]);
         return { rows };
     }
 

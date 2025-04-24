@@ -11,7 +11,7 @@ class GroupController {
         try {
             const userId = req.usuario.id;
             const { rows } = await this.groupService.getAllGroupsByUserId(userId);
-            return res.status(200).json({ data: rows });
+            return res.status(200).json({ success: true, data: rows });
         } catch (error) {
             console.error("Erro na Busca de Grupos:", error);
             return res.status(500).json({ error: error.message });
@@ -22,7 +22,7 @@ class GroupController {
       try {
           const groupId = req.params.groupId;
           const { rows } = await this.groupService.getById(groupId);
-          return res.status(200).json({ data: rows[0] });
+          return res.status(200).json({ success: true, data: rows[0] });
       } catch (error) {
           console.error("Erro na Busca do Grupo", error);
           return res.status(500).json({ error: error.message });
@@ -40,8 +40,8 @@ class GroupController {
             // Obtem o Id do Grupo criado
             const groupId = rows[0].group_id
             // Adiciona na Relação de usuários e grupos
-            await this.memberService.create(userId, groupId);
-            return res.status(200).json({ data: rows });
+            await this.memberService.create(userId, groupId, true);
+            return res.status(200).json({ success: true, data: rows });
         } catch (error) {
             console.error("Erro na Busca de Grupos:", error);
             return res.status(500).json({ error: error.message });
@@ -54,7 +54,7 @@ class GroupController {
         if(!name || !category || !groupId) return res.status(400).json({success: false, message: "Todos os campos são obrigatórios"});
         try {
             const data = await this.groupService.update(name, category, description, groupId);
-            return res.status(200).json({ data: data.rows });
+            return res.status(200).json({ success: true, data: data.rows });
 
         } catch (error) {
             console.error("Erro ao Atualizar Grupo:", groupId, error);
@@ -69,7 +69,7 @@ class GroupController {
             const { rows } = await this.groupService.delete(groupId);
             // Deleta a relação de usuário e grupos
             await this.memberService.delete(groupId);
-            return res.status(200).json({ data: rows });
+            return res.status(200).json({ success: true, data: rows });
 
         } catch (error) {
             console.error("Erro ao Deletar Grupo:", groupId, error);

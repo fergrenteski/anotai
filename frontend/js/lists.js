@@ -17,7 +17,7 @@ async function fetchComToken(url, options = {}) {
         window.location.href = '/index.html'; // ou a rota de login
         return Promise.reject(new Error('Não autorizado. Redirecionando...'));
     }
-    return response;
+    return await response.json();
 }
 
 if (!groupId) {
@@ -26,8 +26,7 @@ if (!groupId) {
     fetchLists();
 
     async function fetchLists() {
-        const response = await fetchComToken(`http://localhost:3000/api/groups/${groupId}/lists`)
-        const data = await response.json();
+        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupId}/lists`)
         // Obtém as listas
         const lists = data.data;
 

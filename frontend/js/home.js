@@ -14,11 +14,12 @@ const verificarLogin = async () => {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    if (response.status !== 200) {
-      sessionStorage.removeItem("token");
-    }
-
     const data = await response.json();
+
+    if (!data.success) {
+      sessionStorage.removeItem("token");
+      redirecionarParaLogin();
+    }
 
     document.getElementById("nomeUsuario").innerText = data.user?.name || 'User';
 

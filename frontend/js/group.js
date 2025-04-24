@@ -19,12 +19,11 @@ async function fetchComToken(url, options = {}) {
         window.location.href = '/index.html'; // ou a rota de login
         return Promise.reject(new Error('Não autorizado. Redirecionando...'));
     }
-    return response;
+    return await response.json();
 }
 
 async function fetchCategories() {
-    const response = await fetchComToken('http://localhost:3000/api/groups/categories');
-    const data = await response.json();
+    const data = await fetchComToken('http://localhost:3000/api/groups/categories');
     //
     categories = data.data;
     populateCategorySelect();
@@ -61,10 +60,9 @@ async function openGroupForm(groupId = null) {
         title.textContent = "Editar Grupo";
         submitButton.textContent = "Editar Grupo";
 
-        const response = await fetchComToken(`http://localhost:3000/api/groups/${groupId}`);
-        const data = await response.json();
-        if(data.status) {
-            alert(data.message);
+        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupId}`);
+        if(!data.success) {
+            alert(data.message); // TODO: Adicionar Mensagem
             return
         }
         const group = data.data;
@@ -89,8 +87,9 @@ function closeGroupForm() {
 }
 
 async function fetchGroups() {
-    const response = await fetchComToken('http://localhost:3000/api/groups');
-    const data = await response.json();
+    const data = await fetchComToken('http://localhost:3000/api/groups');
+
+    if(!data.success) { alert("Error: ", data.message); return }; // TODO: Mensagem Personalizada
     //
     groups = data.data;
     //
@@ -148,7 +147,7 @@ document.getElementById('groupForm').addEventListener('submit', async (e) => {
 
     const method = currentGroupId ? 'PUT' : 'POST';
 
-    const response = await fetchComToken(url, {
+    const data = await fetchComToken(url, {
         method: method,
         body: JSON.stringify({
             name: groupName,
@@ -156,16 +155,21 @@ document.getElementById('groupForm').addEventListener('submit', async (e) => {
             description: groupDescription
         }),
     });
-    alert(`${currentGroupId ? 'Grupo editado' : 'Grupo criado'} com sucesso!`);
+    
+    if(data.success) {
+        alert(data.message);
+        fetchGroups();
+    } else {
+        alert(`${currentGroupId ? 'Grupo não foi editado' : 'Grupo não foi criado'}! ${data.message}`);
+    }
     closeGroupForm();
-    fetchGroups();
 });
 
 async function deleteGroup(groupId) {
     await fetchComToken(`http://localhost:3000/api/groups/${groupId}`, {
         method: 'DELETE',
     });
-    alert('Grupo deletado!');
+    alert('Grupo deletado!'); // TODO: Mensagem Personalizada
     fetchGroups();
 }
 
@@ -196,29 +200,28 @@ function updateMemberList() {
 }
 
 async function removeMember(memberId) {
-    if (!currentGroupId) return alert("Grupo ainda não foi criado!");
+    if (!currentGroupId) return alert("Grupo ainda não foi criado!"); // TODO: Mensagem Personalizada
 
-    const response = await fetchComToken(`http://localhost:3000/api/groups/${currentGroupId}/members/${memberId}`, {
+    const data = await fetchComToken(`http://localhost:3000/api/groups/${currentGroupId}/members/${memberId}`, {
         method: 'DELETE',
     });
 
-    if (response.ok) {
+    if (data.success) {
         members = members.filter(m => m.id !== memberId);
         updateMemberList();
-        alert("Membro removido com sucesso!");
+        alert("Membro removido com sucesso!"); // TODO: Mensagem Personalizada
     } else {
-        alert("Erro ao remover membro.");
+        alert("Erro ao remover membro."); // TODO: Mensagem Personalizada
     }
 }
 
 async function addMemberByEmail() {
     const email = document.getElementById("memberEmail").value;
 
-    if (!currentGroupId) return alert("Você precisa criar o grupo antes de adicionar membros!");
+    if (!currentGroupId) return alert("Você precisa criar o grupo antes de adicionar membros!"); // TODO: Mensagem Personalizada
 
-    const response = await fetchComToken(`http://localhost:3000/api/members?email=${email}`);
-    if (response.ok) {
-        const data = await response.json();
+    const data = await fetchComToken(`http://localhost:3000/api/members?email=${email}`);
+    if (data.success) {
 
         const addResponse = await fetchComToken(`http://localhost:3000/api/groups/${currentGroupId}/members`, {
             method: 'POST',
@@ -228,13 +231,13 @@ async function addMemberByEmail() {
             body: JSON.stringify({ member_id: data.id })
         });
 
-        if (addResponse.ok) {
+        if (addResponse.success) {
             members.push(data);
             updateMemberList();
             document.getElementById("memberEmail").value = "";
             document.getElementById("memberErrorMessage").style.display = "none";
         } else {
-            alert("Erro ao adicionar membro.");
+            alert("Erro ao adicionar membro."); // TODO: Mensagem Personalizada
         }
     } else {
         document.getElementById("memberErrorMessage").style.display = "block";
