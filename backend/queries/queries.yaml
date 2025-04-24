@@ -6,10 +6,7 @@ queries:
   select_user_by_email: >
     SELECT user_id, name, email, password_hash 
     FROM users
-    WHERE email = $1
-      AND expired_at IS NULL
-      AND email_verified IS TRUE
-    LIMIT 1;
+    WHERE email = $1;
 
   select_user_by_token: >
     SELECT user_id, email 

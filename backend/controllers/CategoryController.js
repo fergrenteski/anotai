@@ -14,14 +14,10 @@ class CategoryController {
     async getAll(req, res) {
         try {
             const { rows } = await this.categoryService.getAll();
-            return res.status(200).json({
-                success: true,
-                message: "Fetched",
-                data: rows
-            });
+            return res.status(200).json({ data: rows });
         } catch (error) {
             console.error("Erro na Busca de Categorias:", error);
-            return res.status(500).json({ success: false, message: error.message });
+            return res.status(500).json({ message: error.message });
         }
     }
 }

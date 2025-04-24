@@ -93,14 +93,17 @@ const cadastrar = async () => {
         return;
     }
 
-    const data = await autenticar("cadastro", {
+    const response = await autenticar("cadastro", {
         nome: document.getElementById("nomeCadastro").value,
         email: inputEmailCadastro.value,
         senha: senhaInput.value,
     });
 
-    if (data.success) {
+    const data = await response.json()
+
+    if (response.status === 200) {
         mensagemCadastro.innerText = data.message;
+        mensagemCadastro.style.color = "green";
     } else {
         mensagemCadastro.innerText = data.message;
         inputEmailCadastro.classList.add("invalid");

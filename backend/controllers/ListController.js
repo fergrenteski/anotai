@@ -15,15 +15,11 @@ class ListController {
         try {
             const groupId = req.params.groupId;
             const data = await this.listService.getAllListsByGroupId(groupId);
-            return res.status(200).json({
-                success: true,
-                message: data.message,
-                data: data.rows
-            });
+            return res.status(200).json({data: data.rows });
 
         } catch (error) {
             console.error("Erro na Busca de Listas:", error);
-            return res.status(500).json({success: false, message: error.message});
+            return res.status(500).json({message: error.message});
         }
     }
 }

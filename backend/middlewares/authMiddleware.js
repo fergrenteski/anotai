@@ -13,9 +13,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 function verificarToken(req, res, next) {
     const authHeader = req.headers["authorization"];
 
-    if (!authHeader) {
-        return res.status(401).json({ success: false, message: "Token não fornecido ou mal formatado." });
-    }
+    if (!authHeader) return res.status(400).json({message: "Token não fornecido ou mal formatado." });
 
     const token = authHeader.split(" ")[1];
 
@@ -25,7 +23,7 @@ function verificarToken(req, res, next) {
         req.usuario = decoded;
         next();
     } catch (err) {
-        return res.status(401).json({ success: false, message: "Token inválido ou expirado." });
+        return res.status(401).json({message: "Token inválido ou expirado." });
     }
 }
 
