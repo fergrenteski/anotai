@@ -41,5 +41,5 @@ class MemberService {
     }
 
 }
-
+// Exporta a classe MemberService
 module.exports = MemberService;

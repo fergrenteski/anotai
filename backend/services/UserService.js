@@ -1,11 +1,15 @@
+// Importa biblioteca para hash de senhas
 const bcrypt = require("bcryptjs");
+// Importa biblioteca para geração de tokens JWT
 const jwt = require("jsonwebtoken");
+// Importa função para gerar token de confirmação via e-mail
 const { gerarTokenEmail } = require("../utils/validators");
+// Importa helper para executar consultas parametrizadas no banco
 const { runQuery } = require("../utils/queryHelper");
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_EXPIRATION = "1h";
-const SALT_ROUNDS = 10;
+const JWT_SECRET = process.env.JWT_SECRET; // Segredo utilizado para assinar os tokens JWT
+const JWT_EXPIRATION = "1h"; // Tempo de expiração do token JWT
+const SALT_ROUNDS = 10; // Complexidade do hash
 
 class UserService {
     /**
@@ -137,5 +141,5 @@ class UserService {
     }
 
 }
-
+// Exporta classe UserService
 module.exports = UserService;
