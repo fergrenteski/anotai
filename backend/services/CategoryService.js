@@ -9,5 +9,5 @@ class CategoryService {
         return runQuery("select_groups_categories");
     }
 }
-// Exporta a classe CategoryService para ser utilizada em outras partes da aplicação
+// Exporta a classe CategoryService
 module.exports = CategoryService;
