@@ -3,6 +3,8 @@ const pool = require("../database/database");
 // Importa função para carregar queries pré-definidas de arquivos
 const { loadQueries } = require("../utils/queries");
 
+// Service para gerenciar operações relacionadas a listas de um grupo.
+
 class ListService {
 
     /**
