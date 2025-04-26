@@ -17,18 +17,24 @@ class UserService {
      * @returns {Promise<Object>} - Retorna um objeto indicando o sucesso ou falha do cadastro.
      */
     async cadastrarUsuario(nome, email, senha) {
+
         // Verifica se o e-mail já está cadastrado
         const { rows: existingUsers } = await runQuery("select_user_by_email", [email]);
         if (existingUsers.length > 0) throw new Error("E-mail já cadastrado!");
+        
         // Criptografa a senha
         const senhaHash = await bcrypt.hash(senha, SALT_ROUNDS);
+        
         // Insere o novo usuário
         const { rows: newUserRows } = await runQuery("insert_user", [nome, email, senhaHash]);
         const userId = newUserRows[0].user_id;
+        
         // Gera token de confirmação
         const { emailToken, expiresAt } = gerarTokenEmail();
+        
         // Insere chave de confirmação de e-mail
         await runQuery("insert_user_email_confirm_keys", [userId, email, emailToken, expiresAt]);
+        
         // Registra log de criação
         await runQuery("insert_user_log_register", [userId]);
         return { email, emailToken };
@@ -111,6 +117,7 @@ class UserService {
     }
 
     async alterarSenha(email, senha) {
+        
         // Criptografa a senha antes de armazenar no banco de dados
         const senhaHash = await bcrypt.hash(senha, SALT_ROUNDS);
 

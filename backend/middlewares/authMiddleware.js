@@ -6,7 +6,6 @@ const JWT_SECRET = process.env.JWT_SECRET;
 /**
  * Middleware para autenticação via JWT.
  * Verifica o token no cabeçalho Authorization e decodifica as informações do usuário.
- *
  * @param {import("express").Request} req - Objeto da requisição.
  * @param {import("express").Response} res - Objeto da resposta.
  * @param {import("express").NextFunction} next - Função para chamar o próximo middleware.

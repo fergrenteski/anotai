@@ -37,6 +37,7 @@ class EmailService {
             console.log("E-mail de redefinição enviado!");
             return { success: true, message: "E-mail de redefinição enviado com sucesso!" };
         } catch (error) {
+            
             // Caso aconteça um erro na aplicação
             // console.error: registra no console detalhes do erro ocorrido, auxiliando no diagnóstico e correção
             console.error("Erro ao enviar e-mail de redefinição:", error);

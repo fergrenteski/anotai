@@ -24,7 +24,6 @@ const verificarAcessoGrupo = async (req, res, next) => {
         
         // Se não existir, nega acesso com 401
         if (rows.length === 0) return res.status(401).json({ success: false, message: "Acesso negado: você não pertence a este grupo." });
-
         next();
     } catch (error) {
         console.error("Erro ao verificar participação no grupo:", error);

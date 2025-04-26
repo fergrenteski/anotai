@@ -102,8 +102,10 @@ class GroupController {
         // Obtém o ID do grupo passado na URL.
         const groupId = req.params.groupId;
         try {
+           
             // Deleta o grupo
             const { rows } = await this.groupService.delete(groupId);
+            
             // Deleta a relação de usuário e grupos
             await this.memberService.delete(groupId);
             return res.status(200).json({ success: true, data: rows });
