@@ -1,3 +1,4 @@
+// Importa bibliotecas e funçöes:
 const GroupService = require("../services/GroupService");
 const MemberService = require("../services/MemberService");
 

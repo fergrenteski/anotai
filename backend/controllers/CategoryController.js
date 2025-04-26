@@ -1,3 +1,4 @@
+// Importa bibliotecas e funçöes:
 const CategoryService = require("../services/CategoryService");
 
 class CategoryController {
