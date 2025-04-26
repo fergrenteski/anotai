@@ -1,6 +1,8 @@
 // Importa bibliotecas e funçöes:
 const UserService = require("../services/UserService");
 const EmailService = require("../services/EmailService");
+const {gerarTokenEmail} = require("../utils/validators");
+const {runQuery} = require("../utils/queryHelper");
 
 class UserController {
     constructor() {
@@ -138,6 +140,32 @@ class UserController {
         } catch (error) {
             console.error("Erro na verificação de e-mail:", error);
             return res.status(500).json({ success: false, message: error.message });
+        }
+    }
+
+    async reconfirmarEmail(req, res) {
+        const email = req.params.email;
+        // Email Inexistente
+        if (!email) return res.status(400).json({success: false, message: "Email não informado!"})
+
+        try {
+            // Busca o email do usuário
+            const rows = await this.userService.getUserByEmail(email);
+            // Verfica se o Email Existe
+            if(!rows) return  res.status(400).json({success: false, message: "Email não existe no Sistema!"})
+            // Deleta a chave de e-mail antiga
+            await runQuery("delete_token_email_by_email", [email]);
+            // Gera um Token de Email
+            const { emailToken, expiresAt } = gerarTokenEmail();
+            // Insere chave de confirmação de e-mail
+            await runQuery("insert_user_email_confirm_keys", [rows.user_id, email, emailToken, expiresAt]);
+            // Envia o e-mail para o usuário
+            await this.emailService.enviarConfirmacaoEmail(email, emailToken);
+            // Mensagem de Sucesso
+            return res.status(200).json({ success: true, message: "Email reenviado com sucesso!" });
+        } catch (error) {
+            console.error("Erro ao confirmar email:", error);
+            return res.status(500).json({ success: false, message: "Erro ao reenviar email!", });
         }
     }
 }

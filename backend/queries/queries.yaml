@@ -26,7 +26,12 @@ queries:
   delete_token_email_by_token: >
     DELETE FROM user_email_verified_keys 
     WHERE token = $1;
- 
+    
+  # Exclui token de verificação de e-mail após uso
+  delete_token_email_by_email: >
+    DELETE FROM user_email_verified_keys 
+    WHERE email = $1;
+
  # Seleciona registro de redefinição de senha válido por token
   select_user_by_token_resetpass: >
     SELECT user_id, email 

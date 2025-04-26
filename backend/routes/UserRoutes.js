@@ -29,6 +29,7 @@ router.post("/confirmar-email", (req, res) => UserController.confirmarEmail(req,
 
 // Rota de alterar senha do usuário
 router.post("/alterar-senha", (req, res) => UserController.alterarSenha(req, res));
+router.post("/reconfirmar-email/:email", (req, res) => UserController.reconfirmarEmail(req, res));
 
 // Exporta classe  router
 module.exports = router;
