@@ -111,5 +111,5 @@ class GroupController {
         }
     }
 }
-
+// Exporta o GroupController
 module.exports = new GroupController();
