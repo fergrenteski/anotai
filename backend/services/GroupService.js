@@ -1,4 +1,4 @@
-// Importa a função runQuery para executar consultas SQL
+/// Importa bibliotecas e funçöes:
 const { runQuery } = require("../utils/queryHelper");
 
 // Service para gerenciar operações de CRUD em grupos

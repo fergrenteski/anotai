@@ -1,8 +1,6 @@
-// Importa biblioteca SendGrid para envio de e-mails
+// Importa bibliotecas e funçöes:
 const sgMail = require('@sendgrid/mail');
-// Importa função gerarLink para criar URLs seguras de confirmação
 const { gerarLink } = require("../utils/validators");
-// Carrega variáveis de ambiente do arquivo .env
 require('dotenv').config();
 
 class EmailService {

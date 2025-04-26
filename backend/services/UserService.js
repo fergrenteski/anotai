@@ -1,10 +1,7 @@
-// Importa biblioteca para hash de senhas
+// Importa bibliotecas e funçöes:
 const bcrypt = require("bcryptjs");
-// Importa biblioteca para geração de tokens JWT
 const jwt = require("jsonwebtoken");
-// Importa função para gerar token de confirmação via e-mail
 const { gerarTokenEmail } = require("../utils/validators");
-// Importa helper para executar consultas parametrizadas no banco
 const { runQuery } = require("../utils/queryHelper");
 
 const JWT_SECRET = process.env.JWT_SECRET; // Segredo utilizado para assinar os tokens JWT

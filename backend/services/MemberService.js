@@ -1,4 +1,4 @@
-// Importa pool de conexão ao banco e utilitário de carregamento de queries
+// Importa bibliotecas e funçöes:
 const pool = require("../database/database");
 const { loadQueries } = require("../utils/queries");
 

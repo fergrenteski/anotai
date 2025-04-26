@@ -1,3 +1,4 @@
+// Importa bibliotecas e funçöes:
 const express = require("express");
 const GroupController = require("../controllers/GroupController");
 const CategoryController = require("../controllers/CategoryController");
@@ -7,6 +8,13 @@ const ProductController = require("../controllers/ProductController");
 const verificarToken = require("../middlewares/authMiddleware")
 const verificarAcessoGrupo = require("../middlewares/groupAccessMiddleware");
 const router = express.Router();
+ 
+/**
+Entendimento geral das rotas:
+> Definição da URL com parâmetros
+>> @verificarToken valida o JWT do usuário (garante que esteja autenticado). Se o token for inválido, a requisição é bloqueada aqui
+>>> @verificarAcessoGrupo verifica se o usuário autenticado e se tem permissão para acessar o grupo indicado por groupId
+*/
 
 // Rotas de Categorias de Grupo
 router.get("/categories", verificarToken, (req, res) => CategoryController.getAll(req, res));
@@ -37,4 +45,5 @@ router.get("/:groupId/lists/:listId/products/:productId", verificarToken, verifi
 router.put("/:groupId/lists/:listId/products/:productId", verificarToken, verificarAcessoGrupo, (req, res) => ProductController.update(req, res));
 router.delete("/:groupId/lists/:listId/products/:productId", verificarToken, verificarAcessoGrupo, (req, res) => ProductController.delete(req, res));
 
+// Exporta classe  router
 module.exports = router;

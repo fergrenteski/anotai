@@ -1,4 +1,4 @@
-// Importa a função runQuery para executar consultas no banco de dados
+// Importa bibliotecas e funçöes:
 const { runQuery } = require("../utils/queryHelper");
 
 class CategoryService {
