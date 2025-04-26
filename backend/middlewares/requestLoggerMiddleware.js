@@ -1,3 +1,4 @@
+// Importa bibliotecas e funçöes:
 const pool = require("../database/database");
 const { loadQueries } = require("../utils/queries");// Caminho para o seu arquivo de conexão com o banco de dados
 
@@ -32,5 +33,5 @@ const requestLoggerMiddleware = async (req, res, next) => {
     // Passa a requisição para o próximo middleware ou rota
     next();
 };
-
+// Exporta o middleware
 module.exports = requestLoggerMiddleware;
