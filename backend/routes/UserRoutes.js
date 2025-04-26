@@ -9,5 +9,6 @@ router.get("/verificar-token", verificarToken, (req, res) =>  UserController.ver
 router.post("/redefinir-senha", (req, res) => UserController.redefinirSenha(req, res));
 router.post("/confirmar-email", (req, res) => UserController.confirmarEmail(req, res));
 router.post("/alterar-senha", (req, res) => UserController.alterarSenha(req, res));
+router.post("/reconfirmar-email/:email", (req, res) => UserController.reconfirmarEmail(req, res));
 
 module.exports = router;

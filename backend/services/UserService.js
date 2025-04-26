@@ -136,6 +136,10 @@ class UserService {
         await runQuery("insert_user_log_email_confirm", [rows[0]?.user_id]);
     }
 
+    async getUserByEmail(email) {
+        const { rows } = await runQuery("select_user_by_email", [email]);
+        return rows[0];
+    }
 }
 
 module.exports = UserService;

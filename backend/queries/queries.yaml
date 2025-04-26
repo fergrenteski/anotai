@@ -19,6 +19,10 @@ queries:
     DELETE FROM user_email_verified_keys 
     WHERE token = $1;
 
+  delete_token_email_by_email: >
+    DELETE FROM user_email_verified_keys 
+    WHERE email = $1;
+
   select_user_by_token_resetpass: >
     SELECT user_id, email 
         FROM user_reset_password_keys

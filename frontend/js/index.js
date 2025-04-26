@@ -111,8 +111,8 @@ const cadastrar = async () => {
     const data = await response.json()
 
     if (data.success) {
-        mensagemCadastro.innerText = data.message;
-        mensagemCadastro.style.color = "green";
+        mensagemCadastro.innerText = ''
+        window.location.href = `email.html?email=${inputEmailCadastro.value}`;
     } else {
         mensagemCadastro.innerText = data.message;
         inputEmailCadastro.classList.add("invalid");
