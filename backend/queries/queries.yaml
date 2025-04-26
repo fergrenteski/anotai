@@ -1,13 +1,20 @@
+
+# Coleção de queries SQL utilizadas.
+
 queries:
+
+   # Insere um log de requisição com método, endpoint, status HTTP, IP e user-agent
   insert_request_log: >
     INSERT INTO request_logs (method, endpoint, status_code, ip_address, user_agent)
     VALUES ($1, $2, $3, $4, $5);
 
+  # Recupera usuário pelo e-mail fornecido
   select_user_by_email: >
     SELECT user_id, name, email, password_hash 
     FROM users
     WHERE email = $1;
 
+  # Seleciona registro de verificação de e-mail válido por token
   select_user_by_token: >
     SELECT user_id, email 
     FROM user_email_verified_keys
@@ -15,10 +22,12 @@ queries:
       AND expires_at > CURRENT_TIMESTAMP
     LIMIT 1;
 
+  # Exclui token de verificação de e-mail após uso
   delete_token_email_by_token: >
     DELETE FROM user_email_verified_keys 
     WHERE token = $1;
-
+ 
+ # Seleciona registro de redefinição de senha válido por token
   select_user_by_token_resetpass: >
     SELECT user_id, email 
         FROM user_reset_password_keys
@@ -26,6 +35,7 @@ queries:
           AND expires_at > CURRENT_TIMESTAMP
         LIMIT 1;
 
+  # Atualiza senha do usuário pelo e-mail e retorna o ID do usuário
   update_password_by_email: >
     UPDATE users
        SET password_hash = $2,
@@ -33,6 +43,7 @@ queries:
        WHERE email = $1
        RETURNING user_id;
     
+  # Marca usuário como verificado por e-mail e retorna o ID
   update_verified_user_by_email: >
     UPDATE users
     SET email_verified = TRUE,
@@ -40,41 +51,50 @@ queries:
     WHERE email = $1
     RETURNING user_id;
 
+  #Insere novo usuário e retorna dados essenciais
   insert_user: >
     INSERT INTO users (name, email, password_hash) 
     VALUES ($1, $2, $3) 
     RETURNING user_id, name, email;
 
+  # Registra ação de cadastro de usuário
   insert_user_log_register: >
     INSERT INTO user_logs (user_id, action) 
     VALUES ($1, 'REGISTER');
 
+  # Registra ação de login de usuário
   insert_user_log_login: >
     INSERT INTO user_logs (user_id, action) 
     VALUES ($1, 'LOGIN');
 
+  # Registra ação de redefinição de senha
   insert_user_log_reset_password: >
     INSERT INTO user_logs (user_id, action) 
     VALUES ($1, 'RESET PASSWORD');
 
+  # Registra ação de confirmação de e-mail
   insert_user_log_email_confirm: >
     INSERT INTO user_logs (user_id, action) 
     VALUES ($1, 'CONFIRMED EMAIL');
 
+  # Insere chave de redefinição de senha com data de expiração
   insert_user_reset_password_keys: >
     INSERT INTO user_reset_password_keys (user_id, email, token, expires_at)
     VALUES ($1, $2, $3, $4)
     RETURNING *;
 
+   # Exclui chaves de redefinição de senha de um usuário
   delete_user_reset_password_keys: >
     DELETE FROM user_reset_password_keys 
     WHERE user_id = $1;
 
+  # Insere chave de confirmação de e-mail com data de expiração
   insert_user_email_confirm_keys: >
     INSERT INTO user_email_verified_keys (user_id, email, token, expires_at)
     VALUES ($1, $2, $3, $4)
     RETURNING *;
   
+ # Seleciona chave de redefinição de senha e dados do usuário associado
   select_user_reset_password_keys_by_token: >
     SELECT t.token, u.user_id, u.email, u.name, t.expires_at
     FROM user_reset_password_keys t
@@ -83,12 +103,14 @@ queries:
     AND u.expired_at IS NULL
     WHERE t.token = $1; 
 
+ #   Recupera todos os grupos associados a um usuário
   select_groups_by_user_id: >
     SELECT 
       *
       FROM vw_user_groups
     WHERE user_id = $1;
 
+  # Recupera detalhes de um grupo pelo ID
   select_group_by_id: >
     SELECT 
       group_id,
@@ -100,23 +122,27 @@ queries:
     WHERE group_id = $1
     LIMIT 1;
 
+  # Recupera todas as listas de um grupo pelo ID do grupo
   select_list_by_group_id: >
     SELECT 
       *
       FROM vw_lists
     WHERE group_id = $1;
 
+  # Recupera todas as categorias disponíveis de grupos
   select_groups_categories: >
     SELECT 
       groups_category_id as id,
       name
     FROM groups_category
 
+  # Cria um novo grupo e retorna o ID criado
   insert_group: >
     INSERT INTO groups (name, description, category_id, user_admin_id) 
     VALUES ($1, $2, $3, $4) 
     RETURNING group_id;
 
+  # Atualiza informações de um grupo existente
   update_group: >
     UPDATE groups 
     SET
@@ -126,19 +152,23 @@ queries:
       updated_at = CURRENT_TIMESTAMP
     WHERE group_id = $4;
 
+  # Marca um grupo como expirado
   expire_group: >
     UPDATE groups
     SET expired_at = CURRENT_TIMESTAMP 
     WHERE group_id = $1
 
+   # Associa um usuário a um grupo
   insert_user_groups: >
     INSERT INTO group_users (user_id, group_id, verified)
     VALUES ($1, $2, $3)
 
+  # Remove a associação de um usuário a um grupo
   expire_user_groups: >
     DELETE FROM group_users
     WHERE group_id = $1
 
+  # Verifica se um usuário é membro ativo de um grupo
   select_user_group_member: >
     SELECT * FROM group_users
     WHERE user_id = $1 AND group_id = $2 AND verified = TRUE;

@@ -1,3 +1,4 @@
+// Importa bibliotecas e funçöes:
 const ListService = require("../services/ListService");
 
 class ListController {
@@ -13,7 +14,11 @@ class ListController {
      */
     async getAll(req, res) {
         try {
+
+            // Obtém o ID do grupo da URL
             const groupId = req.params.groupId;
+
+            // Chama o buscar todas as listas referente ao ID do grupo.
             const data = await this.listService.getAllListsByGroupId(groupId);
             return res.status(200).json({ success: true,data: data.rows });
 
@@ -23,5 +28,5 @@ class ListController {
         }
     }
 }
-
+//exporta o ListController
 module.exports = new ListController();
