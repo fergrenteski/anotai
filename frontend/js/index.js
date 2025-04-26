@@ -1,4 +1,4 @@
-// Elementos do DOM
+// Seleciona elementos do DOM usados na página
 const elements = {
     inputEmailCadastro: document.getElementById("emailCadastro"),
     inputEmailLogin: document.getElementById("emailLogin"),
@@ -17,16 +17,14 @@ const elements = {
     inputName: document.getElementById("nomeCadastro"),
 };
 
-// Alternar entre telas de login e cadastro
+// Limpa campos e alterna entre formulários de login e cadastro
 const toggleForms = (showSignup) => {
-    // Limpeza de campos 
     elements.inputEmailLogin.value = "";
     elements.inputEmailCadastro.value = "";
     elements.senhaInput.value = "";
     elements.confirmarInput.value = "";
     elements.inputSenhaLogin.value = "";
     elements.inputName.value = "";
-    // Troca de formularios LOGIN/CADASTRO
     document.querySelector('.container').classList.toggle('active', showSignup);
     document.getElementById('login-info').style.display = showSignup ? 'none' : 'block';
     document.getElementById('signup-info').style.display = showSignup ? 'block' : 'none';
@@ -34,7 +32,7 @@ const toggleForms = (showSignup) => {
     document.getElementById('signup-container').style.display = showSignup ? 'block' : 'none';
 };
 
-// Validação de senha
+// Valida comprimento e igualdade das senhas no cadastro
 const validarSenhas = () => {
     const { senhaInput, confirmarInput, mensagemCadastro, buttonCriar } = elements;
     const senha = senhaInput.value;
@@ -64,7 +62,7 @@ const validarSenhas = () => {
     }
 };
 
-// Função genérica para requisições de autenticação
+// Envia requisições genéricas para autenticação de usuário
 const autenticar = async (endpoint, dados) => {
     return await fetch(`http://localhost:3000/api/user/${endpoint}`, {
         method: "POST",
@@ -73,7 +71,7 @@ const autenticar = async (endpoint, dados) => {
     });
 };
 
-// Login
+// Realiza login e armazena token na sessão
 const login = async () => {
     const { inputEmailLogin, inputSenhaLogin, mensagemLogin } = elements;
     const response = await autenticar("login", {
@@ -93,7 +91,7 @@ const login = async () => {
     }
 };
 
-// Cadastro
+// Realiza cadastro de novo usuário
 const cadastrar = async () => {
     const { senhaInput, confirmarInput, mensagemCadastro, inputEmailCadastro } = elements;
 
@@ -108,7 +106,7 @@ const cadastrar = async () => {
         senha: senhaInput.value,
     });
 
-    const data = await response.json()
+    const data = await response.json();
 
     if (data.success) {
         mensagemCadastro.innerText = data.message;
@@ -120,39 +118,30 @@ const cadastrar = async () => {
     }
 };
 
-// Evento para realizar o cadastro do sistema
+// Impede envio padrão e chama função de cadastro
 elements.formSignup.addEventListener("submit", (e) => {
     e.preventDefault();
     cadastrar();
 });
 
-// Evento para realizar o login do sistema
+// Impede envio padrão e chama função de login
 elements.formLogin.addEventListener("submit", (e) => {
     e.preventDefault();
     login();
 });
 
-// Evento de remocao do estado invalido do campo email de login
+// Remove estado de campo inválido ao focar
 elements.inputEmailLogin.addEventListener("focus", () => elements.inputEmailLogin.classList.remove("invalid"));
-
-// Evento de remocao do estado invalido do campo email do cadastro
 elements.inputEmailCadastro.addEventListener("focus", () => elements.inputEmailCadastro.classList.remove("invalid"));
-
-// Evento de remocao do estado invalido do campo senha do login
 elements.inputSenhaLogin.addEventListener("focus", () => elements.inputSenhaLogin.classList.remove("invalid"));
 
-// Evento para troca de formularios
+// Define eventos para alternar formulários e validar senhas
 elements.showSignup.addEventListener("click", () => toggleForms(true));
-
 elements.showLogin.addEventListener("click", () => toggleForms(false));
-
-// Evento para realizar a validacao de senha
 elements.senhaInput.addEventListener("input", validarSenhas);
-
 elements.confirmarInput.addEventListener("input", validarSenhas);
 
-// Adicionando evento do botao responsavel por mostrar e esconder senha
-// Campo de senha
+// Adiciona funcionalidade de mostrar/ocultar senha no cadastro
 elements.buttonMostrarSenha.addEventListener("click", (e) => {
     e.preventDefault();
     elements.senhaInput.type = elements.senhaInput.type === "password" ? "text" : "password";
@@ -160,9 +149,7 @@ elements.buttonMostrarSenha.addEventListener("click", (e) => {
     document.getElementById("pass-i").classList.toggle("fa-eye-slash");
 });
 
-
-// Adicionando evento do botao responsavel por mostrar e esconder senha
-// Campo de confirmar a senha
+// Adiciona funcionalidade de mostrar/ocultar confirmação de senha
 elements.buttonMostrarConfirmarSenha.addEventListener("click", (e) => {
     e.preventDefault();
     elements.confirmarInput.type = elements.confirmarInput.type === "password" ? "text" : "password";
