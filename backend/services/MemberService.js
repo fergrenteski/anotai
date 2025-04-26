@@ -35,7 +35,7 @@ class MemberService {
         // Carrega as queries definidas na aplicação
         const queries = await loadQueries();
 
-        // Executa atualização lógica (expire_user_groups) para o groupId
+        // Executa a query de atualização do groupId
         const { rows } = await pool.query(queries.expire_user_groups, [groupId]);
         return { rows };
     }

@@ -99,11 +99,11 @@ class UserController {
         if (senha !== confirmacaoSenha) return res.status(400).json({ success: false, message: "As senhas não são iguais!" });
 
         try {
-            // Verifica se o e-mail associado ao token
-            // Verifica se o e-mail fornecido corresponde ao e-mail associado ao token
+
+            // Recupera o e-mail associado ao token
             const { email: emailRows} = await this.userService.verificarTokenResetPass(token);
 
-            //função e retorno na mesma linha:
+            // Verifica o e-mail informado.
             if (email !== emailRows) return res.status(400).json({ success: false, message: "O e-mail fornecido não corresponde ao e-mail vinculado ao token." });
             
              // Atualiza senha no banco
@@ -124,13 +124,11 @@ class UserController {
         // Extrai dados da requisição
         const { email, token } = req.body;
 
-        //função e retorno na mesma linha:
         if (!email || !token) return res.status(400).json({ success: false, message: "Verificação de e-mail inválida!" });
 
         try {
             const { email: emailRow } = await this.userService.verificarTokenEmail(token);
 
-            //função e retorno na mesma linha:
             // Verifica se o e-mail fornecido corresponde ao e-mail associado ao token
             if (email !== emailRow) return res.status(400).json({ success: false, message: "O e-mail fornecido não corresponde ao e-mail vinculado ao token." });
 
