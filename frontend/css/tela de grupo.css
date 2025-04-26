@@ -1,0 +1,177 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: sans-serif;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(45deg, #7367f0, #43a047);
+}
+
+.container {
+    width: 500px;
+    padding: 30px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2, h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+p {
+    margin-bottom: 15px;
+    color: #666;
+}
+
+button {
+    padding: 6px 8px;
+    border: none;
+    border-radius: 4px;
+    background: #7367f0;
+    color: #fff;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.3s;
+    font-size: 12px;
+}
+
+button:hover {
+    background: #5d52d8;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: #f9f9f9;
+    border-radius: 5px;
+    border-left: 4px solid #7367f0;
+    text-align: left;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 5px;
+}
+
+.edit-btn {
+    background: #ffc107;
+    color: #333;
+}
+
+.delete-btn, .remove-btn {
+    background: #f44336;
+    color: white;
+}
+
+.group-members {
+    max-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.member-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.verified-indicator {
+    background: #4CAF50;
+    color: white;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 11px;
+    margin-left: 5px;
+}
+
+.unverified-indicator {
+    background: #FFC107;
+    color: #333;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 11px;
+    margin-left: 5px;
+}
+
+.tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.tab {
+    padding: 10px 15px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+}
+
+.tab.active {
+    border-bottom: 2px solid #7367f0;
+    color: #7367f0;
+    font-weight: bold;
+}
+
+.invite-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: #f9f9f9;
+    border-radius: 5px;
+    border-left: 4px solid #ffc107;
+}
+
+.invite-buttons {
+    display: flex;
+    gap: 5px;
+}
+
+.accept-btn {
+    background: #4CAF50;
+}
+
+.reject-btn {
+    background: #f44336;
+}
+
+.member-item .action-buttons button {
+    padding: 4px 6px;
+    font-size: 11px;
+    margin-top: 0;
+}
+
+@media (max-width: 768px) {
+    .container {
+        width: 95%;
+        padding: 20px;
+    }
+    .action-buttons {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
