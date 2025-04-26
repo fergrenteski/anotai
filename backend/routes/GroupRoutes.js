@@ -10,10 +10,12 @@ const verificarAcessoGrupo = require("../middlewares/groupAccessMiddleware");
 const router = express.Router();
  
 /**
-Entendimento geral das rotas:
-> Definição da URL com parâmetros
+Entendimento geral das rotas do grupos:
+> Definição da URL ou com parâmetros também
 >> @verificarToken valida o JWT do usuário (garante que esteja autenticado). Se o token for inválido, a requisição é bloqueada aqui
 >>> @verificarAcessoGrupo verifica se o usuário autenticado e se tem permissão para acessar o grupo indicado por groupId
+* @param req - Objeto de requisição HTTP.
+* @param res - Objeto de resposta HTTP.
 */
 
 // Rotas de Categorias de Grupo
