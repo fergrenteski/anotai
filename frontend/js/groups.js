@@ -1,40 +1,66 @@
-// Dados de exemplo
-const grupos = [
-    { id: 1, nome: "Churrasco", tipo: "outro", membros: [
-        { email: "maria@email.com", isAdmin: true, verificado: true },
-        { email: "joao@email.com", isAdmin: false, verificado: true },
-        { email: "ana@email.com", isAdmin: false, verificado: false }
-    ]},
-    { id: 2, nome: "Lista do Mercado", tipo: "outro", membros: [
-        { email: "maria@email.com", isAdmin: true, verificado: true },
-        { email: "pedro@email.com", isAdmin: false, verificado: true },
-        { email: "carlos@email.com", isAdmin: false, verificado: false }
-    ]},
-    { id: 3, nome: "Farmácia", tipo: "outro", membros: [
-        { email: "maria@email.com", isAdmin: true, verificado: true },
-        { email: "paulo@email.com", isAdmin: false, verificado: false }
-    ]}
-];
+async function fetchComToken(url, options = {}) {
+    // Recupera token do sessionStorage
+    const token = sessionStorage.getItem('token');
+    if (!options.headers) {
+        options.headers = {};
+    }
+    // Adiciona token e header JSON se disponível
+    if (token) {
+        options.headers['Authorization'] = `Bearer ${token}`;
+        options.headers['Content-Type'] = "application/json";
+    }
+    const response = await fetch(url, options);
+    // Redireciona para login se não autorizado
+    if (response.status === 401) {
+        window.location.href = '/index.html';
+        return Promise.reject(new Error('Não autorizado. Redirecionando...'));
+    }
+    // Retorna resposta em JSON
+    return await response.json();
+}
 
-// Convites pendentes de exemplo
-const convites = [
-    { id: 1, grupoId: 4, nomeGrupo: "Material para Case", tipoGrupo: "trabalho", convidadoPor: "lucia@email.com" },
-    { id: 2, grupoId: 5, nomeGrupo: "Material para Faculdade", tipoGrupo: "estudo", convidadoPor: "roberto@email.com" },
-    { id: 3, grupoId: 6, nomeGrupo: "Grupo de Estudos", tipoGrupo: "estudo", convidadoPor: "carla@email.com" }
-];
+async function loadGroupsCategories() {
+    // Busca categorias de grupo da API
+    const data = await fetchComToken('http://localhost:3000/api/groups/categories');
+    return data.data;
+}
 
-// Estado da aplicação
-const appState = {
-    currentView: "listaGrupos", // Pode ser: "listaGrupos", "novoGrupo", "editarGrupo", "convitesGrupo"
-    activeTab: "meus-grupos", // Pode ser: "meus-grupos", "convites"
-    grupos: grupos,
-    convites: convites,
-    grupoAtual: null,
-    mostrarGruposVazios: false
-};
+async function loadGroups() {
+    // Busca lista de grupos da API
+    const data = await fetchComToken('http://localhost:3000/api/groups');
+    if (!data.success) {
+        alert("Error: " + data.message);
+        return;
+    }
+    return data.data;
+}
+
+async function loadMembers(id) {
+    return [];
+}
+
+
+let appState = null; // Inicializa como nulo
+
+async function initializeAppState(currentView ,
+                                  activeTab,
+                                  convites,
+                                  groupId,
+                                  mostrarGruposVazios) {
+    let grupos = await loadGroups();
+    appState = {
+        currentView: currentView,
+        activeTab: activeTab,
+        grupos: grupos,
+        convites: convites,
+        groupId: groupId,
+        mostrarGruposVazios: mostrarGruposVazios
+    };
+}
 
 // Elemento raiz da aplicação
 const appElement = document.getElementById('app');
+
 
 // Função principal para renderizar a interface
 function renderApp() {
@@ -72,8 +98,7 @@ function renderTabs() {
     meusGruposTab.className = `tab ${appState.activeTab === 'meus-grupos' ? 'active' : ''}`;
     meusGruposTab.textContent = 'Meus Grupos';
     meusGruposTab.addEventListener('click', () => {
-        appState.activeTab = 'meus-grupos';
-        renderApp();
+        startApp(null, 'meus-grupos');
     });
     tabsContainer.appendChild(meusGruposTab);
     
@@ -81,8 +106,7 @@ function renderTabs() {
     convitesTab.className = `tab ${appState.activeTab === 'convites' ? 'active' : ''}`;
     convitesTab.textContent = `Convites (${appState.convites.length})`;
     convitesTab.addEventListener('click', () => {
-        appState.activeTab = 'convites';
-        renderApp();
+        startApp(null, 'convites');
     });
     tabsContainer.appendChild(convitesTab);
     
@@ -96,17 +120,6 @@ function renderListaGrupos() {
     titulo.textContent = 'Meus Grupos';
     titulo.style.textAlign = 'center';
     appElement.appendChild(titulo);
-
-    // Botão para alternar visualização
-    const toggleButton = document.createElement('button');
-    toggleButton.textContent = 'Alternar Visualização';
-    toggleButton.style.marginBottom = '20px';
-    toggleButton.style.float = 'right';
-    toggleButton.addEventListener('click', () => {
-        appState.mostrarGruposVazios = !appState.mostrarGruposVazios;
-        renderApp();
-    });
-    appElement.appendChild(toggleButton);
 
     // Container para limpar o float
     const clearDiv = document.createElement('div');
@@ -131,9 +144,7 @@ function renderListaGrupos() {
         createButton.textContent = 'Criar Grupo';
         createButton.style.width = '100%';
         createButton.addEventListener('click', () => {
-            appState.currentView = "novoGrupo";
-            appState.grupoAtual = null;
-            renderApp();
+            startApp("novoGrupo");
         });
         emptyState.appendChild(createButton);
         
@@ -151,22 +162,22 @@ function renderListaGrupos() {
             const groupInfo = document.createElement('div');
             
             const groupName = document.createElement('div');
-            groupName.textContent = grupo.nome;
+            groupName.textContent = grupo.name;
             groupName.style.fontWeight = 'bold';
             groupInfo.appendChild(groupName);
             
             const groupType = document.createElement('div');
-            groupType.textContent = grupo.tipo.charAt(0).toUpperCase() + grupo.tipo.slice(1);
+            groupType.textContent = grupo.category_name.charAt(0).toUpperCase() + grupo.category_name.slice(1);
             groupType.style.fontSize = '14px';
             groupInfo.appendChild(groupType);
             
             // Contar membros verificados
-            const verificados = grupo.membros.filter(m => m.verificado).length;
-            const groupMembers = document.createElement('div');
-            groupMembers.textContent = `${grupo.membros.length} membros (${verificados} verificados)`;
-            groupMembers.style.fontSize = '14px';
-            groupMembers.style.color = '#888';
-            groupInfo.appendChild(groupMembers);
+            // const verificados = grupo.membros.filter(m => m.verificado).length;
+            // const groupMembers = document.createElement('div');
+            // groupMembers.textContent = `${grupo.membros.length} membros (${verificados} verificados)`;
+            // groupMembers.style.fontSize = '14px';
+            // groupMembers.style.color = '#888';
+            // groupInfo.appendChild(groupMembers);
             
             groupItem.appendChild(groupInfo);
             
@@ -178,20 +189,26 @@ function renderListaGrupos() {
             editBtn.textContent = 'Editar';
             editBtn.className = 'edit-btn';
             editBtn.addEventListener('click', () => {
-                appState.currentView = "editarGrupo";
-                appState.grupoAtual = grupo;
-                renderApp();
+                startApp("editarGrupo", null, null, grupo.group_id);
             });
             actionButtons.appendChild(editBtn);
             
             const deleteBtn = document.createElement('button');
             deleteBtn.textContent = 'Excluir';
             deleteBtn.className = 'delete-btn';
-            deleteBtn.addEventListener('click', () => {
-                if (confirm(`Tem certeza que deseja excluir o grupo "${grupo.nome}"?`)) {
-                    appState.grupos = appState.grupos.filter(g => g.id !== grupo.id);
-                    alert(`Grupo "${grupo.nome}" excluído com sucesso!`);
-                    renderApp();
+            deleteBtn.addEventListener('click', async () => {
+                if (confirm(`Tem certeza que deseja excluir o grupo "${grupo.name}"?`)) {
+
+                    // Deleta grupo pela API
+                    const data = await fetchComToken(`http://localhost:3000/api/groups/${grupo.group_id}`, {
+                        method: 'DELETE',
+                    });
+                    if(data.success) {
+                        alert(`Grupo "${grupo.name}" excluído com sucesso!`);
+                    } else {
+                        alert(data.error);
+                    }
+                    startApp();
                 }
             });
             actionButtons.appendChild(deleteBtn);
@@ -205,9 +222,7 @@ function renderListaGrupos() {
         createNewButton.textContent = 'Criar Novo Grupo';
         createNewButton.style.width = '100%';
         createNewButton.addEventListener('click', () => {
-            appState.currentView = "novoGrupo";
-            appState.grupoAtual = null;
-            renderApp();
+            startApp("novoGrupo");
         });
         groupsContainer.appendChild(createNewButton);
         
@@ -276,10 +291,8 @@ function renderConvitesGrupo() {
             acceptBtn.textContent = 'Aceitar';
             acceptBtn.className = 'accept-btn';
             acceptBtn.addEventListener('click', () => {
-                // Simulando a aceitação do convite
-                appState.convites = appState.convites.filter(c => c.id !== convite.id);
                 alert(`Convite para o grupo "${convite.nomeGrupo}" aceito com sucesso!`);
-                renderApp();
+                startApp();
             });
             actionButtons.appendChild(acceptBtn);
             
@@ -288,9 +301,8 @@ function renderConvitesGrupo() {
             rejectBtn.className = 'reject-btn';
             rejectBtn.addEventListener('click', () => {
                 if (confirm(`Tem certeza que deseja recusar o convite para o grupo "${convite.nomeGrupo}"?`)) {
-                    appState.convites = appState.convites.filter(c => c.id !== convite.id);
-                    alert(`Convite para o grupo "${convite.nomeGrupo}" recusado.`);
-                    renderApp();
+
+                    startApp();
                 }
             });
             actionButtons.appendChild(rejectBtn);
@@ -304,9 +316,11 @@ function renderConvitesGrupo() {
 }
 
 // Renderizar tela de gerenciar grupo (criar ou editar)
-function renderGerenciarGrupo() {
+async function renderGerenciarGrupo() {
     const isEditing = appState.currentView === "editarGrupo";
-    const grupo = appState.grupoAtual || { nome: "", tipo: "", membros: [] };
+    const groupId = appState.groupId;
+    const data = await fetchComToken(`http://localhost:3000/api/groups/${groupId}`);
+    const grupo = data.data || { group_name: "", description: "", category_name: "" };
     
     // Título da página
     const titulo = document.createElement('h1');
@@ -327,9 +341,16 @@ function renderGerenciarGrupo() {
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
     nameInput.placeholder = 'Nome do Grupo';
-    nameInput.value = grupo.nome;
+    nameInput.value = grupo.group_name;
     nameInput.id = 'group-name';
     form.appendChild(nameInput);
+
+    const descriptionInput = document.createElement('input');
+    descriptionInput.type = 'text';
+    descriptionInput.placeholder = 'Descrição do Grupo';
+    descriptionInput.value = grupo.description;
+    descriptionInput.id = 'group-description';
+    form.appendChild(descriptionInput);
     
     // Campo: Tipo do grupo
     const typeSelect = document.createElement('select');
@@ -339,235 +360,201 @@ function renderGerenciarGrupo() {
     defaultOption.value = "";
     defaultOption.textContent = "Tipo de Grupo";
     defaultOption.disabled = true;
-    defaultOption.selected = !grupo.tipo;
+    defaultOption.selected = !grupo.category_name;
     typeSelect.appendChild(defaultOption);
     
-    const types = ["trabalho", "estudo", "projeto", "outro"];
+    const types = await loadGroupsCategories();
     types.forEach(type => {
+        const { id, name } = type;
         const option = document.createElement('option');
-        option.value = type;
-        option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
-        option.selected = type === grupo.tipo;
+        option.value = id;
+        option.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+        option.selected = name === grupo.category_name;
         typeSelect.appendChild(option);
     });
     
     form.appendChild(typeSelect);
     
-    // Seção de membros
-    const membersTitle = document.createElement('h3');
-    membersTitle.textContent = 'Membros do Grupo';
-    membersTitle.style.textAlign = 'left';
-    membersTitle.style.marginTop = '15px';
-    form.appendChild(membersTitle);
-    
-    // Lista de membros
-    const membersList = document.createElement('div');
-    membersList.className = 'group-members';
-    membersList.id = 'members-list';
-    
-    // Adicionar membros existentes
-    if (grupo.membros.length > 0) {
-        grupo.membros.forEach(membro => {
+    if(isEditing) {
+        // Seção de membros
+        const membersTitle = document.createElement('h3');
+        membersTitle.textContent = 'Membros do Grupo';
+        membersTitle.style.textAlign = 'left';
+        membersTitle.style.marginTop = '15px';
+        form.appendChild(membersTitle);
+
+        // Lista de membros
+        const membersList = document.createElement('div');
+        membersList.className = 'group-members';
+        membersList.id = 'members-list';
+        const membros = await loadMembers(grupo.group_id)
+        // Adicionar membros existentes
+        if (membros.length > 0) {
+            membros.forEach(membro => {
+                const memberItem = document.createElement('div');
+                memberItem.className = 'member-item';
+
+                const memberInfo = document.createElement('div');
+                memberInfo.style.display = 'flex';
+                memberInfo.style.alignItems = 'center';
+
+                const memberName = document.createElement('span');
+                let statusText = '';
+                if (membro.isAdmin) {
+                    statusText = ' (Administrador)';
+                }
+                memberName.textContent = membro.email + statusText;
+                memberInfo.appendChild(memberName);
+
+                // Indicador de verificação
+                const verifiedIndicator = document.createElement('span');
+                if (membro.verificado) {
+                    verifiedIndicator.className = 'verified-indicator';
+                    verifiedIndicator.textContent = 'Verificado';
+                } else {
+                    verifiedIndicator.className = 'unverified-indicator';
+                    verifiedIndicator.textContent = 'Não verificado';
+                }
+                memberInfo.appendChild(verifiedIndicator);
+
+                memberItem.appendChild(memberInfo);
+
+                const actionButtons = document.createElement('div');
+                actionButtons.className = 'action-buttons';
+
+                // Botão remover membro
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-btn';
+
+                if (membro.isAdmin) {
+                    removeBtn.textContent = 'Admin';
+                    removeBtn.disabled = true;
+                    removeBtn.style.opacity = '0.5';
+                } else {
+                    removeBtn.textContent = 'Remover';
+                    removeBtn.addEventListener('click', () => {
+                        membersList.removeChild(memberItem);
+                    });
+                }
+
+                // Adicionar botões às ações
+                actionButtons.appendChild(removeBtn);
+                memberItem.appendChild(actionButtons);
+
+                membersList.appendChild(memberItem);
+            });
+        }
+
+        form.appendChild(membersList);
+
+        // Adicionar novo membro
+        const newMemberInput = document.createElement('input');
+        newMemberInput.type = 'email';
+        newMemberInput.id = 'new-member';
+        newMemberInput.placeholder = 'E-mail do novo membro';
+        form.appendChild(newMemberInput);
+
+        const addMemberBtn = document.createElement('button');
+        addMemberBtn.textContent = 'Adicionar Membro';
+        addMemberBtn.id = 'add-member-btn';
+        addMemberBtn.addEventListener('click', () => {
+            const email = newMemberInput.value.trim();
+            if (!email) {
+                alert('Por favor, informe o e-mail do novo membro!');
+                return;
+            }
+
+            // Criar novo elemento de membro
             const memberItem = document.createElement('div');
             memberItem.className = 'member-item';
-            
+
             const memberInfo = document.createElement('div');
             memberInfo.style.display = 'flex';
             memberInfo.style.alignItems = 'center';
-            
+
             const memberName = document.createElement('span');
-            let statusText = '';
-            if (membro.isAdmin) {
-                statusText = ' (Administrador)';
-            }
-            memberName.textContent = membro.email + statusText;
+            memberName.textContent = email;
             memberInfo.appendChild(memberName);
-            
-            // Indicador de verificação
+
+            // Indicador de verificação (novo membro não é verificado)
             const verifiedIndicator = document.createElement('span');
-            if (membro.verificado) {
-                verifiedIndicator.className = 'verified-indicator';
-                verifiedIndicator.textContent = 'Verificado';
-            } else {
-                verifiedIndicator.className = 'unverified-indicator';
-                verifiedIndicator.textContent = 'Não verificado';
-            }
+            verifiedIndicator.className = 'unverified-indicator';
+            verifiedIndicator.textContent = 'Não verificado';
             memberInfo.appendChild(verifiedIndicator);
-            
+
             memberItem.appendChild(memberInfo);
-            
+
             const actionButtons = document.createElement('div');
             actionButtons.className = 'action-buttons';
-            
-            // Botão alternar verificação
-            const verifyBtn = document.createElement('button');
-            verifyBtn.textContent = membro.verificado ? 'Remover Verificação' : 'Verificar';
-            verifyBtn.style.background = membro.verificado ? '#FFC107' : '#4CAF50';
-            verifyBtn.addEventListener('click', () => {
-                membro.verificado = !membro.verificado;
-                renderApp();
-            });
-            
-            // Botão remover membro
+
+            // Botão para remover
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-btn';
-            
-            if (membro.isAdmin) {
-                removeBtn.textContent = 'Admin';
-                removeBtn.disabled = true;
-                removeBtn.style.opacity = '0.5';
-            } else {
-                removeBtn.textContent = 'Remover';
-                removeBtn.addEventListener('click', () => {
-                    membersList.removeChild(memberItem);
-                });
-            }
-            
-            // Adicionar botões às ações
-            actionButtons.appendChild(verifyBtn);
+            removeBtn.textContent = 'Remover';
+            removeBtn.addEventListener('click', () => {
+                membersList.removeChild(memberItem);
+            });
             actionButtons.appendChild(removeBtn);
+
             memberItem.appendChild(actionButtons);
-            
             membersList.appendChild(memberItem);
+
+            // Limpar campo
+            newMemberInput.value = '';
         });
+        form.appendChild(addMemberBtn);
     }
-    
-    form.appendChild(membersList);
-    
-    // Adicionar novo membro
-    const newMemberInput = document.createElement('input');
-    newMemberInput.type = 'email';
-    newMemberInput.id = 'new-member';
-    newMemberInput.placeholder = 'E-mail do novo membro';
-    form.appendChild(newMemberInput);
-    
-    const addMemberBtn = document.createElement('button');
-    addMemberBtn.textContent = 'Adicionar Membro';
-    addMemberBtn.id = 'add-member-btn';
-    addMemberBtn.addEventListener('click', () => {
-        const email = newMemberInput.value.trim();
-        if (!email) {
-            alert('Por favor, informe o e-mail do novo membro!');
-            return;
-        }
-        
-        // Criar novo elemento de membro
-        const memberItem = document.createElement('div');
-        memberItem.className = 'member-item';
-        
-        const memberInfo = document.createElement('div');
-        memberInfo.style.display = 'flex';
-        memberInfo.style.alignItems = 'center';
-        
-        const memberName = document.createElement('span');
-        memberName.textContent = email;
-        memberInfo.appendChild(memberName);
-        
-        // Indicador de verificação (novo membro não é verificado)
-        const verifiedIndicator = document.createElement('span');
-        verifiedIndicator.className = 'unverified-indicator';
-        verifiedIndicator.textContent = 'Não verificado';
-        memberInfo.appendChild(verifiedIndicator);
-        
-        memberItem.appendChild(memberInfo);
-        
-        const actionButtons = document.createElement('div');
-        actionButtons.className = 'action-buttons';
-        
-        // Botão para verificar
-        const verifyBtn = document.createElement('button');
-        verifyBtn.textContent = 'Verificar';
-        verifyBtn.style.background = '#4CAF50';
-        verifyBtn.addEventListener('click', () => {
-            // Alternar a verificação
-            const indicator = memberItem.querySelector('.unverified-indicator');
-            if (indicator) {
-                indicator.textContent = 'Verificado';
-                indicator.className = 'verified-indicator';
-                verifyBtn.textContent = 'Remover Verificação';
-                verifyBtn.style.background = '#FFC107';
-            } else {
-                const indicator = memberItem.querySelector('.verified-indicator');
-                indicator.textContent = 'Não verificado';
-                indicator.className = 'unverified-indicator';
-                verifyBtn.textContent = 'Verificar';
-                verifyBtn.style.background = '#4CAF50';
-            }
-        });
-        actionButtons.appendChild(verifyBtn);
-        
-        // Botão para remover
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'remove-btn';
-        removeBtn.textContent = 'Remover';
-        removeBtn.addEventListener('click', () => {
-            membersList.removeChild(memberItem);
-        });
-        actionButtons.appendChild(removeBtn);
-        
-        memberItem.appendChild(actionButtons);
-        membersList.appendChild(memberItem);
-        
-        // Limpar campo
-        newMemberInput.value = '';
-    });
-    form.appendChild(addMemberBtn);
     
     // Botão salvar
     const saveBtn = document.createElement('button');
     saveBtn.textContent = 'Salvar Grupo';
     saveBtn.style.width = '100%';
     saveBtn.style.marginTop = '20px';
-    saveBtn.addEventListener('click', () => {
+    saveBtn.addEventListener('click', async () => {
         const groupName = document.getElementById('group-name').value.trim();
-        const groupType = document.getElementById('group-type').value;
+        const groupDescription = document.getElementById('group-description').value.trim();
+        const categoryId = document.getElementById('group-type').value;
         
         if (!groupName) {
             alert('Por favor, informe o nome do grupo!');
             return;
         }
         
-        if (!groupType) {
+        if (!categoryId) {
             alert('Por favor, selecione o tipo do grupo!');
             return;
         }
         
         // Coletar membros
-        const membrosItems = document.querySelectorAll('.member-item');
-        const membros = Array.from(membrosItems).map(item => {
-            const email = item.querySelector('span').textContent.replace(' (Administrador)', '');
-            const isAdmin = item.querySelector('span').textContent.includes('(Administrador)');
-            const verificado = item.querySelector('.verified-indicator') !== null;
-            return { email, isAdmin, verificado };
+        // const membrosItems = document.querySelectorAll('.member-item');
+        // const membros = Array.from(membrosItems).map(item => {
+        //     const email = item.querySelector('span').textContent.replace(' (Administrador)', '');
+        //     const isAdmin = item.querySelector('span').textContent.includes('(Administrador)');
+        //     const verificado = item.querySelector('.verified-indicator') !== null;
+        //     return { email, isAdmin, verificado };
+        // });
+        const url = isEditing
+            ? `http://localhost:3000/api/groups/${grupo.group_id}`
+            : 'http://localhost:3000/api/groups';
+        const method = isEditing ? 'PUT' : 'POST';
+        const data = await fetchComToken(url, {
+            method: method,
+            body: JSON.stringify({
+                name: groupName,
+                category: categoryId,
+                description: groupDescription
+            }),
         });
-        
-        if (isEditing) {
-            // Atualizar grupo existente
-            const index = appState.grupos.findIndex(g => g.id === grupo.id);
-            appState.grupos[index] = {
-                ...grupo,
-                nome: groupName,
-                tipo: groupType,
-                membros: membros
-            };
+        if(data.success) {
+            // Mostrar mensagem de sucesso
+            alert(`Grupo ${isEditing ? 'atualizado' : 'criado'} com sucesso!`);
         } else {
-            // Criar novo grupo
-            const novoId = Math.max(0, ...appState.grupos.map(g => g.id)) + 1;
-            appState.grupos.push({
-                id: novoId,
-                nome: groupName,
-                tipo: groupType,
-                membros: membros
-            });
+            alert(`Grupo não foi${isEditing ? 'atualizado' : 'criado'}!`);
         }
-        
-        // Mostrar mensagem de sucesso
-        alert(`Grupo ${isEditing ? 'atualizado' : 'criado'} com sucesso!`);
+
         
         // Voltar para a lista de grupos
-        appState.currentView = "listaGrupos";
-        appState.activeTab = "meus-grupos";
-        renderApp();
+        startApp("listaGrupos", "meus-grupos");
     });
     form.appendChild(saveBtn);
     
@@ -576,9 +563,7 @@ function renderGerenciarGrupo() {
     backBtn.textContent = 'Voltar';
     backBtn.style.width = '100%';
     backBtn.addEventListener('click', () => {
-        appState.currentView = "listaGrupos";
-        appState.activeTab = "meus-grupos";
-        renderApp();
+        startApp("listaGrupos", "meus-grupos");
     });
     form.appendChild(backBtn);
     
@@ -586,6 +571,21 @@ function renderGerenciarGrupo() {
 }
 
 // Inicializar a aplicação
-document.addEventListener('DOMContentLoaded', () => {
-    renderApp();
+
+
+async function startApp(currentView = "listaGrupos",
+                        activeTab = "meus-grupos",
+                        convites = [],
+                        groupId =  null,
+                        mostrarGruposVazios = false) {
+    await initializeAppState(currentView ,
+        activeTab,
+        convites,
+        groupId,
+        mostrarGruposVazios); // Espera carregar dados
+    renderApp();                // Só depois renderiza
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await startApp(); // Chama o start
 });
