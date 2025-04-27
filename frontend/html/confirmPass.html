@@ -1,16 +1,160 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Alteração de Senha</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Confirmar Nova Senha</title>
+  <style>
+    /* Reseta margens e define fonte padrão */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    /* Fundo em gradiente e centraliza o container */
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #5C6BC0, #42A5F5);
+    }
+
+    /* Caixa branca com bordas arredondadas e sombra */
+    .container {
+      background: #FFFFFF;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      padding: 30px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Ícone de cadeado grande */
+    .icon {
+      font-size: 56px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    p.subtitle {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 24px;
+    }
+
+    /* Inputs com borda inferior e foco em azul */
+    input {
+      width: 100%;
+      padding: 12px 8px;
+      margin-bottom: 16px;
+      border: none;
+      border-bottom: 2px solid #DDD;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus {
+      border-bottom-color: #42A5F5;
+    }
+
+    /* Regras de senha */
+    .password-rules {
+      text-align: left;
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 20px;
+    }
+    .password-rules ul {
+      padding-left: 16px;
+    }
+    .password-rules li {
+      margin-bottom: 6px;
+    }
+
+    /* Botão principal */
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #42A5F5;
+      color: #FFF;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background: #2196F3;
+    }
+
+    /* Mensagem de sucesso */
+    .mensagem {
+      margin-top: 16px;
+      color: #2E7D32;
+      display: none;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
-<form id="form-confirm-reset-pass">
-  <input type="password" placeholder="Nova senha" id="senha" required>
-  <input type="password" placeholder="Confirmar senha" id="confirmarSenha" required>
-  <p class="error-message" id="mensagem" ></p>
-  <button type="submit" id="button-confirm-reset" >Cadastrar</button>
-</form>
+  <div class="container">
+    <div class="icon">🔒</div>
+    <h1>Confirmar Nova Senha</h1>
+    <p class="subtitle">Defina uma nova senha para sua conta</p>
+
+    <input type="password" id="nova-senha" placeholder="Nova senha" required />
+    <div class="password-rules">
+      Sua senha deve conter:
+      <ul>
+        <li>Pelo menos 8 caracteres</li>
+        <li>Uma letra maiúscula</li>
+        <li>Uma letra minúscula</li>
+        <li>Um número</li>
+        <li>Um caractere especial</li>
+      </ul>
+    </div>
+    <input type="password" id="confirmar-senha" placeholder="Confirmar nova senha" required />
+    <button id="alterar-btn">Confirmar Nova Senha</button>
+
+    <p class="mensagem" id="sucesso">Senha alterada com sucesso!</p>
+  </div>
+
+  <script>
+    document.getElementById('alterar-btn').addEventListener('click', function() {
+      const novaSenha = document.getElementById('nova-senha').value;
+      const confirmarSenha = document.getElementById('confirmar-senha').value;
+
+      if (!novaSenha || !confirmarSenha) {
+        alert('Todos os campos são obrigatórios!');
+        return;
+      }
+      if (novaSenha !== confirmarSenha) {
+        alert('As senhas não coincidem!');
+        return;
+      }
+
+      // Exibe mensagem de sucesso
+      document.getElementById('sucesso').style.display = 'block';
+
+      // Limpa os campos
+      document.getElementById('nova-senha').value = '';
+      document.getElementById('confirmar-senha').value = '';
+
+      // Redireciona após 2 segundos
+      setTimeout(function() {
+        alert('Senha alterada com sucesso!');
+        window.location.href = 'login.html';
+      }, 2000);
+    });
+  </script>
 </body>
-<script src="../js/confirmPass.js"></script>
 </html>
