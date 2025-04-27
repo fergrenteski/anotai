@@ -115,6 +115,13 @@ queries:
       FROM vw_user_groups
     WHERE user_id = $1;
 
+# Recupera todos os membros de um grupo
+  select_members_by_group_id: >
+    SELECT 
+      *
+      FROM vw_user_groups
+    WHERE group_id = $1;
+
   # Recupera detalhes de um grupo pelo ID
   select_group_by_id: >
     SELECT 

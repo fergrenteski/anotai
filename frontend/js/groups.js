@@ -35,8 +35,9 @@ async function loadGroups() {
     return data.data;
 }
 
-async function loadMembers(id) {
-    return [];
+async function loadMembers(groupId) {
+    const data = await fetchComToken(`http://localhost:3000/api/groups/${groupId}/members`);
+    return data.data;
 }
 
 
@@ -400,15 +401,15 @@ async function renderGerenciarGrupo() {
 
                 const memberName = document.createElement('span');
                 let statusText = '';
-                if (membro.isAdmin) {
+                if (membro.is_admin) {
                     statusText = ' (Administrador)';
                 }
-                memberName.textContent = membro.email + statusText;
+                memberName.textContent = membro.user_email + statusText;
                 memberInfo.appendChild(memberName);
 
                 // Indicador de verificação
                 const verifiedIndicator = document.createElement('span');
-                if (membro.verificado) {
+                if (membro.user_verified) {
                     verifiedIndicator.className = 'verified-indicator';
                     verifiedIndicator.textContent = 'Verificado';
                 } else {
@@ -426,14 +427,14 @@ async function renderGerenciarGrupo() {
                 const removeBtn = document.createElement('button');
                 removeBtn.className = 'remove-btn';
 
-                if (membro.isAdmin) {
+                if (membro.is_admin) {
                     removeBtn.textContent = 'Admin';
                     removeBtn.disabled = true;
                     removeBtn.style.opacity = '0.5';
                 } else {
                     removeBtn.textContent = 'Remover';
-                    removeBtn.addEventListener('click', () => {
-                        membersList.removeChild(memberItem);
+                    removeBtn.addEventListener('click', async () => {
+                        // Deletar Membro
                     });
                 }
 
