@@ -1,7 +1,6 @@
 // Importa bibliotecas e funçöes:
 const MemberService = require("../services/MemberService");
 const UserService = require("../services/UserService");
-const GroupController = require("../services/CategoryService");
 
 class MemberController {
     constructor() {
