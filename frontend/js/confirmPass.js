@@ -1,35 +1,46 @@
 // URL base da API de usuário para operações de redefinição de senha
 const url = "http://localhost:3000/api/user";
 
-// Captura os parâmetros da query string da URL
-const params = new URLSearchParams(window.location.search);
-
-// Obtém o email e o token da confirmação
-const email = params.get("email");
-const token = params.get("token");
-
-// Função assíncrona para enviar a nova senha ao back-end
+// Função que faz o POST para alterar a senha
 const alterarSenha = async () => {
-    // Lê os valores dos campos de senha e confirmação
-    const senha = document.getElementById("senha").value;
-    const confirmacaoSenha = document.getElementById("confirmarSenha").value;
+  // Captura os valores dos inputs
+  const novaSenha = document.getElementById("senha").value;
+  const confirmarSenha = document.getElementById("confirmarSenha").value;
+  const mensagemEl = document.getElementById("mensagem");
 
-    // Faz a requisição POST para alterar a senha
-    const response = await fetch(`${url}/alterar-senha`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, token, senha, confirmacaoSenha }),
-    });
+  // Valida campos obrigatórios
+  if (!novaSenha || !confirmarSenha) {
+    mensagemEl.innerText = "Todos os campos são obrigatórios!";
+    return;
+  }
 
-    // Converte a resposta em JSON e exibe a mensagem na página
-    const data = await response.json();
-    document.getElementById("mensagem").innerText = data.message;
-}
+  // Valida senhas iguais
+  if (novaSenha !== confirmarSenha) {
+    mensagemEl.innerText = "As senhas não coincidem!";
+    return;
+  }
 
-// Intercepta o submit do formulário para executar alterarSenha sem recarregar
+  // Envia requisição ao backend
+  const response = await fetch(`${url}/alterar-senha`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ senha: novaSenha }),
+  });
+
+  const data = await response.json();
+
+  // Mostra mensagem de sucesso ou erro retornada pela API
+  mensagemEl.innerText = data.message;
+  if (data.success) {
+    // Redireciona após 2s para a tela de login
+    setTimeout(() => window.location.href = "index.html", 2000);
+  }
+};
+
+// Liga o listener de submit do form
 document
-    .getElementById("form-confirm-reset-pass")
-    .addEventListener("submit", (e) => {
-        e.preventDefault();
-        alterarSenha();
-    });
+  .getElementById("form-confirm-reset-pass")
+  .addEventListener("submit", e => {
+    e.preventDefault();
+    alterarSenha();
+  });
