@@ -3,15 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/resetPass.css">
     <title>Redefinir Senha</title>
 </head>
 <body>
-<form id="resetForm">
-    <label for="email">Email</label>
-    <input type="email" id="email">
-    <p id="mensagem"></p>
-    <button type="submit">Redefinir Senha</button>
-</form>
-<script src="../js/resetPass.js"></script>
+    <div class="container">
+        <div class="icon">🔑</div>
+        <h1>Redefinir Senha</h1>
+        <p>Digite seu e-mail e enviaremos um link para redefinir sua senha</p>
+        
+        <input type="email" placeholder="Digite seu e-mail" required>
+        
+        <button onclick="window.location.href='confirmar-senha.html'">Enviar Link de Redefinição</button>
+        
+        <p>
+            <a href="index.html">Voltar para Login</a>
+        </p>
+    </div>
 </body>
 </html>
