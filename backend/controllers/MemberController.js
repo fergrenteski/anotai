@@ -35,9 +35,9 @@ class MemberController {
         try{
             const rows = await this.userService.getUserByEmail(email);
 
-            const userId = rows.user_id;
+            if (!rows) return res.status(400).json({ success: false, message:"Usuário não encontrado" });
 
-            if (!userId) return res.status(400).json({ success: false, message:"Usuário não encontrado" });
+            const userId = rows.user_id;
 
             await this.memberService.create(parseInt(userId), groupId, true);
 

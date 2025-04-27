@@ -446,7 +446,7 @@ async function renderGerenciarGrupo() {
                 if (membro.is_admin) {
                     statusText = ' (Administrador)';
                 }
-                memberName.textContent = membro.user_email + statusText;
+                memberName.textContent = membro.user_name + statusText;
                 memberInfo.appendChild(memberName);
 
                 if(isAdminUser) {
