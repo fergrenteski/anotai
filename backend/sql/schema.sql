@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS users;
 CREATE TABLE users
 (
     user_id        SERIAL PRIMARY KEY,
@@ -11,6 +12,7 @@ CREATE TABLE users
     expired_at     TIMESTAMP
 );
 
+DROP TABLE IF EXISTS request_logs;
 CREATE TABLE request_logs
 (
     request_id  SERIAL PRIMARY KEY,
@@ -22,6 +24,7 @@ CREATE TABLE request_logs
     timestamp   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+DROP TABLE IF EXISTS user_logs;
 CREATE TABLE user_logs
 (
     log_id    SERIAL PRIMARY KEY,
@@ -31,6 +34,7 @@ CREATE TABLE user_logs
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 
+DROP TABLE IF EXISTS user_reset_password_keys;
 CREATE TABLE user_reset_password_keys
 (
     reset_pass_token_id SERIAL PRIMARY KEY,
@@ -42,6 +46,7 @@ CREATE TABLE user_reset_password_keys
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 
+DROP TABLE IF EXISTS user_email_verified_keys;
 CREATE TABLE user_email_verified_keys
 (
     email_verified_token_id SERIAL PRIMARY KEY,
@@ -53,6 +58,7 @@ CREATE TABLE user_email_verified_keys
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 
+DROP TABLE IF EXISTS groups_category;
 -- Tabela de categorias (ANT-31)
 CREATE TABLE groups_category
 (
@@ -70,6 +76,7 @@ VALUES ('Família'),
        ('Projeto'),
        ('Outros');
 
+DROP TABLE IF EXISTS groups;
 -- Tabela de grupos (ANT-15)
 CREATE TABLE groups
 (
@@ -154,6 +161,7 @@ VALUES ('Alimentos'),
        ('Itens de Escritório'),
        ('Diversos');
 
+DROP TABLE IF EXISTS products;
 --Criaçao da Tabela dos Produtos (ANT-32)
 CREATE TABLE products
 (
@@ -198,6 +206,7 @@ FROM products p
      on p.added_by = u.user_id
 WHERE p.expired_at IS NULL;
 
+DROP TABLE IF EXISTS group_users;
 CREATE TABLE group_users
 (
     user_id  INTEGER NOT NULL,
@@ -227,6 +236,7 @@ FROM group_users gu
 WHERE g.expired_at IS NUll
     );
 
+DROP TABLE IF EXISTS lists;
 CREATE TABLE lists
 (
     list_id     SERIAL PRIMARY KEY,
