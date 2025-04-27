@@ -126,6 +126,7 @@ queries:
   select_group_by_id: >
     SELECT 
       group_id,
+      user_admin_id,
       group_name,
       description,
       category_id,
@@ -175,10 +176,15 @@ queries:
     INSERT INTO group_users (user_id, group_id, verified)
     VALUES ($1, $2, $3)
 
-  # Remove a associação de um usuário a um grupo
+  # Remove a associação de um usuário a um grupo por ID grupo
   expire_user_groups: >
     DELETE FROM group_users
     WHERE group_id = $1
+
+  # Remove a associação de um usuário a um grupo por id Usuário e Grupo
+  expire_user_groups_member: >
+    DELETE FROM group_users
+    WHERE user_id = $1 AND group_id = $2; 
 
   # Verifica se um usuário é membro ativo de um grupo
   select_user_group_member: >

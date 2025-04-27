@@ -23,9 +23,20 @@ class MemberService {
      * @returns {Promise<Object>} Retorna o resultado da expiração.
      */
 
-    async delete(groupId) {
+    async deleteGroup(groupId) {
         // Executa a query de atualização do groupId
         return runQuery("expire_user_groups", [groupId]);
+    }
+
+    /**
+     * Expira logicamente a associação de um usuário a um grupo.
+     * @param {number} userId - ID do usuário a expirar a associação.
+     * @param {number} groupId - ID do grupo a expirar a associação.
+     * @returns {Promise<Object>} Retorna o resultado da expiração.
+     */
+    async delete(userId, groupId) {
+        // Executa a query de atualização do groupId
+        return runQuery("expire_user_groups_member", [userId, groupId]);
     }
 }
 // Exporta a classe MemberService

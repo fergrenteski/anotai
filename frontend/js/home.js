@@ -45,8 +45,7 @@ async function inicializarPagina() {
   document.getElementById('userName').textContent = userData.name;
 
   // Define as iniciais do usuário para o ícone
-  const iniciais = userData.name.split(' ').map(n => n[0]).join('');
-  document.getElementById('userInitials').textContent = iniciais;
+  document.getElementById('userInitials').textContent = userData.name.split(' ').map(n => n[0]).join('');
 
   // Carrega as listas
   carregarListas();
@@ -56,6 +55,7 @@ async function inicializarPagina() {
   document.getElementById('btnConvites').addEventListener('click', verConvites);
   document.getElementById('btnConfig').addEventListener('click', abrirConfiguracoes);
   document.getElementById('userName').addEventListener('click', abrirPerfil);
+  document.getElementById('logo').addEventListener('click', abrirHome);
   document.getElementById('list-link').addEventListener('click', abrirListas);
   document.getElementById('logout').addEventListener('click', logout);
 }
@@ -126,6 +126,10 @@ function abrirPerfil() {
 function abrirListas() {
   alert("Listas de usuário será implementada em breve!");
   // window.location.href = '/lists.html';
+}
+
+function abrirHome() {
+  window.location.href = 'home.html';
 }
 
 function logout() {

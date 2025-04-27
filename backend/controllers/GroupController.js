@@ -14,8 +14,6 @@ class GroupController {
      * @param res - Objeto de resposta HTTP.
      * @returns - Retorna erro ou data.
      */
-
-
     async getAll(req, res) {
         try {
 
@@ -26,7 +24,7 @@ class GroupController {
             const { rows } = await this.groupService.getAllGroupsByUserId(userId);
            
             // Retorna os grupos encontrados.
-            return res.status(200).json({ success: true, data: rows });
+            return res.status(200).json({ success: true, data: rows, user: req.usuario });
         } catch (error) {
             console.error("Erro na Busca de Grupos:", error);
             return res.status(500).json({ error: error.message });
@@ -43,7 +41,7 @@ class GroupController {
           const { rows } = await this.groupService.getById(groupId);
 
           //Retorna a primeira linha do banco
-          return res.status(200).json({ success: true, data: rows[0] });
+          return res.status(200).json({ success: true, data: rows[0], user: req.usuario });
       } catch (error) {
           console.error("Erro na Busca do Grupo", error);
           return res.status(500).json({ error: error.message });
@@ -107,7 +105,7 @@ class GroupController {
             const { rows } = await this.groupService.delete(groupId);
             
             // Deleta a relação de usuário e grupos
-            await this.memberService.delete(groupId);
+            await this.memberService.deleteGroup(groupId);
             return res.status(200).json({ success: true, data: rows });
 
         } catch (error) {
