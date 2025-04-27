@@ -1,45 +1,43 @@
 // Importa bibliotecas e funçöes:
-const pool = require("../database/database");
-const { loadQueries } = require("../utils/queries");
-
-//Service para gerenciar associação de usuários a grupos.
+const { runQuery } = require("../utils/queryHelper");
 
 class MemberService {
 
-    /**
-     * Cria um novo membro em um grupo.
-     * @param {number} userId - ID do usuário.
-     * @param {number} groupId - ID do grupo.
-     * @param {boolean} [verified=false] - Indica se a associação já está verificada.
-     * @returns {Promise<Object>} Retorna o resultado da inserção.
-     */
-
-    async create(userId, groupId, verified = false) {
-
-        // Carrega as queries definidas na aplicação
-        const queries = await loadQueries();
-
-        // Executa inserção em tabela de relação usuário-grupo
-        const { rows } = await pool.query(queries.insert_user_groups, [userId, groupId, verified]);
-        return { rows };
+    // Busca todas os membros.
+    async getAll(groupId) {
+        // Executa a consulta SQL.
+        return await runQuery("select_members_by_group_id", [groupId]);
     }
 
-      /**
+    /**
+     * Cria um novo membro em um grupo.
+     */
+    async create(userId, groupId, verified = false) {
+        // Executa inserção em tabela de relação usuário-grupo
+        return runQuery("insert_user_groups", [userId, groupId, verified]);
+    }
+
+    /**
      * Expira logicamente a associação de um usuário a um grupo.
      * @param {number} groupId - ID do grupo a expirar a associação.
      * @returns {Promise<Object>} Retorna o resultado da expiração.
      */
 
-    async delete(groupId) {
-
-        // Carrega as queries definidas na aplicação
-        const queries = await loadQueries();
-
+    async deleteGroup(groupId) {
         // Executa a query de atualização do groupId
-        const { rows } = await pool.query(queries.expire_user_groups, [groupId]);
-        return { rows };
+        return runQuery("expire_user_groups", [groupId]);
     }
 
+    /**
+     * Expira logicamente a associação de um usuário a um grupo.
+     * @param {number} userId - ID do usuário a expirar a associação.
+     * @param {number} groupId - ID do grupo a expirar a associação.
+     * @returns {Promise<Object>} Retorna o resultado da expiração.
+     */
+    async delete(userId, groupId) {
+        // Executa a query de atualização do groupId
+        return runQuery("expire_user_groups_member", [userId, groupId]);
+    }
 }
 // Exporta a classe MemberService
 module.exports = MemberService;

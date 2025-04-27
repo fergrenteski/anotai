@@ -19,6 +19,10 @@ body {
     font-weight: bold;
 }
 
+.logo:hover {
+    cursor: pointer;
+}
+
 .user-area {
     display: flex;
     align-items: center;

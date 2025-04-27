@@ -211,6 +211,10 @@ CREATE TABLE group_users
 CREATE OR REPLACE VIEW vw_user_groups AS
 (
 SELECT gu.user_id,
+       u.name AS user_name,
+       u.email AS user_email,
+       gu.verified AS user_verified,
+       u.profile_img,
        g.group_id,
        g.name,
        g.description,
@@ -219,6 +223,7 @@ SELECT gu.user_id,
 FROM group_users gu
          LEFT JOIN groups g on g.group_id = gu.group_id
          LEFT JOIN groups_category gc on gc.groups_category_id = g.category_id
+         LEFT JOIN users u on gu.user_id = u.user_id AND u.expired_at IS NULL
 WHERE g.expired_at IS NUll
     );
 
