@@ -108,6 +108,32 @@ queries:
     AND u.expired_at IS NULL
     WHERE t.token = $1; 
 
+  select_invite_by_token: >
+    SELECT t.token, 
+      t.group_id, 
+      g.name AS group_name,
+      u.user_id, u.email,
+      u.name as user_name,
+      t.expires_at
+    FROM user_group_invite_keys t
+    LEFT JOIN users u 
+      ON t.user_id = u.user_id
+    LEFT JOIN groups g
+        ON t.group_id = g.group_id
+    AND u.expired_at IS NULL
+    WHERE t.token = $1;
+
+#   Insere o token de convite de grupo
+  insert_invite_token: >
+      INSERT INTO user_group_invite_keys (user_id, group_id, email, token, expires_at)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING *;
+
+# Deleta todos os tokens de usuário
+  delete_invite_token_by_user_id: >
+    DELETE FROM user_group_invite_keys
+    WHERE user_id = $1
+
  #   Recupera todos os grupos associados a um usuário
   select_groups_by_user_id: >
     SELECT 
@@ -190,3 +216,20 @@ queries:
   select_user_group_member: >
     SELECT * FROM group_users
     WHERE user_id = $1 AND group_id = $2 AND verified = TRUE;
+
+  # Atualiza o Verificado do membro no grupo
+  update_user_group_member: >
+    UPDATE group_users 
+    SET verified = TRUE
+    WHERE user_id = $1 AND group_id = $2
+    RETURNING *;
+
+  # Deleta a relação de grupo
+  delete_user_group_member: >
+    DELETE FROM group_users
+    WHERE user_id = $1 AND group_id = $2;
+
+  # Verifica se um usuário é membro é convidado de um grupo
+  select_user_group_member_not_verified: >
+    SELECT * FROM group_users
+    WHERE user_id = $1 AND group_id = $2;

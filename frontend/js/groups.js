@@ -216,8 +216,17 @@ function renderListaGrupos() {
             actionButtons.className = 'action-buttons';
 
             const editBtn = document.createElement('button');
-            editBtn.textContent = isAdminUser ? 'Editar' : 'Visualizar';
+            editBtn.textContent = isAdminUser && grupo.user_verified
+                ? 'Editar'
+                : !isAdminUser && grupo.user_verified
+                    ? 'Visualizar'
+                    : 'Não verificado';
             editBtn.className = 'edit-btn';
+            if (!grupo.user_verified) {
+                editBtn.disabled = true;
+                editBtn.style.opacity = '0.5';
+            }
+
             editBtn.addEventListener('click', () => {
                 startApp("editarGrupo", null, null, grupo.group_id);
             });
