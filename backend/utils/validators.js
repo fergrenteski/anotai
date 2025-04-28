@@ -21,10 +21,16 @@ const gerarLink = (tipo, email, token) => {
     const urlBase = process.env.FRONTEND_URL || 'http://localhost:8080';
     const paths = {
         confirmEmail: "confirmEmail.html",
-        confirmPass: "confirmPass.html"
+        confirmPass: "confirmPass.html",
     };
 
     return `${urlBase}/${paths[tipo]}?email=${email}&token=${token}`;
+};
+
+const gerarInvite = (user, group, token, accept) => {
+    const urlBase = process.env.FRONTEND_URL || 'http://localhost:8080';
+    const link = "confirmInvite.html"
+    return `${urlBase}/${link}?userid=${user}&groupid=${group}&token=${token}&accept=${accept}`;
 };
 
 /**
@@ -41,5 +47,6 @@ const gerarTokenEmail = () => {
 module.exports = {
     validarEmail,
     gerarLink,
-    gerarTokenEmail
+    gerarTokenEmail,
+    gerarInvite
 };

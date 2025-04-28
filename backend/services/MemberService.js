@@ -9,6 +9,18 @@ class MemberService {
         return await runQuery("select_members_by_group_id", [groupId]);
     }
 
+    // Busca o Invite
+    async getUserInviteToken(invite) {
+        // Executa a consulta SQL.
+        return await runQuery("select_invite_by_token", [invite]);
+    }
+
+    // Cria o invite
+    async createUserInviteToken(userId, groupId, email, emailToken, expiresAt) {
+        // Executa a consulta SQL.
+        return await runQuery("insert_invite_token", [userId, groupId, email, emailToken, expiresAt]);
+    }
+
     /**
      * Cria um novo membro em um grupo.
      */

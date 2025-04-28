@@ -1,6 +1,6 @@
 // Importa bibliotecas e funçöes:
 const sgMail = require('@sendgrid/mail');
-const { gerarLink } = require("../utils/validators");
+const { gerarLink, gerarInvite} = require("../utils/validators");
 require('dotenv').config();
 
 class EmailService {
@@ -76,6 +76,32 @@ class EmailService {
             // console.error: registra no console detalhes do erro ocorrido, auxiliando no diagnóstico e correção
             console.error("Erro ao enviar e-mail de confirmação:", error);
             return { success: false, message: "Erro ao enviar e-mail de confirmação." };
+        }
+    }
+
+    async enviarConviteEmail(userId, groupId, groupName, email, token) {
+
+        const confirmUrl = gerarInvite(userId, groupId, token, true);
+        const recuseUrl = gerarInvite(userId, groupId, token, false);
+
+        // Monta objeto de mensagem para SendGrid
+        const msg = {
+            to: email,  // Destinatário
+            from: this.senderEmail, // Remetente configurado
+            templateId: process.env.TEMPLATE_ID_CONFIRM_GROUP_INVITE, // Modelo de e-mail pré-definido
+            dynamicTemplateData: { confirmUrl, recuseUrl, groupName} // Dados dinâmicos para o template
+        };
+
+        try {
+            // Envia o e-mail através da API SendGrid
+            await sgMail.send(msg);
+            console.log("E-mail de Invite Enviado com sucesso!");
+            return { success: true, message: "E-mail de Invite Enviado com sucesso!" };
+        } catch (error) {
+            // Caso aconteça um erro na aplicação
+            // console.error: registra no console detalhes do erro ocorrido, auxiliando no diagnóstico e correção
+            console.error("Erro ao enviar e-mail de Convite:", error);
+            return { success: false, message: "Erro ao enviar e-mail de Convite." };
         }
     }
 }
