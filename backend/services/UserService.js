@@ -47,17 +47,21 @@ class UserService {
      * @returns {Promise<Object>} - Retorna um objeto indicando o sucesso ou falha do login.
      */
     async loginUsuario(email, password) {
-        const { rows } = await runQuery("select_user_by_email", [email]);
-
-        if (rows.length === 0
-            || !(await bcrypt.compare(password, rows[0].password_hash)))
-                throw new Error("E-mail ou senha inválidos!");
-
+ 
+       const { rows } = await runQuery("select_user_by_email", [email]);
+      
+        // E-mail não encontrado
+        if (rows.length === 0) throw new Error("E-mail não encontrado");
+      
+        // Senha incorreta
+        const isMatch = await bcrypt.compare(password, rows[0].password_hash);
+        if (!isMatch) throw new Error("Senha incorreta");
+      
+        // Sucesso
         const token = this.gerarToken(rows[0]);
         await runQuery("insert_user_log_login", [rows[0].user_id]);
-
-        return { token, name: rows[0].name};
-    }
+        return { token, name: rows[0].name };
+      }
 
     /**
      * Gera um token de redefinição de senha e o associa ao usuário.
