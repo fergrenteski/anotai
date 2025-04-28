@@ -86,8 +86,14 @@ const login = async () => {
         window.location.href = "home.html";
     } else {
         mensagemLogin.innerText = data.message;
-        inputEmailLogin.classList.add("invalid");
-        inputSenhaLogin.classList.add("invalid");
+        if (data.status === 403) {
+            inputEmailLogin.classList.add("invalid");
+        } else if (data.status === 401) {
+            inputSenhaLogin.classList.add("invalid");
+        } else {
+            inputEmailLogin.classList.add("invalid");
+            inputSenhaLogin.classList.add("invalid");
+        }
     }
 };
 
