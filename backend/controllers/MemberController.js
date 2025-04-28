@@ -58,7 +58,7 @@ class MemberController {
             // Envia o email para o usuário
             await this.emailService.enviarConviteEmail(parseInt(userId), groupId, group.group_name, email, emailToken);
             // Retorno de sucesso
-            return res.status(200).json({ success: true, message: "Membro adicionado com sucesso" });
+            return res.status(200).json({ success: true, message: "Membro convidado ao grupo"});
         } catch (error){
             console.error("Erro na criação de Membros: ", error);
             await this.memberService.delete(parseInt(userId), groupId);
