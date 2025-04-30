@@ -10,7 +10,7 @@ queries:
 
   # Recupera usuário pelo e-mail fornecido
   select_user_by_email: >
-    SELECT user_id, name, email, password_hash 
+    SELECT user_id, name, email, password_hash, email_verified
     FROM users
     WHERE email = $1;
 
