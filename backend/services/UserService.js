@@ -52,7 +52,10 @@ class UserService {
       
         // E-mail não encontrado
         if (rows.length === 0) throw new Error("E-mail não encontrado");
-      
+
+        // Usuário não Verificado
+        if (!rows[0].email_verified) throw new Error("Usuário não verificado!");
+
         // Senha incorreta
         const isMatch = await bcrypt.compare(password, rows[0].password_hash);
         if (!isMatch) throw new Error("Senha incorreta");
