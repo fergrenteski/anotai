@@ -146,15 +146,14 @@ CREATE TABLE products (
                           category_id  INT          NOT NULL,
                           price        NUMERIC      NOT NULL,
                           quantity     INT          NOT NULL DEFAULT 0,
-                          purchased_by INT,
+                          purchased_by INT          DEFAULT NULL,
                           added_by     INT          NOT NULL,
-                          listed_by    INT          NOT NULL,
+                          list_id      INT          NOT NULL,
                           created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                           updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                          expired_at   TIMESTAMP,
                           FOREIGN KEY  (purchased_by) REFERENCES users (user_id) ON DELETE CASCADE,
                           FOREIGN KEY  (added_by) REFERENCES users (user_id) ON DELETE CASCADE,
-                          FOREIGN KEY  (listed_by) REFERENCES lists (list_id) ON DELETE CASCADE,
+                          FOREIGN KEY  (list_id) REFERENCES lists (list_id) ON DELETE CASCADE,
                           FOREIGN KEY  (category_id) REFERENCES products_category (products_category_id) ON DELETE CASCADE
 );
 
@@ -186,19 +185,18 @@ SELECT p.product_id,
        p.price,
        p.quantity,
        p.added_by,
-       l.name AS list_name,
+       l.list_id AS list_id,
        u.name AS user_added_name,
        up.name AS user_purchased_name,
        u.email,
        u.profile_img,
        p.created_at,
-       p.updated_at,
-       p.expired_at
+       p.updated_at
 FROM products p
          JOIN products_category pc ON p.category_id = pc.products_category_id
          JOIN users u ON p.added_by = u.user_id
          JOIN users up         ON p.purchased_by  = up.user_id
-         JOIN lists l                 ON p.listed_by     = l.list_id
+         JOIN lists l                 ON p.list_id     = l.list_id
 WHERE p.expired_at IS NULL;
 
 CREATE OR REPLACE VIEW vw_user_groups AS
