@@ -117,21 +117,6 @@ VALUES ('Alimentos'), ('Bebidas'), ('Limpeza'), ('Higiene Pessoal'), ('Papelaria
        ('Suplementos e Vitaminas'), ('Produtos de Panificação'), ('Produtos Digitais'), ('Games e Consoles'),
        ('Produtos de Bebê'), ('Itens de Escritório'), ('Diversos');
 
-CREATE TABLE products (
-                          product_id  SERIAL PRIMARY KEY,
-                          name        VARCHAR(100) NOT NULL,
-                          description TEXT,
-                          category_id INT          NOT NULL,
-                          price       NUMERIC      NOT NULL,
-                          quantity    INT          NOT NULL DEFAULT 0,
-                          added_by    INT          NOT NULL,
-                          created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                          updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                          expired_at  TIMESTAMP,
-                          FOREIGN KEY (added_by) REFERENCES users (user_id) ON DELETE CASCADE,
-                          FOREIGN KEY (category_id) REFERENCES products_category (products_category_id) ON DELETE CASCADE
-);
-
 CREATE TABLE group_users (
                              user_id  INTEGER NOT NULL,
                              group_id INTEGER NOT NULL,
@@ -152,6 +137,25 @@ CREATE TABLE lists (
                        expired_at  TIMESTAMP,
                        FOREIGN KEY (created_by) REFERENCES users (user_id) ON DELETE CASCADE,
                        FOREIGN KEY (group_id) REFERENCES groups (group_id) ON DELETE CASCADE
+);
+
+CREATE TABLE products (
+                          product_id   SERIAL PRIMARY KEY,
+                          name         VARCHAR(100) NOT NULL,
+                          description  TEXT,
+                          category_id  INT          NOT NULL,
+                          price        NUMERIC      NOT NULL,
+                          quantity     INT          NOT NULL DEFAULT 0,
+                          purchased_by INT,
+                          added_by     INT          NOT NULL,
+                          listed_by    INT          NOT NULL,
+                          created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                          updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                          expired_at   TIMESTAMP,
+                          FOREIGN KEY  (purchased_by) REFERENCES users (user_id) ON DELETE CASCADE,
+                          FOREIGN KEY  (added_by) REFERENCES users (user_id) ON DELETE CASCADE,
+                          FOREIGN KEY  (listed_by) REFERENCES lists (list_id) ON DELETE CASCADE,
+                          FOREIGN KEY  (category_id) REFERENCES products_category (products_category_id) ON DELETE CASCADE
 );
 
 -- Agora recriamos as Views
@@ -182,7 +186,9 @@ SELECT p.product_id,
        p.price,
        p.quantity,
        p.added_by,
-       u.name as user_added_name,
+       l.name AS list_name,
+       u.name AS user_added_name,
+       up.name AS user_purchased_name,
        u.email,
        u.profile_img,
        p.created_at,
@@ -191,6 +197,8 @@ SELECT p.product_id,
 FROM products p
          JOIN products_category pc ON p.category_id = pc.products_category_id
          JOIN users u ON p.added_by = u.user_id
+         JOIN users up         ON p.purchased_by  = up.user_id
+         JOIN lists l                 ON p.listed_by     = l.list_id
 WHERE p.expired_at IS NULL;
 
 CREATE OR REPLACE VIEW vw_user_groups AS
