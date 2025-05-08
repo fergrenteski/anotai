@@ -229,3 +229,4 @@ FROM lists l
          LEFT JOIN groups_category gc ON gc.groups_category_id = g.category_id
 WHERE g.expired_at IS NULL
   AND l.expired_at IS NULL;
+
