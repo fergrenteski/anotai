@@ -157,6 +157,7 @@ CREATE TABLE products (
                           FOREIGN KEY  (category_id) REFERENCES products_category (products_category_id) ON DELETE CASCADE
 );
 
+
 -- Agora recriamos as Views
 CREATE OR REPLACE VIEW vw_groups AS
 SELECT g.group_id,
