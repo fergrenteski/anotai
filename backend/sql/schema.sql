@@ -167,7 +167,9 @@ SELECT g.group_id,
        u.profile_img,
        g.created_at,
        g.updated_at,
-       g.expired_at
+       g.expired_at 
+             
+             
 FROM groups g
          JOIN groups_category gc ON g.category_id = gc.groups_category_id
          JOIN users u ON g.user_admin_id = u.user_id
