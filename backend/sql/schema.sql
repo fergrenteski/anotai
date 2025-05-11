@@ -192,7 +192,7 @@ SELECT
     p.purchased_by,
     up.name AS purchased_name,
     up.email AS purchased_email,
-    l.list_id,
+    l.list_id AS listed_by,
     u.profile_img,
     p.created_at,
     p.updated_at
