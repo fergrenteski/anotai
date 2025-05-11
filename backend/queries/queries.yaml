@@ -1,6 +1,5 @@
 
 # Coleção de queries SQL utilizadas.
-
 queries:
 
    # Insere um log de requisição com método, endpoint, status HTTP, IP e user-agent
@@ -197,7 +196,7 @@ queries:
     SET expired_at = CURRENT_TIMESTAMP 
     WHERE group_id = $1
 
-   # Associa um usuário a um grupo
+  # Associa um usuário a um grupo
   insert_user_groups: >
     INSERT INTO group_users (user_id, group_id, verified)
     VALUES ($1, $2, $3)
@@ -233,3 +232,38 @@ queries:
   select_user_group_member_not_verified: >
     SELECT * FROM group_users
     WHERE user_id = $1 AND group_id = $2;
+
+  # -> Queries dos produtos <-
+
+  # Inserir
+  insert_products: >
+    INSERT INTO products
+    (name, description, category_id, price, quantity, added_by, list_id)
+    VALUES ($1,$2,$3,$4,$5,$6,$7)
+    RETURNING product_id;
+
+  # Atualizar (painel-criação)
+  update_products_by_id: >
+    UPDATE products
+    SET
+      name = $1, description = $2, category_id  = $3, price = $4,
+      quantity = $5, updated_at = CURRENT_TIMESTAMP
+    WHERE
+      product_id   = $6
+    RETURNING * ;
+
+  # Atualizar (painel quem comprou)
+  update_products_purchased: >
+    UPDATE products
+    SET purchased_by = $1
+    WHERE product_id = $2;
+
+  # Deletar
+  delete_products: >
+    DELETE FROM products
+    WHERE product_id = $1;
+
+  #Buscar produtos
+  select_products: >
+    SELECT * FROM vw_products
+    WHERE list_id = $1;
