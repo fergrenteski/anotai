@@ -192,15 +192,14 @@ SELECT
     p.purchased_by,
     up.name AS purchased_name,
     up.email AS purchased_email,
-    l.list_id AS listed_by,
+    p.list_id,
     u.profile_img,
     p.created_at,
     p.updated_at
 FROM products p
          JOIN products_category pc ON p.category_id = pc.products_category_id
          JOIN users u ON p.added_by = u.user_id
-         LEFT JOIN users up ON p.purchased_by = up.user_id
-         JOIN lists l ON p.list_id = l.list_id;
+         LEFT JOIN users up ON p.purchased_by = up.user_id;
 
 CREATE OR REPLACE VIEW vw_user_groups AS
 SELECT gu.user_id,
