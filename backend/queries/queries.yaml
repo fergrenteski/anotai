@@ -255,7 +255,8 @@ queries:
   # Atualizar (painel quem comprou)
   update_products_purchased: >
     UPDATE products
-    SET purchased_by = $1;
+    SET purchased_by = $1
+    WHERE product_id = $2;
 
   # Deletar
   delete_products: >
@@ -265,4 +266,4 @@ queries:
   #Buscar produtos
   select_products: >
     SELECT * FROM vw_products
-    RETURNING * ;
+    WHERE list_id = $1;

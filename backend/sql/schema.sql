@@ -178,26 +178,29 @@ FROM groups g
 WHERE g.expired_at IS NULL;
 
 CREATE OR REPLACE VIEW vw_products AS
-SELECT p.product_id,
-       p.name AS product_name,
-       p.category_id,
-       pc.name AS category_name,
-       p.description,
-       p.price,
-       p.quantity,
-       p.added_by,
-       l.listed_by AS list_id,
-       u.name AS user_added_name,
-       up.name AS user_purchased_name,
-       u.email,
-       u.profile_img,
-       p.created_at,
-       p.updated_at
+SELECT
+    p.product_id,
+    p.name AS product_name,
+    p.category_id,
+    pc.name AS category_name,
+    p.description,
+    p.price,
+    p.quantity,
+    p.added_by,
+    u.name AS added_name,
+    u.email AS added_email,
+    p.purchased_by,
+    up.name AS purchased_name,
+    up.email AS purchased_email,
+    l.list_id,
+    u.profile_img,
+    p.created_at,
+    p.updated_at
 FROM products p
          JOIN products_category pc ON p.category_id = pc.products_category_id
          JOIN users u ON p.added_by = u.user_id
-         LEFT JOIN users up         ON p.purchased_by  = up.user_id
-         JOIN lists l                 ON p.list_id     = l.list_id;
+         LEFT JOIN users up ON p.purchased_by = up.user_id
+         JOIN lists l ON p.listed_by = l.list_id;
 
 CREATE OR REPLACE VIEW vw_user_groups AS
 SELECT gu.user_id,
