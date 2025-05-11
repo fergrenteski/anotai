@@ -148,12 +148,12 @@ CREATE TABLE products (
                           quantity     INT          NOT NULL DEFAULT 0,
                           purchased_by INT          DEFAULT NULL,
                           added_by     INT          NOT NULL,
-                          listed_by    INT          NOT NULL,
+                          list_id      INT          NOT NULL,
                           created_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                           updated_at   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                           FOREIGN KEY  (purchased_by) REFERENCES users (user_id) ON DELETE CASCADE,
                           FOREIGN KEY  (added_by) REFERENCES users (user_id) ON DELETE CASCADE,
-                          FOREIGN KEY  (listed_by) REFERENCES lists (list_id) ON DELETE CASCADE,
+                          FOREIGN KEY  (list_id) REFERENCES lists (list_id) ON DELETE CASCADE,
                           FOREIGN KEY  (category_id) REFERENCES products_category (products_category_id) ON DELETE CASCADE
 );
 
@@ -200,7 +200,7 @@ FROM products p
          JOIN products_category pc ON p.category_id = pc.products_category_id
          JOIN users u ON p.added_by = u.user_id
          LEFT JOIN users up ON p.purchased_by = up.user_id
-         JOIN lists l ON p.listed_by = l.list_id;
+         JOIN lists l ON p.list_id = l.list_id;
 
 CREATE OR REPLACE VIEW vw_user_groups AS
 SELECT gu.user_id,
