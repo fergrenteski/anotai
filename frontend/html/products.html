@@ -2,109 +2,27 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Detalhes da Lista de Compras</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .product { border: 1px solid #ccc; padding: 10px; border-radius: 8px; margin-bottom: 10px; }
-        .actions { margin-top: 5px; }
-        form { margin-top: 20px; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produtos</title>
+    <link rel="stylesheet" href="../css/products.css">
 </head>
 <body>
-    <h1>Produtos da Lista</h1>
-    <div id="productsContainer">Carregando...</div>
+<div class="header">
+    <div class="logo" id="logo">Anota-ai</div>
+    <nav>
+        <a href="groups.html">GRUPOS</a>
+        <a href="#" id="list-link">LISTAS</a>
+    </nav>
+    <div class="user-area" id="userArea">
+        <span id="logout">SAIR</span>
+        <div class="user-icon" id="userInitials">AB</div>
+        <span id="userName">Usuário</span>
+    </div>
+</div>
+<div class="container" id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="../js/navegacao.js"></script>
+<script src="../js/products.js"></script>
 
-    <h2>Adicionar Produto</h2>
-    <form id="addProductForm">
-        <input type="text" id="productName" placeholder="Nome do produto" required />
-        <input type="number" id="productQuantity" placeholder="Quantidade" required />
-        <button type="submit">Adicionar</button>
-    </form>
-
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const listId = urlParams.get('listId');
-        const productsContainer = document.getElementById('productsContainer');
-
-        if (!listId) {
-            productsContainer.innerHTML = 'ID da lista não encontrado na URL.';
-        } else {
-            fetchProducts();
-
-            function fetchProducts() {
-                fetch(`/api/shopping_lists/${listId}/products`)
-                    .then(response => response.json())
-                    .then(products => {
-                        productsContainer.innerHTML = '';
-                        if (products.length === 0) {
-                            productsContainer.textContent = 'Nenhum produto encontrado.';
-                            return;
-                        }
-
-                        products.forEach(product => {
-                            const productDiv = document.createElement('div');
-                            productDiv.classList.add('product');
-                            productDiv.innerHTML = `
-                                <strong>${product.name}</strong> - ${product.quantity}
-                                <div class="actions">
-                                    <button onclick="editProduct(${product.id})">Editar</button>
-                                    <button onclick="deleteProduct(${product.id})">Remover</button>
-                                </div>
-                            `;
-                            productsContainer.appendChild(productDiv);
-                        });
-                    })
-                    .catch(err => {
-                        productsContainer.textContent = `Erro ao carregar produtos: ${err.message}`;
-                    });
-            }
-
-            // Adicionar produto
-            document.getElementById('addProductForm').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const name = document.getElementById('productName').value;
-                const quantity = document.getElementById('productQuantity').value;
-
-                fetch(`/api/shopping_lists/${listId}/products`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, quantity })
-                })
-                .then(response => {
-                    if (!response.ok) throw new Error('Erro ao adicionar produto.');
-                    return response.json();
-                })
-                .then(() => {
-                    fetchProducts(); // Recarrega a lista
-                    e.target.reset();
-                })
-                .catch(error => alert(error.message));
-            });
-        }
-
-        function editProduct(productId) {
-            const newName = prompt('Novo nome:');
-            const newQuantity = prompt('Nova quantidade:');
-            if (!newName || !newQuantity) return;
-
-            fetch(`/api/products/${productId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newName, quantity: newQuantity })
-            })
-            .then(() => fetchProducts())
-            .catch(error => alert('Erro ao editar produto: ' + error.message));
-        }
-
-        function deleteProduct(productId) {
-            if (!confirm('Tem certeza que deseja remover este produto?')) return;
-
-            fetch(`/api/products/${productId}`, {
-                method: 'DELETE'
-            })
-            .then(() => fetchProducts())
-            .catch(error => alert('Erro ao remover produto: ' + error.message));
-        }
-    </script>
 </body>
 </html>
