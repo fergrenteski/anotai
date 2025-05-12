@@ -113,6 +113,9 @@ function renderApp() {
         case "editarProduto":
             renderGerenciarProduto();
             break;
+        case "visualizarProdutosUsuario":
+            renderVisualizarProdutosUsuario();
+            break;
         default:
             renderTabs();
             renderProdutos();
@@ -383,7 +386,189 @@ function renderInsights() {
             }
         }
     });
+
+    // ---------- Lista de usuários ----------
+    const listaUsuarios = document.createElement('div');
+    listaUsuarios.style.marginTop = '40px';
+    listaUsuarios.style.width = '100%';
+
+    const tituloLista = document.createElement('h2');
+    tituloLista.textContent = 'Usuários';
+    tituloLista.style.marginBottom = '10px';
+    listaUsuarios.appendChild(tituloLista);
+
+    usuarios.forEach((nome, index) => {
+        const container = document.createElement('div');
+        container.style.display = 'flex';
+        container.style.justifyContent = 'space-between';
+        container.style.alignItems = 'center';
+        container.style.border = '1px solid #ccc';
+        container.style.padding = '10px';
+        container.style.marginBottom = '10px';
+        container.style.borderRadius = '8px';
+
+        const info = document.createElement('div');
+        const nomeEl = document.createElement('strong');
+        nomeEl.textContent = nome;
+        const emailEl = document.createElement('p');
+        emailEl.textContent = `${nome.toLowerCase()}@email.com`;
+        emailEl.style.fontSize = '0.9em';
+        emailEl.style.margin = '2px 0 0 0';
+        info.appendChild(nomeEl);
+        info.appendChild(emailEl);
+
+        const botaoContainer = document.createElement('div');
+        botaoContainer.style.display = 'flex';
+        botaoContainer.style.alignItems = 'center';
+
+        const botao = document.createElement('button');
+        botao.textContent = 'Visualizar';
+        botao.addEventListener('click', () => {
+            startApp("visualizarProdutosUsuario", null, null, nome);
+        });
+
+        const valor = document.createElement('span');
+        valor.textContent = `R$ ${valoresPessoas[index].toFixed(2)}`;
+        valor.style.color = 'red';
+        valor.style.marginRight = '10px';
+        botaoContainer.appendChild(valor);
+        botaoContainer.appendChild(botao);
+
+        container.appendChild(info);
+        container.appendChild(botaoContainer);
+
+        listaUsuarios.appendChild(container);
+    });
+
+    appElement.appendChild(listaUsuarios);
+
+
 }
+
+// Visualizar Produtos Usuarios
+function renderVisualizarProdutosUsuario() {
+    appElement.innerHTML = '';
+
+    const titulo = document.createElement('h1');
+    titulo.textContent = `Produtos comprados por ${appState.productId}`;
+    titulo.style.textAlign = 'center';
+    appElement.appendChild(titulo);
+
+    // Simulando produtos e valores por usuário (com categoria)
+    const produtosFake = {
+        'Luiz': [
+            { nome: 'Arroz', categoria: 'Alimentos', valor: 20.00, quantidade: 2 },
+            { nome: 'Feijão', categoria: 'Alimentos', valor: 10.50, quantidade: 3 },
+            { nome: 'Refrigerante', categoria: 'Bebidas', valor: 5.90, quantidade: 4 }
+        ],
+        'Ana': [
+            { nome: 'Leite', categoria: 'Bebidas', valor: 4.50, quantidade: 5 },
+            { nome: 'Sabonete', categoria: 'Higiene', valor: 2.30, quantidade: 3 },
+            { nome: 'Detergente', categoria: 'Limpeza', valor: 3.90, quantidade: 2 }
+        ],
+        'Bernardo': [
+            { nome: 'Cerveja', categoria: 'Bebidas', valor: 7.00, quantidade: 6 },
+            { nome: 'Ração', categoria: 'Pet', valor: 15.00, quantidade: 4 },
+            { nome: 'Desinfetante', categoria: 'Limpeza', valor: 4.50, quantidade: 2 }
+        ],
+        'Ryan': [
+            { nome: 'Papel Higiênico', categoria: 'Higiene', valor: 6.50, quantidade: 8 },
+            { nome: 'Macarrão', categoria: 'Alimentos', valor: 3.00, quantidade: 4 }
+        ]
+    };
+
+    const produtos = produtosFake[appState.productId] || [];
+
+    if (produtos.length === 0) {
+        const vazio = document.createElement('p');
+        vazio.textContent = 'Nenhum produto encontrado para este usuário.';
+        appElement.appendChild(vazio);
+    } else {
+        let total = 0;
+
+        // Cria tabela
+        const tabela = document.createElement('table');
+        tabela.style.width = '100%';
+        tabela.style.borderCollapse = 'collapse';
+        tabela.style.marginTop = '20px';
+
+        // Cabeçalho
+        const thead = document.createElement('thead');
+        const cabecalho = document.createElement('tr');
+        ['Produto', 'Categoria', 'Preço', 'Quantidade', 'Preço Total'].forEach(texto => {
+            const th = document.createElement('th');
+            th.textContent = texto;
+            th.style.borderBottom = '2px solid #000';
+            th.style.padding = '8px';
+            th.style.textAlign = 'center';
+            cabecalho.appendChild(th);
+        });
+        thead.appendChild(cabecalho);
+        tabela.appendChild(thead);
+
+        // Corpo da tabela
+        const tbody = document.createElement('tbody');
+        tbody.style.textAlign = 'center';
+
+        produtos.forEach(produto => {
+            const linha = document.createElement('tr');
+
+            const subtotal = produto.valor * produto.quantidade;
+            total += subtotal;
+
+            const tdNome = document.createElement('td');
+            tdNome.textContent = produto.nome;
+
+            const tdCategoria = document.createElement('td');
+            tdCategoria.textContent = produto.categoria;
+
+            const tdValor = document.createElement('td');
+            tdValor.textContent = `R$ ${produto.valor.toFixed(2)}`;
+            tdValor.style.textAlign = 'right';
+
+            const tdQtd = document.createElement('td');
+            tdQtd.textContent = produto.quantidade;
+
+            const tdTotal = document.createElement('td');
+            tdTotal.textContent = `R$ ${subtotal.toFixed(2)}`;
+            tdTotal.style.fontWeight = 'bold';
+            tdTotal.style.textAlign = 'right';
+
+            [tdNome, tdCategoria, tdQtd, tdValor, tdTotal].forEach(td => {
+                td.style.padding = '8px';
+                td.style.borderBottom = '1px solid #ddd';
+            });
+
+            linha.appendChild(tdNome);
+            linha.appendChild(tdCategoria);
+            linha.appendChild(tdValor);
+            linha.appendChild(tdQtd);
+            linha.appendChild(tdTotal);
+            tbody.appendChild(linha);
+        });
+
+        tabela.appendChild(tbody);
+        appElement.appendChild(tabela);
+
+        // Total geral
+        const totalDiv = document.createElement('div');
+        totalDiv.style.textAlign = 'right';
+        totalDiv.style.marginTop = '10px';
+        const totalTexto = document.createElement('strong');
+        totalTexto.textContent = `Total: R$ ${total.toFixed(2)}`;
+        totalTexto.style.marginRight = '8px';
+        totalTexto.style.fontSize = '1.25em';
+        totalDiv.appendChild(totalTexto);
+        appElement.appendChild(totalDiv);
+    }
+
+    const voltar = document.createElement('button');
+    voltar.textContent = '← Voltar';
+    voltar.style.marginTop = '20px';
+    voltar.addEventListener('click', () => startApp("listaProdutos", "insights"));
+    appElement.appendChild(voltar);
+}
+
 
 /**
  * Renderiza a tela de gerenciamento de produto.
