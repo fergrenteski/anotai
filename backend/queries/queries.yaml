@@ -267,3 +267,33 @@ queries:
   select_products: >
     SELECT * FROM vw_products
     WHERE list_id = $1;
+
+  # Buscar Total de categorias por ID da lista
+  select_total_categories_by_list_id: >
+    SELECT 
+      category_id,
+      category_name AS name,
+      total_categoria AS total
+    FROM vw_total_categoria_lista
+    WHERE list_id = $1
+
+  # Top 3 de categorias gastas por usuário
+  select_total_user_categories_by_list_id: >
+    SELECT 
+      purchased_by AS user_id,
+      purchased_name, 
+      products_category_id AS category_id, 
+      category_name, 
+      total_categoria_usuario
+    FROM vw_top3_categoria_por_usuario_lista
+    WHERE list_id = $1
+
+  # Gastos por usuário
+  select_total_users_by_list_id: >
+    SELECT
+      purchased_by AS user_id,
+      purchased_name,
+      total_gasto
+    FROM vw_total_gasto_por_usuario_lista
+    WHERE list_id = $1
+    
