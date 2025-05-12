@@ -61,7 +61,9 @@ class ProductController {
 
             totalByUserResult.rows.forEach(row => {
                 totalSpendingByUser[row.user_id] = {
+                    userId: row.user_id,
                     name: row.purchased_name,
+                    userEmail: row.user_email,
                     amount: parseFloat(row.total_gasto)
                 };
             });
@@ -69,9 +71,9 @@ class ProductController {
             // Retorna os dados formatados
             return res.status(200).json({
                 success: true,
-                totalByCategory,
-                categorySpendingByUser,
-                totalSpendingByUser
+                totalByCategory: Object.values(totalByCategory),
+                categorySpendingByUser: Object.values(categorySpendingByUser),
+                totalSpendingByUser: Object.values(totalSpendingByUser)
             });
 
         } catch (error) {
