@@ -287,11 +287,12 @@ CREATE OR REPLACE VIEW vw_total_gasto_por_usuario_lista AS
 SELECT p.list_id,
        p.purchased_by,
        u.name                    AS purchased_name,
+       u.email                   AS user_email,
        SUM(p.price * p.quantity) AS total_gasto
 FROM products p
          JOIN users u ON p.purchased_by = u.user_id
 WHERE p.purchased_by IS NOT NULL
-GROUP BY p.list_id, p.purchased_by, u.name;
+GROUP BY p.list_id, p.purchased_by, u.name, u.email;
 
 -- View Gasto por categoria
 CREATE OR REPLACE VIEW vw_total_categoria_lista AS

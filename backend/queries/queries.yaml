@@ -293,6 +293,7 @@ queries:
     SELECT
       purchased_by AS user_id,
       purchased_name,
+      user_email,
       total_gasto
     FROM vw_total_gasto_por_usuario_lista
     WHERE list_id = $1
