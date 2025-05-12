@@ -185,38 +185,36 @@ function renderProdutos() {
 /**
  * Renderiza a tela de insights com gráficos.
  */
-function renderInsights() {
-    // Dados brutos (exemplo: virão do banco futuramente)
-    const categoriasBrutas = [
-        { nome: 'Alimentos', valor: 295.90 },
-        { nome: 'Bebidas', valor: 199.90 },
-        { nome: 'Limpeza', valor: 76.00 },
-        { nome: 'Higiene', valor: 42.00 },
-        { nome: 'Pet', valor: 25.00 }
-    ];
+async function renderInsights() {
 
-    const gastosPorUsuario = {
-        'Luiz': { 'Alimentos': 50, 'Bebidas': 20, 'Limpeza': 10, 'Higiene': 5 },
-        'Ana': { 'Alimentos': 70, 'Bebidas': 40, 'Limpeza': 20, 'Higiene': 10 },
-        'Bernardo': { 'Alimentos': 90, 'Bebidas': 20, 'Limpeza': 30, 'Higiene': 5 },
-        'Ryan': { 'Alimentos': 30, 'Bebidas': 25, 'Limpeza': 10, 'Higiene': 3 }
-    };
+    const data = await fetchComToken("http://localhost:3000/api/groups/1/lists/1/insights");
 
-    // Top 3 categorias por valor total
+    const categoriasBrutas = data.totalByCategory.map(c => ({
+        nome: c.name,
+        valor: parseFloat(c.total)
+    }));
+
+    const gastosPorUsuario = {};
+    data.categorySpendingByUser.forEach(user => {
+        gastosPorUsuario[user.name] = {};
+        for (const [catData] of Object.entries(user.categories)) {
+            gastosPorUsuario[user.name][catData.name] = catData.amount;
+        }
+    });
+
     const topCategorias = categoriasBrutas
         .sort((a, b) => b.valor - a.valor)
         .slice(0, 3);
+
     const categorias = topCategorias.map(cat => cat.nome);
     const valoresCategorias = topCategorias.map(cat => cat.valor);
 
-    // Gastos por pessoa para gráfico de barras
     const usuarios = Object.keys(gastosPorUsuario);
     const valoresPessoas = usuarios.map(usuario => {
         return Object.values(gastosPorUsuario[usuario]).reduce((a, b) => a + b, 0);
     });
     const totalGasto = valoresPessoas.reduce((a, b) => a + b, 0);
 
-    // Prepara datasets para gráfico empilhado
     const datasetsEmpilhado = categorias.map((categoria, index) => {
         const cores = [
             'rgba(255, 99, 132, 0.6)',
