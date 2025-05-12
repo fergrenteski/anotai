@@ -282,7 +282,7 @@ queries:
     SELECT 
       purchased_by AS user_id,
       purchased_name, 
-      category_id, 
+      products_category_id AS category_id, 
       category_name, 
       total_categoria_usuario
     FROM vw_top3_categoria_por_usuario_lista
