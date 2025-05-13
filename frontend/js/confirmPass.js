@@ -1,52 +1,36 @@
-// URL base da API 
+javascript
+// URL base da API de usuário para operações de redefinição de senha
 const url = "http://localhost:3000/api/user";
 
-// Captura token da query string (?token=)
+// Captura os parâmetros da query string da URL
 const params = new URLSearchParams(window.location.search);
-const token  = params.get("token") || "";
 
-// Função principal para validar e enviar
-async function alterarSenha() {
-  const novaSenha      = document.getElementById("senha").value.trim();
-  const confirmarSenha = document.getElementById("confirmarSenha").value.trim();
-  const msgEl          = document.getElementById("mensagem");
+// Obtém o email e o token da confirmação
+const email = params.get("email");
+const token = params.get("token");
 
-  msgEl.innerText = ""; // limpa mensagem anterior
+// Função assíncrona para enviar a nova senha ao back-end
+const alterarSenha = async () => {
+    // Lê os valores dos campos de senha e confirmação
+    const senha = document.getElementById("senha").value;
+    const confirmacaoSenha = document.getElementById("confirmarSenha").value;
 
-  // 1) Senhas iguais?
-  if (novaSenha !== confirmarSenha) {
-    msgEl.innerText = "As senhas não coincidem!";
-    return;
-  }
-
-  // 2) Envia para o back
-  try {
+    // Faz a requisição POST para alterar a senha
     const response = await fetch(`${url}/alterar-senha`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        token,
-        senha: novaSenha,
-        confirmacaoSenha // reforço de segurança
-      })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, token, senha, confirmacaoSenha }),
     });
-    const data = await response.json();
+};
 
-    // 3) Exibe exatamente o que o back retornar
-    msgEl.innerText = data.message;
+// Converte a resposta em JSON e exibe a mensagem na página
+const data = await response.json();
+document.getElementById("mensagem").innerText = data.message;
 
-    // 4) Se sucesso, redireciona
-    if (data.success) {
-      setTimeout(() => window.location.href = "index.html", 2000);
-    }
-
-  } catch (err) {
-    console.error("Erro no fetch:", err);
-    msgEl.innerText = "Erro ao enviar requisição.";
-  }
-}
-
-// Usa o botão de tipo "button" para não submeter o form
+// Intercepta o submit do formulário para executar alterarSenha sem recarregar
 document
-  .getElementById("button-confirm-reset")
-  .addEventListener("click", alterarSenha);
+    .getElementById("form-confirm-reset-pass")
+    .addEventListener("submit", (e) => {
+        e.preventDefault();
+        alterarSenha();
+    });
