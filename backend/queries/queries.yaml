@@ -242,7 +242,7 @@ queries:
 
   #  Buscar todas as listas
   select_list: >
-  ` SELECT * FROM lists ORDER BY created_at DESC;
+   SELECT * FROM lists ORDER BY created_at DESC;
 
  # Buscar uma lista por ID
   select_list_by_id: >
@@ -251,14 +251,13 @@ queries:
 # Atualizar uma lista
   update_list_id: >
    UPDATE lists
-    SET name = COALESCE($1, name),
-        description = COALESCE($2, description),
-        expired_at = COALESCE($3, expired_at),
+    SET name =  IFnull($1, name),
+        description = IFnull($2, description),
+        expired_at = IFnull($3, expired_at),
         updated_at = CURRENT_TIMESTAMP,
-        last_modified = CURRENT_TIMESTAMP
-    WHERE list_id = $4
-    RETURNING *;
+       WHERE list_id = $4
+         RETURNING *;
   
   #Deletar uma lista
   delete_list: >
-   DELETE FROM lists WHERE list_id = $1 RETURNING 
+   DELETE FROM lists WHERE list_id = $1 RETURNING *;

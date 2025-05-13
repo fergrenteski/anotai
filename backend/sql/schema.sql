@@ -225,3 +225,25 @@ FROM lists l
          LEFT JOIN groups_category gc ON gc.groups_category_id = g.category_id
 WHERE g.expired_at IS NULL
   AND l.expired_at IS NULL;
+  
+CREATE OR REPLACE VIEW vw_lista_compras_detalhada AS
+SELECT 
+    l.id AS lista_id,
+    l.nome AS nome_lista,
+    l.descricao AS descricao_lista,
+    l.data_criacao,
+    u.id AS usuario_id,
+    u.nome AS nome_usuario,
+    i.id AS item_id,
+    i.nome AS nome_item,
+    i.quantidade,
+    i.unidade,
+    i.status,
+    i.data_adicionado
+FROM
+    listas l
+JOIN
+    usuarios u ON l.usuario_id = u.id
+LEFT JOIN
+    itens i ON i.lista_id = l.id;
+
