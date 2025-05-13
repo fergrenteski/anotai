@@ -110,6 +110,7 @@ function renderApp() {
             }
             break;
         case "novoProduto":
+            renderGerenciarProduto();
         case "editarProduto":
             renderGerenciarProduto();
             break;
@@ -697,7 +698,20 @@ function renderVisualizarProdutosUsuario() {
  * TO DO: Implementar criação e edição.
  */
 async function renderGerenciarProduto() {
-    // TO DO: Implementar renderização de formulário para novo ou editar produto
+    const isEditing = appState.currentView === "novoProduto";
+
+    const titulo = document.createElement('h1');
+    titulo.textContent = isEditing ? 'Criar Produto' : 'Editar Produto';
+    titulo.style.textAlign = 'center';
+    appElement.appendChild(titulo);
+
+    const form = document.createElement('div');
+
+    // Campo: Nome do grupo
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.placeholder = 'Nome do Produto';
+    form.appendChild(nameInput);
 }
 
 // =========================
