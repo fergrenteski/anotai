@@ -46,6 +46,7 @@ async function alterarSenha() {
   }
 }
 
+
 // Usa o botão de tipo "button" para não submeter o form
 document
   .getElementById("button-confirm-reset")
