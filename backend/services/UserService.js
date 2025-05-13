@@ -49,13 +49,21 @@ class UserService {
     async loginUsuario(email, password) {
  
        const { rows } = await runQuery("select_user_by_email", [email]);
-      
-        // E-mail não encontrado
-        if (rows.length === 0) throw new Error("E-mail não encontrado");
-      
+
+// E-mail não encontrado
+        if (rows.length === 0) {
+            const error = new Error("E-mail não encontrado");
+            error.status = 403;
+            throw error;
+        }
+
         // Senha incorreta
         const isMatch = await bcrypt.compare(password, rows[0].password_hash);
-        if (!isMatch) throw new Error("Senha incorreta");
+        if (!isMatch) {
+            const error = new Error("Senha incorreta");
+            error.status = 401;
+            throw error;
+        }
       
         // Sucesso
         const token = this.gerarToken(rows[0]);

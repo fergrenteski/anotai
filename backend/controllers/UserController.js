@@ -54,13 +54,8 @@ class UserController {
             // Retorna token para o cliente
             return res.status(200).json({ success: true, name, token });
         } catch (error) {
-            console.error("Erro no login:", error);
-            
-                if (err.message === "E-mail não encontrado") return res.status(403).json({ success: false, message: err.message });
-
-                if (err.message === "Senha incorreta") return res.status(401).json({ success: false, message: err.message });
-
-                return res.status(500).json({ success: false, message: "Ocorreu um erro inesperado..." });
+            return res.status(error.status || 500)
+                .json({ success: false, status: error.status, message: error.message });
         }
     }
 
