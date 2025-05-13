@@ -1,3 +1,4 @@
+javascript
 // URL base da API de usuário para operações de redefinição de senha
 const url = "http://localhost:3000/api/user";
 
@@ -20,11 +21,11 @@ const alterarSenha = async () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, token, senha, confirmacaoSenha }),
     });
+};
 
-    // Converte a resposta em JSON e exibe a mensagem na página
-    const data = await response.json();
-    document.getElementById("mensagem").innerText = data.message;
-}
+// Converte a resposta em JSON e exibe a mensagem na página
+const data = await response.json();
+document.getElementById("mensagem").innerText = data.message;
 
 // Intercepta o submit do formulário para executar alterarSenha sem recarregar
 document
