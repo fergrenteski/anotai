@@ -185,38 +185,39 @@ function renderProdutos() {
 /**
  * Renderiza a tela de insights com gráficos.
  */
-function renderInsights() {
-    // Dados brutos (exemplo: virão do banco futuramente)
-    const categoriasBrutas = [
-        { nome: 'Alimentos', valor: 295.90 },
-        { nome: 'Bebidas', valor: 199.90 },
-        { nome: 'Limpeza', valor: 76.00 },
-        { nome: 'Higiene', valor: 42.00 },
-        { nome: 'Pet', valor: 25.00 }
-    ];
+let pieChart, barChart, stackedChart; // Variáveis para armazenar as instâncias dos gráficos
 
-    const gastosPorUsuario = {
-        'Luiz': { 'Alimentos': 50, 'Bebidas': 20, 'Limpeza': 10, 'Higiene': 5 },
-        'Ana': { 'Alimentos': 70, 'Bebidas': 40, 'Limpeza': 20, 'Higiene': 10 },
-        'Bernardo': { 'Alimentos': 90, 'Bebidas': 20, 'Limpeza': 30, 'Higiene': 5 },
-        'Ryan': { 'Alimentos': 30, 'Bebidas': 25, 'Limpeza': 10, 'Higiene': 3 }
-    };
+async function renderInsights(filtro = '') {
+    const data = await fetchComToken("http://localhost:3000/api/groups/1/lists/1/insights");
 
-    // Top 3 categorias por valor total
+    const categoriasBrutas = data.totalByCategory.map(c => ({
+        nome: c.name,
+        valor: parseFloat(c.total)
+    }));
+
+    const gastosPorUsuario = {};
+    data.categorySpendingByUser.forEach(user => {
+        gastosPorUsuario[user.name] = {};
+        for (const [categoryId, categoryData] of Object.entries(user.categories)) {
+            gastosPorUsuario[user.name][categoryData.name] = categoryData.amount;
+        }
+    });
+
+    const usuariosFiltrados = Object.keys(gastosPorUsuario).filter(nome => nome.toLowerCase().includes(filtro.toLowerCase()));
+
+
     const topCategorias = categoriasBrutas
         .sort((a, b) => b.valor - a.valor)
         .slice(0, 3);
+
     const categorias = topCategorias.map(cat => cat.nome);
     const valoresCategorias = topCategorias.map(cat => cat.valor);
 
-    // Gastos por pessoa para gráfico de barras
-    const usuarios = Object.keys(gastosPorUsuario);
-    const valoresPessoas = usuarios.map(usuario => {
+    const valoresPessoasFiltradas = usuariosFiltrados.map(usuario => {
         return Object.values(gastosPorUsuario[usuario]).reduce((a, b) => a + b, 0);
     });
-    const totalGasto = valoresPessoas.reduce((a, b) => a + b, 0);
+    const totalGastoFiltrado = valoresPessoasFiltradas.reduce((a, b) => a + b, 0);
 
-    // Prepara datasets para gráfico empilhado
     const datasetsEmpilhado = categorias.map((categoria, index) => {
         const cores = [
             'rgba(255, 99, 132, 0.6)',
@@ -225,222 +226,343 @@ function renderInsights() {
         ];
         return {
             label: categoria,
-            data: usuarios.map(usuario => gastosPorUsuario[usuario][categoria] || 0),
+            data: usuariosFiltrados.map(usuario => gastosPorUsuario[usuario][categoria] || 0),
             backgroundColor: cores[index % cores.length]
         };
     });
 
     // Elementos base
-    const titulo = document.createElement('h1');
-    titulo.textContent = 'Insights da Lista';
-    titulo.style.textAlign = 'center';
-    appElement.appendChild(titulo);
+    let titulo = document.getElementById('insightsTitulo');
+    if (!titulo) {
+        titulo = document.createElement('h1');
+        titulo.id = 'insightsTitulo';
+        titulo.textContent = 'Insights da Lista';
+        titulo.style.textAlign = 'center';
+        appElement.appendChild(titulo);
+    }
 
-    const chartContainer = document.createElement('div');
-    chartContainer.style.display = 'flex';
-    chartContainer.style.justifyContent = 'space-between';
-    chartContainer.style.width = '100%';
-    chartContainer.style.height = 'auto';
-    chartContainer.style.paddingTop = '20px';
-    appElement.appendChild(chartContainer);
+    let filtroDiv = document.getElementById('filtroDiv');
+    if (!filtroDiv) {
+        filtroDiv = document.createElement('div');
+        filtroDiv.style.width = '100%';
+        filtroDiv.id = 'filtroDiv';
+        filtroDiv.style.textAlign = 'center';
+        appElement.appendChild(filtroDiv);
+    }
+
+    // Adiciona o input de filtro
+    let filtroInput = document.getElementById('filtroUsuarios');
+    if (!filtroInput) {
+        filtroInput = document.createElement('input');
+        filtroInput.type = 'text';
+        filtroInput.placeholder = 'Filtrar por nome...';
+        filtroInput.id = 'filtroUsuarios';
+        filtroInput.style.marginBottom = '10px';
+        filtroInput.style.width = '50%';
+        filtroDiv.appendChild(filtroInput);
+    }
+
+    let chartContainer = document.getElementById('insightsChartContainer');
+    if (!chartContainer) {
+        chartContainer = document.createElement('div');
+        chartContainer.id = 'insightsChartContainer';
+        chartContainer.style.display = 'flex';
+        chartContainer.style.justifyContent = 'space-between';
+        chartContainer.style.width = '100%';
+        chartContainer.style.height = 'auto';
+        chartContainer.style.paddingTop = '20px';
+        appElement.appendChild(chartContainer);
+    }
 
     // ---------- Gráfico de Pizza ----------
-    const pieWrapper = document.createElement('div');
-    pieWrapper.style.flex = '0 1 48%';
-    pieWrapper.style.display = 'flex';
-    pieWrapper.style.flexDirection = 'column';
-    pieWrapper.style.alignItems = 'center';
+    let pieWrapper = document.getElementById('insightsPieWrapper');
+    if (!pieWrapper) {
+        pieWrapper = document.createElement('div');
+        pieWrapper.id = 'insightsPieWrapper';
+        pieWrapper.style.flex = '0 1 48%';
+        pieWrapper.style.display = 'flex';
+        pieWrapper.style.flexDirection = 'column';
+        pieWrapper.style.alignItems = 'center';
+        chartContainer.appendChild(pieWrapper);
+    }
 
-    const pieTitle = document.createElement('h2');
-    pieTitle.textContent = 'Gastos por Categoria (Top 3)';
-    pieWrapper.appendChild(pieTitle);
 
-    const pieCanvas = document.createElement('canvas');
-    pieCanvas.id = 'myPieChart';
-    pieCanvas.style.width = '100%';
-    pieCanvas.style.height = '200px';
-    pieWrapper.appendChild(pieCanvas);
+    let pieTitle = document.getElementById('insightsPieTitle');
+    if (!pieTitle) {
+        pieTitle = document.createElement('h2');
+        pieTitle.id = 'insightsPieTitle';
+        pieTitle.textContent = 'Gastos por Categoria (Top 3)';
+        pieWrapper.appendChild(pieTitle);
+    }
+
+    let pieCanvas = document.getElementById('myPieChart');
+    if (!pieCanvas) {
+        pieCanvas = document.createElement('canvas');
+        pieCanvas.id = 'myPieChart';
+        pieCanvas.style.width = '100%';
+        pieCanvas.style.height = '200px';
+        pieWrapper.appendChild(pieCanvas);
+    }
+
+    let pieDetail = document.getElementById('insightsPieDetail');
+    if (!pieDetail) {
+        pieDetail = document.createElement('p');
+        pieDetail.id = 'insightsPieDetail';
+        pieWrapper.appendChild(pieDetail);
+    }
 
     const indexMaior = valoresCategorias.indexOf(Math.max(...valoresCategorias));
-    const pieDetail = document.createElement('p');
     pieDetail.textContent = `Maior gasto: ${categorias[indexMaior]} (R$ ${valoresCategorias[indexMaior].toFixed(2)})`;
-    pieWrapper.appendChild(pieDetail);
 
-    chartContainer.appendChild(pieWrapper);
 
     // ---------- Gráfico de Barras ----------
-    const barWrapper = document.createElement('div');
-    barWrapper.style.flex = '0 1 48%';
-    barWrapper.style.display = 'flex';
-    barWrapper.style.flexDirection = 'column';
-    barWrapper.style.alignItems = 'center';
+    let barWrapper = document.getElementById('insightsBarWrapper');
+    if (!barWrapper) {
+        barWrapper = document.createElement('div');
+        barWrapper.id = 'insightsBarWrapper';
+        barWrapper.style.flex = '0 1 48%';
+        barWrapper.style.display = 'flex';
+        barWrapper.style.flexDirection = 'column';
+        chartContainer.appendChild(barWrapper);
+    }
 
-    const barTitle = document.createElement('h2');
-    barTitle.textContent = 'Gastos por Pessoa';
-    barWrapper.appendChild(barTitle);
+    let barTitle = document.getElementById('insightsBarTitle');
+    if (!barTitle) {
+        barTitle = document.createElement('h2');
+        barTitle.id = 'insightsBarTitle';
+        barTitle.textContent = 'Gastos por Pessoa';
+        barWrapper.appendChild(barTitle);
+    }
 
-    const barCanvas = document.createElement('canvas');
-    barCanvas.id = 'myBarChart';
-    barCanvas.style.width = '100%';
-    barCanvas.style.height = '200px';
-    barWrapper.appendChild(barCanvas);
+    let barCanvas = document.getElementById('myBarChart');
+    if (!barCanvas) {
+        barCanvas = document.createElement('canvas');
+        barCanvas.id = 'myBarChart';
+        barCanvas.style.width = '100%';
+        barCanvas.style.height = '200px';
+        barWrapper.appendChild(barCanvas);
+    }
 
-    const barDetail = document.createElement('p');
-    barDetail.textContent = `Total gasto: R$ ${totalGasto.toFixed(2)}`;
-    barWrapper.appendChild(barDetail);
+    let barDetail = document.getElementById('insightsBarDetail');
+    if (!barDetail) {
+        barDetail = document.createElement('p');
+        barDetail.id = 'insightsBarDetail';
+        barWrapper.appendChild(barDetail);
+    }
+    barDetail.textContent = `Total gasto: R$ ${totalGastoFiltrado.toFixed(2)}`;
 
-    chartContainer.appendChild(barWrapper);
 
     // ---------- Gráfico de Barras Empilhadas ----------
-    const stackedWrapper = document.createElement('div');
-    stackedWrapper.style.width = '100%';
-    stackedWrapper.style.marginTop = '40px';
-    stackedWrapper.style.display = 'flex';
-    stackedWrapper.style.flexDirection = 'column';
-    stackedWrapper.style.alignItems = 'center';
+    let stackedWrapper = document.getElementById('insightsStackedWrapper');
+    if (!stackedWrapper) {
+        stackedWrapper = document.createElement('div');
+        stackedWrapper.id = 'insightsStackedWrapper';
+        stackedWrapper.style.width = '100%';
+        stackedWrapper.style.marginTop = '40px';
+        stackedWrapper.style.display = 'flex';
+        stackedWrapper.style.flexDirection = 'column';
+        stackedWrapper.style.alignItems = 'center';
+        appElement.appendChild(stackedWrapper);
+    }
 
-    const stackedTitle = document.createElement('h2');
-    stackedTitle.textContent = 'Gastos por Categoria e Usuário (Top 3)';
-    stackedWrapper.appendChild(stackedTitle);
+    let stackedTitle = document.getElementById('insightsStackedTitle');
+    if (!stackedTitle) {
+        stackedTitle = document.createElement('h2');
+        stackedTitle.id = 'insightsStackedTitle';
+        stackedTitle.textContent = 'Gastos por Categoria e Usuário (Top 3)';
+        stackedWrapper.appendChild(stackedTitle);
+    }
 
-    const stackedCanvas = document.createElement('canvas');
-    stackedCanvas.id = 'stackedChart';
-    stackedCanvas.style.width = '100%';
-    stackedCanvas.style.height = '300px';
-    stackedWrapper.appendChild(stackedCanvas);
+    let stackedCanvas = document.getElementById('stackedChart');
+    if (!stackedCanvas) {
+        stackedCanvas = document.createElement('canvas');
+        stackedCanvas.id = 'stackedChart';
+        stackedCanvas.style.width = '100%';
+        stackedCanvas.style.height = '300px';
+        stackedWrapper.appendChild(stackedCanvas);
+    }
 
-    appElement.appendChild(stackedWrapper);
+
 
     // Renderização dos gráficos com Chart.js
-    new Chart(pieCanvas.getContext('2d'), {
-        type: 'pie',
-        data: {
-            labels: categorias,
-            datasets: [{
-                label: 'Categorias',
-                data: valoresCategorias,
-                backgroundColor: [
-                    'rgba(255, 99, 132, 0.7)',
-                    'rgba(54, 162, 235, 0.7)',
-                    'rgba(255, 206, 86, 0.7)'
-                ],
-                borderColor: [
-                    'rgba(255, 99, 132, 1)',
-                    'rgba(54, 162, 235, 1)',
-                    'rgba(255, 206, 86, 1)'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: false,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'right'
-                }
-            }
-        }
-    });
-
-    new Chart(barCanvas.getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: usuarios,
-            datasets: [{
-                label: 'Gastos',
-                data: valoresPessoas,
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                borderColor: 'rgba(75, 192, 192, 1)',
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: false,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top'
-                }
-            }
-        }
-    });
-
-    new Chart(stackedCanvas.getContext('2d'), {
-        type: 'bar',
-        data: {
-            labels: usuarios,
-            datasets: datasetsEmpilhado
-        },
-        options: {
-            responsive: false,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top'
-                }
+    if (!pieChart) {
+        pieChart = new Chart(pieCanvas.getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: categorias,
+                datasets: [{
+                    label: 'Categorias',
+                    data: valoresCategorias,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)'
+                    ],
+                    borderWidth: 1
+                }]
             },
-            scales: {
-                x: { stacked: true },
-                y: { stacked: true }
+            options: {
+                responsive: false,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right'
+                    }
+                }
             }
-        }
-    });
+        });
+    } else {
+        pieChart.data.labels = categorias;
+        pieChart.data.datasets[0].data = valoresCategorias;
+        pieChart.update();
+    }
+
+    if (!barChart) {
+        barChart = new Chart(barCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: usuariosFiltrados,
+                datasets: [{
+                    label: 'Gastos',
+                    data: valoresPessoasFiltradas,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: false,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    } else {
+        barChart.data.labels = usuariosFiltrados;
+        barChart.data.datasets[0].data = valoresPessoasFiltradas;
+        barChart.update();
+    }
+
+    if (!stackedChart) {
+        stackedChart = new Chart(stackedCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: usuariosFiltrados,
+                datasets: datasetsEmpilhado
+            },
+            options: {
+                responsive: false,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    x: { stacked: true },
+                    y: { stacked: true }
+                }
+            }
+        });
+    } else {
+        stackedChart.data.labels = usuariosFiltrados;
+        stackedChart.data.datasets = datasetsEmpilhado;
+        stackedChart.update();
+    }
+
+
 
     // ---------- Lista de usuários ----------
-    const listaUsuarios = document.createElement('div');
-    listaUsuarios.style.marginTop = '40px';
-    listaUsuarios.style.width = '100%';
+    let listaUsuariosDiv = document.getElementById('listaUsuariosDiv');
+    if (!listaUsuariosDiv) {
+        listaUsuariosDiv = document.createElement('div');
+        listaUsuariosDiv.id = 'listaUsuariosDiv';
+        listaUsuariosDiv.style.marginTop = '40px';
+        listaUsuariosDiv.style.width = '100%';
+        appElement.appendChild(listaUsuariosDiv);
+    }
 
-    const tituloLista = document.createElement('h2');
-    tituloLista.textContent = 'Usuários';
-    tituloLista.style.marginBottom = '10px';
-    listaUsuarios.appendChild(tituloLista);
 
-    usuarios.forEach((nome, index) => {
-        const container = document.createElement('div');
-        container.style.display = 'flex';
-        container.style.justifyContent = 'space-between';
-        container.style.alignItems = 'center';
-        container.style.border = '1px solid #ccc';
-        container.style.padding = '10px';
-        container.style.marginBottom = '10px';
-        container.style.borderRadius = '8px';
+    let tituloLista = document.getElementById('listaUsuariosTitulo');
+    if (!tituloLista) {
+        tituloLista = document.createElement('h2');
+        tituloLista.id = 'listaUsuariosTitulo';
+        tituloLista.textContent = 'Usuários';
+        tituloLista.style.marginBottom = '10px';
+        listaUsuariosDiv.appendChild(tituloLista);
+    }
 
-        const info = document.createElement('div');
-        const nomeEl = document.createElement('strong');
-        nomeEl.textContent = nome;
-        const emailEl = document.createElement('p');
-        emailEl.textContent = `${nome.toLowerCase()}@email.com`;
-        emailEl.style.fontSize = '0.9em';
-        emailEl.style.margin = '2px 0 0 0';
-        info.appendChild(nomeEl);
-        info.appendChild(emailEl);
 
-        const botaoContainer = document.createElement('div');
-        botaoContainer.style.display = 'flex';
-        botaoContainer.style.alignItems = 'center';
+    let listaContainer = document.getElementById('listaUsuariosContainer');
+    if (!listaContainer) {
+        listaContainer = document.createElement('div');
+        listaContainer.id = 'listaUsuariosContainer';
+        listaUsuariosDiv.appendChild(listaContainer);
+    }
 
-        const botao = document.createElement('button');
-        botao.textContent = 'Visualizar';
-        botao.addEventListener('click', () => {
-            startApp("visualizarProdutosUsuario", null, null, nome);
+
+    function renderListaUsuarios(usuariosParaRenderizar) {
+        listaContainer.innerHTML = '';
+
+        usuariosParaRenderizar.forEach((nome, index) => {
+            const container = document.createElement('div');
+            container.style.display = 'flex';
+            container.style.justifyContent = 'space-between';
+            container.style.alignItems = 'center';
+            container.style.border = '1px solid #ccc';
+            container.style.padding = '10px';
+            container.style.marginBottom = '10px';
+            container.style.borderRadius = '8px';
+
+            const info = document.createElement('div');
+            const nomeEl = document.createElement('strong');
+            nomeEl.textContent = nome;
+            const emailEl = document.createElement('p');
+            emailEl.textContent = `${nome.toLowerCase()}@email.com`;
+            emailEl.style.fontSize = '0.9em';
+            emailEl.style.margin = '2px 0 0 0';
+            info.appendChild(nomeEl);
+            info.appendChild(emailEl);
+
+            const botaoContainer = document.createElement('div');
+            botaoContainer.style.display = 'flex';
+            botaoContainer.style.alignItems = 'center';
+
+            const botao = document.createElement('button');
+            botao.textContent = 'Visualizar';
+            botao.addEventListener('click', () => {
+                startApp("visualizarProdutosUsuario", null, null, nome);
+            });
+
+            const valor = document.createElement('span');
+            valor.textContent = `R$ ${valoresPessoasFiltradas[index].toFixed(2)}`;
+            valor.style.color = 'red';
+            valor.style.marginRight = '10px';
+            botaoContainer.appendChild(valor);
+            botaoContainer.appendChild(botao);
+
+            container.appendChild(info);
+            container.appendChild(botaoContainer);
+            listaContainer.appendChild(container);
         });
+    }
 
-        const valor = document.createElement('span');
-        valor.textContent = `R$ ${valoresPessoas[index].toFixed(2)}`;
-        valor.style.color = 'red';
-        valor.style.marginRight = '10px';
-        botaoContainer.appendChild(valor);
-        botaoContainer.appendChild(botao);
+    // Chame a função para renderizar a lista inicial
+    renderListaUsuarios(usuariosFiltrados);
 
-        container.appendChild(info);
-        container.appendChild(botaoContainer);
-
-        listaUsuarios.appendChild(container);
+    // Adiciona o evento de input ao filtro
+    filtroInput.addEventListener('input', () => {
+        const filtroValor = filtroInput.value.toLowerCase();
+        renderInsights(filtroValor);
     });
-
-    appElement.appendChild(listaUsuarios);
 
 
 }
