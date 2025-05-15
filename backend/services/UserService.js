@@ -49,13 +49,15 @@ class UserService {
     async loginUsuario(email, password) {
  
        const { rows } = await runQuery("select_user_by_email", [email]);
-
-// E-mail não encontrado
+        // E-mail não encontrado
         if (rows.length === 0) {
             const error = new Error("E-mail não encontrado");
             error.status = 403;
             throw error;
         }
+
+        // Usuário não Verificado
+        if (!rows[0].email_verified) throw new Error("Usuário não verificado!");
 
         // Senha incorreta
         const isMatch = await bcrypt.compare(password, rows[0].password_hash);
