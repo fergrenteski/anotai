@@ -698,20 +698,128 @@ function renderVisualizarProdutosUsuario() {
  * TO DO: Implementar criação e edição.
  */
 async function renderGerenciarProduto() {
-    const isEditing = appState.currentView === "novoProduto";
+    // Limpa o container
+    appElement.innerHTML = '';
 
+    // Define se estamos no fluxo de criação
+    const isEditing= appState.currentView === 'novoProduto';
+
+    // Título centralizado
     const titulo = document.createElement('h1');
-    titulo.textContent = isEditing ? 'Criar Produto' : 'Editar Produto';
+    titulo.textContent = isEditing
+        ? 'Criar Produto'
+        : 'Editar Produto';
     titulo.style.textAlign = 'center';
-    appElement.appendChild(titulo);
 
-    const form = document.createElement('div');
+    // Form
+    const form = document.createElement('form');
+    form.id = 'form-gerenciar-produto';
+    form.style.marginTop = '20px';
+    form.appendChild(titulo);
 
-    // Campo: Nome do grupo
-    const nameInput = document.createElement('input');
-    nameInput.type = 'text';
-    nameInput.placeholder = 'Nome do Produto';
-    form.appendChild(nameInput);
+    // --- Nome (sempre existe, mas só editável ao criar)
+    const labelNome = document.createElement('label');
+    labelNome.textContent = 'Nome:';
+    form.appendChild(labelNome);
+
+    const inputNome = document.createElement('input');
+    inputNome.type = 'text';
+    inputNome.id = 'inputName';
+    inputNome.name = 'nome';
+    inputNome.placeholder = 'Digite o nome do produto';
+    inputNome.required = true;
+    form.appendChild(inputNome);
+
+    // --- Descrição:
+    const labelDesc = document.createElement('label');
+    labelDesc.textContent = 'Descrição:';
+    form.appendChild(labelDesc);
+
+    const inputDesc = document.createElement('input');
+    inputDesc.type = 'text';
+    inputDesc.id = 'inputDesc';
+    inputDesc.name = 'descricao';
+    inputDesc.placeholder = 'Digite a descrição';
+    inputDesc.required = true;
+    form.appendChild(inputDesc);
+
+    if (!isEditing) {
+        const labelQuantidade = document.createElement('label');
+        labelQuantidade.textContent = 'Quantidade:';
+        form.appendChild(labelQuantidade);
+
+        const inputQuantidade = document.createElement('input');
+        inputQuantidade.type = 'number';
+        inputQuantidade.id = 'inputQuan';
+        inputQuantidade.name = 'quantidade';
+        inputQuantidade.min = 0;
+        inputQuantidade.required = true;
+        form.appendChild(inputQuantidade);
+
+        // Preço
+        const labelPreco = document.createElement('label');
+        labelPreco.textContent = 'Preço:';
+        form.appendChild(labelPreco);
+
+        const inputPreco = document.createElement('input');
+        inputPreco.type = 'number';
+        inputPreco.step = '0.01';
+        inputPreco.id = 'inputPrice';
+        inputPreco.name = 'preco';
+        inputPreco.min = 0;
+        inputPreco.required = true;
+        form.appendChild(inputPreco);
+    }
+
+    // Botão salvar/criar: full width
+    const buttonSalvar = document.createElement('button');
+    buttonSalvar.type = 'submit';
+    buttonSalvar.textContent = isEditing ? 'Criar' : 'Salvar';
+    buttonSalvar.style.display = 'block';
+    buttonSalvar.style.width = '100%';
+    buttonSalvar.addEventListener('click', async () => {
+
+        const objeto = {
+            name: document.getElementById('inputName').value,
+            description: document.getElementById('inputDesc').value,
+        }
+
+        if (!isEditing) {
+            objeto.quantity = document.getElementById('inputQuan').value;
+            objeto.price = document.getElementById('inputPrice').value;
+        }
+
+        const url = isEditing
+            ? 'http://localhost:3000/api/groups/1/lists/1/products'
+            : 'http://localhost:3000/api/groups/:groupId/lists/:listId/products/:productId';
+        const method = isEditing
+            ? 'POST'
+            : 'PUT';
+        await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(objeto)
+        })
+        alert(`Produto com sucesso!`);
+    })
+
+    form.appendChild(buttonSalvar);
+
+    // Botão Voltar: igual ao groups (full width e margem inferior)
+    const buttonVoltar = document.createElement('button');
+    buttonVoltar.type = 'button';
+    buttonVoltar.textContent = 'Voltar';
+    buttonVoltar.style.display = 'block';
+    buttonVoltar.style.width = '100%';
+    buttonVoltar.style.marginBottom = '10px';
+    buttonVoltar.addEventListener('click', () => {
+        startApp();
+    });
+    form.appendChild(buttonVoltar);
+
+    appElement.appendChild(form);
 }
 
 // =========================
