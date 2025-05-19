@@ -120,7 +120,7 @@ CREATE TABLE groups
 CREATE TABLE products_category
 (
     products_category_id SERIAL PRIMARY KEY,
-    name                 VARCHAR(100) NOT NULL
+    name                VARCHAR(100) NOT NULL
 );
 
 INSERT INTO products_category (name)

@@ -9,6 +9,10 @@ class CategoryService {
         // Executa a consulta SQL identificada por "select_groups_categories"
         return runQuery("select_groups_categories");
     }
+
+    async getAllProducts() {
+        return runQuery("select_products_categories");
+    }
 }
 // Exporta a classe CategoryService
 module.exports = CategoryService;

@@ -31,6 +31,12 @@ async function fetchComToken(url, options = {}) {
 // CARREGAMENTO DE DADOS
 // =========================
 
+async function loadProductCategories() {
+    // Busca categorias de grupo da API
+    const data = await fetchComToken('http://localhost:3000/api/groups/products/categories');
+    return data.data;
+}
+
 /**
  * Carrega a lista de produtos da API.
  */
@@ -743,6 +749,41 @@ async function renderGerenciarProduto() {
     inputDesc.required = true;
     form.appendChild(inputDesc);
 
+    // --- Categoria
+    const labelCate = document.createElement('label');
+    labelCate.textContent = 'Categoria:';
+    form.appendChild(labelCate);
+
+    // Cria o select
+    const selectCate = document.createElement('select');
+    selectCate.id = 'inputCategory';
+    selectCate.name = 'category_id';
+    selectCate.required = true;
+
+    // Opção padrão
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = 'Selecione uma categoria';
+    defaultOpt.disabled = true;
+    defaultOpt.selected = true;
+    selectCate.appendChild(defaultOpt);
+
+    appElement.innerHTML = '';
+    // Carrega as categorias e monta as opções
+    const categories = await loadProductCategories();
+    categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.id;
+        opt.textContent = cat.name.charAt(0).toUpperCase() + cat.name.slice(1);
+        // se for edição, pré-seleciona a categoria do produto
+        // if (isEditing && appState.currentProduct?.category_id === cat.id) {
+        //     opt.selected = true;
+        // }
+        selectCate.appendChild(opt);
+    });
+    appElement.innerHTML = '';
+    form.appendChild(selectCate);
+
     if (!isEditing) {
         const labelQuantidade = document.createElement('label');
         labelQuantidade.textContent = 'Quantidade:';
@@ -782,6 +823,7 @@ async function renderGerenciarProduto() {
         const objeto = {
             name: document.getElementById('inputName').value,
             description: document.getElementById('inputDesc').value,
+            category_id: document.getElementById('inputCategory').value
         }
 
         if (!isEditing) {
