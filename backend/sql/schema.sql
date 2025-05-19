@@ -241,9 +241,10 @@ SELECT
     i.status,
     i.data_adicionado
 FROM
-    listas l
+    lists l
 JOIN
-    usuarios u ON l.usuario_id = u.id
+    users u ON l.usuario_id = u.id
 LEFT JOIN
-    itens i ON i.lista_id = l.id;
-
+    itens i ON i.lista_id = l.id
+LEFT JOIN
+    produtos p ON p.id = i.produto_id;

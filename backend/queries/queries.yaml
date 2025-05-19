@@ -246,12 +246,12 @@ queries:
 
  # Buscar uma lista por ID
   select_list_by_id: >
-   SELECT * FROM lists WHERE list_id = $1;`;
+   SELECT * FROM lists WHERE list_id = $1;
 
 # Atualizar uma lista
   update_list_id: >
    UPDATE lists
-    SET name =  IFnull($1, name),
+    SET name =  $1, 
         description = IFnull($2, description),
         expired_at = IFnull($3, expired_at),
         updated_at = CURRENT_TIMESTAMP,
