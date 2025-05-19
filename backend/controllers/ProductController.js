@@ -8,23 +8,32 @@ class ProductController {
 
     async create(req, res){
 
-        console.log(req.body);
+        const {name, description, categoryId, listId} = req.body;
+        const addedBy = req.usuario.id;
+        try {
+            await this.productService.create(name, description, categoryId, addedBy, listId);
 
-        const {name, description} = req.body;
-        const added_by = req.usuario.id;
-        const category_id = 1;
-
-        console.log (added_by);
-
-        const {rows} = await this.productService.create(name, description, category_id);
+            return res.status(201).json({ success: true , message: "Produto Adicionado com sucesso"});
+        } catch (error) {
+            console.error("Erro ao criar produto", error);
+            return res.status(500).json({ success: false, message: error.message });
+        }
     }
 
-    async getProductList(req, res){
-        const idList = 1;
+    async getAll(req, res){
 
-        const {rows} = await this.productService.getProductList(idList);
-        console.log(rows);
-        return res.status(200).json({success: true, data: rows});
+        const { listId } = req.params;
+
+        try {
+            const rows = await this.productService.getAll(listId);
+
+            return res.status(200).json({success: true, data: rows, user: req.usuario});
+        } catch (error) {
+            console.error("Erro ao buscar produtos", error);
+            return res.status(500).json({ success: false, message: error.message });
+        }
+
+
     }
 }
 
