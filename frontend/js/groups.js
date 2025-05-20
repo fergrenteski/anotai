@@ -69,22 +69,8 @@ async function loadMembers(groupId) {
 }
 
 async function loadInvites() {
-    // const data = await fetchComToken('http://localhost:3000/api/users/invites');
-    // return data.data;
-    return [
-        {
-            id: 1,
-            groupName: "Churrasco Dia 25",
-            groupType: "Família",
-            invitedBy: "Luiz"
-        },
-        {
-            id: 2,
-            groupName: "Casamento da Fernanda Ribeiro",
-            groupType: "Família",
-            invitedBy: "Fernanda Ribeiro"
-        }
-    ]
+    const data = await fetchComToken('http://localhost:3000/api/member/invites');
+    return data.data || [];
 }
 
 
@@ -327,17 +313,17 @@ function renderConvitesGrupo() {
             const inviteInfo = document.createElement('div');
 
             const groupName = document.createElement('div');
-            groupName.textContent = convite.groupName;
+            groupName.textContent = convite.group_name;
             groupName.style.fontWeight = 'bold';
             inviteInfo.appendChild(groupName);
 
             const groupType = document.createElement('div');
-            groupType.textContent = convite.groupType.charAt(0).toUpperCase() + convite.groupType.slice(1);
+            groupType.textContent = convite.group_type.charAt(0).toUpperCase() + convite.group_type.slice(1);
             groupType.style.fontSize = '14px';
             inviteInfo.appendChild(groupType);
 
             const invitedBy = document.createElement('div');
-            invitedBy.textContent = `Convidado por: ${convite.invitedBy}`;
+            invitedBy.textContent = `Convidado por: ${convite.invited_by}`;
             invitedBy.style.fontSize = '14px';
             invitedBy.style.color = '#888';
             inviteInfo.appendChild(invitedBy);
@@ -351,13 +337,16 @@ function renderConvitesGrupo() {
             const acceptBtn = document.createElement('button');
             acceptBtn.textContent = 'Aceitar';
             acceptBtn.className = 'accept-btn';
-            acceptBtn.addEventListener('click',  async() => {
-                if (confirm(`Tem certeza que deseja aceitar o convite para o grupo "${convite.groupName}"`)) {
+            acceptBtn.addEventListener('click',  async(e) => {
+                e.preventDefault();
+                if (confirm(`Tem certeza que deseja aceitar o convite para o grupo "${convite.group_name}"`)) {
+                    const data = await fetchComToken(`http://localhost:3000/api/groups/${convite.group_id}/members/${convite.user_id}/invite/${convite.invite}/accept/${true}`,
+                        { method: "POST"});
 
-                    // TODO: Logica
-
-                    alert("Convite aceito")
-                    startApp("listaGrupos", 'convites');
+                    alert(data.message);
+                    if(data.success) {
+                        startApp("listaGrupos", 'convites');
+                    }
                 }
             });
             actionButtons.appendChild(acceptBtn);
@@ -365,13 +354,16 @@ function renderConvitesGrupo() {
             const rejectBtn = document.createElement('button');
             rejectBtn.textContent = 'Recusar';
             rejectBtn.className = 'reject-btn';
-            rejectBtn.addEventListener('click', async () => {
-                if (confirm(`Tem certeza que deseja recusar o convite para o grupo "${convite.groupName}"?`)) {
+            rejectBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                if (confirm(`Tem certeza que deseja recusar o convite para o grupo "${convite.group_name}"?`)) {
+                    const data = await fetchComToken(`http://localhost:3000/api/groups/${convite.group_id}/members/${convite.user_id}/invite/${convite.invite}/accept/${false}`,
+                        { method: "POST"});
 
-                    // TODO: Logica
-
-                    alert("Convite recusado")
-                    startApp("listaGrupos", 'convites');
+                    alert(data.message);
+                    if(data.success) {
+                        startApp("listaGrupos", 'convites');
+                    }
                 }
             });
             actionButtons.appendChild(rejectBtn);
