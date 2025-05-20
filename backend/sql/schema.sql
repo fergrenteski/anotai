@@ -28,17 +28,19 @@ DROP TABLE IF EXISTS users;
 
 
 -- Recriação das tabelas
+
+-- Tabela de perfil do usuario com suporte à edição de perfil e exclusão lógica
 CREATE TABLE users
 (
     user_id        SERIAL PRIMARY KEY,
-    name           VARCHAR(100)        NOT NULL,
-    email          VARCHAR(100) UNIQUE NOT NULL,
+    name           VARCHAR(100)        NOT NULL,            -- Nome do usuário (editável)
+    email          VARCHAR(100) UNIQUE NOT NULL,            -- Email do usuário (somente leitura)
     email_verified BOOLEAN             NOT NULL DEFAULT FALSE,
-    password_hash  VARCHAR(255)        NOT NULL,
-    profile_img    BYTEA,
+    password_hash  VARCHAR(255)        NOT NULL,            -- Senha criptografada
+    profile_img    BYTEA,                                   -- Imagem de perfil (editável)
     created_at     TIMESTAMP                    DEFAULT CURRENT_TIMESTAMP,
     updated_at     TIMESTAMP                    DEFAULT CURRENT_TIMESTAMP,
-    expired_at     TIMESTAMP
+    expired_at     TIMESTAMP                                -- Marcação de exclusão da conta (soft delete)
 );
 
 CREATE TABLE request_logs
@@ -220,6 +222,17 @@ CREATE TABLE products
 
 
 -- Agora recriamos as Views
+CREATE OR REPLACE VIEW vw_editar_perfil_usuario AS
+SELECT 
+    u.user_id,
+    u.name          AS user_name,
+    u.email         AS user_email,
+    u.profile_img,
+    u.created_at,
+    u.updated_at
+FROM users u
+WHERE u.expired_at IS NULL;
+
 CREATE OR REPLACE VIEW vw_groups AS
 SELECT g.group_id,
        g.name  AS group_name,
