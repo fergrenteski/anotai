@@ -303,3 +303,12 @@ queries:
       *
     FROM vw_invites 
     WHERE user_id = $1
+
+  # Listar produtos de um usuário
+  select_products_by_user_id: >
+    SELECT
+          *
+        FROM vw_products
+        WHERE purchased_by = $1
+        AND list_id = $2;
+    
