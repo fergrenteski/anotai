@@ -297,4 +297,9 @@ queries:
       total_gasto
     FROM vw_total_gasto_por_usuario_lista
     WHERE list_id = $1
-    
+
+  select_invites_by_user_id: >
+    SELECT
+      *
+    FROM vw_invites 
+    WHERE user_id = $1
