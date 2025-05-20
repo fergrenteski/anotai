@@ -80,7 +80,7 @@ async function loadInvites() {
         },
         {
             id: 2,
-            groupName: "Casamento da Fernanda",
+            groupName: "Casamento da Fernanda Ribeiro",
             groupType: "Família",
             invitedBy: "Fernanda Ribeiro"
         }
