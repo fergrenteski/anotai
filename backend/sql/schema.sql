@@ -1,22 +1,31 @@
 -- Primeiro, apagamos todas as views
-DROP VIEW IF EXISTS vw_groups;
-DROP VIEW IF EXISTS vw_products;
-DROP VIEW IF EXISTS vw_user_groups;
+DROP VIEW IF EXISTS vw_invites;
+DROP VIEW IF EXISTS vw_top3_categoria_por_usuario_lista;
+DROP VIEW IF EXISTS vw_total_categoria_lista;
+DROP VIEW IF EXISTS vw_total_gasto_por_usuario_lista;
 DROP VIEW IF EXISTS vw_lists;
+DROP VIEW IF EXISTS vw_user_groups;
+DROP VIEW IF EXISTS vw_products;
+DROP VIEW IF EXISTS vw_groups;
 
--- Agora apagamos as tabelas em ordem de dependência
+-- Tabelas que dependem de outras
 DROP TABLE IF EXISTS group_users;
-DROP TABLE IF EXISTS lists;
 DROP TABLE IF EXISTS products;
-DROP TABLE IF EXISTS products_category;
-DROP TABLE IF EXISTS groups;
-DROP TABLE IF EXISTS groups_category;
-DROP TABLE IF EXISTS user_email_verified_keys;
-DROP TABLE IF EXISTS user_reset_password_keys;
+DROP TABLE IF EXISTS lists;
 DROP TABLE IF EXISTS user_group_invite_keys;
+DROP TABLE IF EXISTS user_reset_password_keys;
+DROP TABLE IF EXISTS user_email_verified_keys;
 DROP TABLE IF EXISTS user_logs;
+
+-- Tabelas de referência
+DROP TABLE IF EXISTS groups;
+DROP TABLE IF EXISTS products_category;
+DROP TABLE IF EXISTS groups_category;
+
+-- Tabelas independentes (raízes)
 DROP TABLE IF EXISTS request_logs;
 DROP TABLE IF EXISTS users;
+
 
 -- Recriação das tabelas
 CREATE TABLE users
@@ -324,5 +333,17 @@ WITH gastos_categoria AS (SELECT p.list_id,
 SELECT *
 FROM ranked
 WHERE categoria_rank <= 3;
+
+CREATE OR REPLACE VIEW vw_invites AS
+    SELECT
+        ugik.group_invite_token_id AS id,
+        ugik.user_id as user_id,
+        ugik.group_id as group_id,
+        vg.group_name as group_name,
+        vg.category_name as group_type,
+        vg.user_admin_name as invited_by
+    FROM user_group_invite_keys ugik
+    INNER JOIN vw_groups vg ON ugik.group_id = vg.group_id;
+
 
 
