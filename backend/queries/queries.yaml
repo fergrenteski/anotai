@@ -46,29 +46,6 @@ queries:
            updated_at = CURRENT_TIMESTAMP
        WHERE email = $1
        RETURNING user_id;
-    
-      # Recupera dados do perfil do usuário ativo por ID
-  select_user_profile_by_id: >
-    SELECT * 
-    FROM vw_editar_perfil_usuario
-    WHERE user_id = $1;
-
-  # Atualiza nome e imagem do perfil do usuário
-  update_user_profile_by_id: >
-    UPDATE users
-    SET name = $1,
-        profile_img = $2,
-        updated_at = CURRENT_TIMESTAMP
-    WHERE user_id = $3
-      AND expired_at IS NULL
-    RETURNING user_id, name, profile_img;
-
-  # Marca o usuário como excluído (soft delete)
-  expire_user_by_id: >
-    UPDATE users
-    SET expired_at = CURRENT_TIMESTAMP
-    WHERE user_id = $1
-    RETURNING user_id;
 
   # Marca usuário como verificado por e-mail e retorna o ID
   update_verified_user_by_email: >
@@ -321,7 +298,6 @@ queries:
     FROM vw_total_gasto_por_usuario_lista
     WHERE list_id = $1
 
-  # Convites por usuário
   select_invites_by_user_id: >
     SELECT
       *
