@@ -1,5 +1,10 @@
 function abrirPerfil() {
-    alert("Página de perfil de usuário será implementada em breve!");
+document.getElementById("user-avatar").addEventListener("click", () => {
+  window.location.href = "html/profile.html";
+});
+document.getElementById("user-name").addEventListener("click", () => {
+  window.location.href = "html/profile.html";
+});
 }
 
 function abrirListas() {
