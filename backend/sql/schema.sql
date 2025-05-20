@@ -83,18 +83,6 @@ CREATE TABLE user_email_verified_keys
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 
-CREATE TABLE user_group_invite_keys
-(
-    group_invite_token_id SERIAL PRIMARY KEY,
-    user_id               INT       NOT NULL,
-    group_id              INT       NOT NULL,
-    email                 TEXT      NOT NULL,
-    token                 TEXT      NOT NULL,
-    created_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expires_at            TIMESTAMP NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
-    FOREIGN KEY (group_id) REFERENCES groups (group_id) ON DELETE CASCADE
-);
 
 CREATE TABLE groups_category
 (
@@ -124,6 +112,19 @@ CREATE TABLE groups
     expired_at    TIMESTAMP,
     FOREIGN KEY (user_admin_id) REFERENCES users (user_id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES groups_category (groups_category_id) ON DELETE CASCADE
+);
+
+CREATE TABLE user_group_invite_keys
+(
+    group_invite_token_id SERIAL PRIMARY KEY,
+    user_id               INT       NOT NULL,
+    group_id              INT       NOT NULL,
+    email                 TEXT      NOT NULL,
+    token                 TEXT      NOT NULL,
+    created_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at            TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+    FOREIGN KEY (group_id) REFERENCES groups (group_id) ON DELETE CASCADE
 );
 
 CREATE TABLE products_category
@@ -339,6 +340,7 @@ CREATE OR REPLACE VIEW vw_invites AS
         ugik.group_invite_token_id AS id,
         ugik.user_id as user_id,
         ugik.group_id as group_id,
+        ugik.token as invite,
         vg.group_name as group_name,
         vg.category_name as group_type,
         vg.user_admin_name as invited_by
