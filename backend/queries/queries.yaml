@@ -298,6 +298,7 @@ queries:
     FROM vw_total_gasto_por_usuario_lista
     WHERE list_id = $1
 
+  # Convites por usuário
   select_invites_by_user_id: >
     SELECT
       *
