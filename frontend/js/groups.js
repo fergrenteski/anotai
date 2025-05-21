@@ -222,25 +222,36 @@ function renderListaGrupos() {
             actionButtons.className = 'action-buttons';
 
             const editBtn = document.createElement('button');
-            editBtn.textContent = isAdminUser && grupo.user_verified
-                ? 'Editar'
-                : !isAdminUser && grupo.user_verified
-                    ? 'Visualizar'
-                    : 'Não verificado';
+
+            if (isAdminUser && grupo.user_verified) {
+                editBtn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
+                editBtn.style.backgroundColor = '#e0f0ff'; // azul clarinho
+                editBtn.style.color = '#007bff';           // azul
+            } else if (!isAdminUser && grupo.user_verified) {
+                editBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+                editBtn.style.backgroundColor = '#e6f9eb'; // verde clarinho
+                editBtn.style.color = '#28a745';           // verde
+            } else {
+                editBtn.innerHTML = '<i class="fa-solid fa-envelope"></i>';
+                editBtn.style.backgroundColor = '#fff8e1'; // amarelo clarinho
+                editBtn.style.color = '#ffc107';           // amarelo
+            }
             editBtn.className = 'edit-btn';
+
             if (!grupo.user_verified) {
                 editBtn.disabled = true;
-                editBtn.style.opacity = '0.5';
             }
 
-            editBtn.addEventListener('click', () => {
+
+            editBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
                 startApp("editarGrupo", null, null, grupo.group_id);
             });
             actionButtons.appendChild(editBtn);
 
             if(isAdminUser) {
                 const deleteBtn = document.createElement('button');
-                deleteBtn.textContent = 'Excluir';
+                deleteBtn.innerHTML = '<i class="fa-solid fa-trash" style="color:#e12424;"></i>';
                 deleteBtn.className = 'delete-btn';
                 deleteBtn.addEventListener('click', async () => {
                     if (confirm(`Tem certeza que deseja excluir o grupo "${grupo.name}"?`)) {
@@ -259,6 +270,14 @@ function renderListaGrupos() {
                 });
                 actionButtons.appendChild(deleteBtn);
             }
+
+            if(grupo.user_verified) groupItem.classList.add('click-group');
+
+            // Evento de click para Redirecionar a listas do grupo.
+            if(grupo.user_verified) groupItem.addEventListener('click', (e) => {
+                e.stopPropagation();
+               window.location.href = `lists.html?groupid=${grupo.group_id}`;
+            })
 
             groupItem.appendChild(actionButtons);
             groupsContainer.appendChild(groupItem);
@@ -335,7 +354,7 @@ function renderConvitesGrupo() {
             actionButtons.className = 'invite-buttons';
 
             const acceptBtn = document.createElement('button');
-            acceptBtn.textContent = 'Aceitar';
+            acceptBtn.innerHTML = '<i class="fa-solid fa-check" style="color: #4CAF50"></i>';
             acceptBtn.className = 'accept-btn';
             acceptBtn.addEventListener('click',  async(e) => {
                 e.preventDefault();
@@ -352,7 +371,7 @@ function renderConvitesGrupo() {
             actionButtons.appendChild(acceptBtn);
 
             const rejectBtn = document.createElement('button');
-            rejectBtn.textContent = 'Recusar';
+            rejectBtn.innerHTML = '<i class="fa-solid fa-x" style="color: #f44336"></i>';
             rejectBtn.className = 'reject-btn';
             rejectBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
@@ -500,11 +519,13 @@ async function renderGerenciarGrupo() {
                     // Botão remover membro
                     const removeBtn = document.createElement('button');
                     removeBtn.className = 'remove-btn';
+                    removeBtn.style.color = "#e12424";
 
                     if (membro.is_admin) {
                         removeBtn.textContent = 'Admin';
                         removeBtn.disabled = true;
-                        removeBtn.style.opacity = '0.5';
+                        removeBtn.style.backgroundColor = '#e0f0ff';
+                        removeBtn.style.color = '#007bff';
                     } else {
                         removeBtn.textContent = 'Remover';
                         removeBtn.addEventListener('click', async () => {
