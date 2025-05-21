@@ -21,6 +21,7 @@ DROP TABLE IF EXISTS user_logs;
 DROP TABLE IF EXISTS groups;
 DROP TABLE IF EXISTS products_category;
 DROP TABLE IF EXISTS groups_category;
+DROP TABLE IF EXISTS lists_category;
 
 -- Tabelas independentes (raízes)
 DROP TABLE IF EXISTS request_logs;
@@ -185,20 +186,38 @@ CREATE TABLE group_users
     FOREIGN KEY (group_id) REFERENCES groups (group_id) ON DELETE CASCADE
 );
 
+CREATE TABLE lists_category
+(
+    lists_category_id SERIAL PRIMARY KEY,
+    name               VARCHAR(100) NOT NULL
+);
+
 CREATE TABLE lists
 (
     list_id     SERIAL PRIMARY KEY,
     name        TEXT NOT NULL,
     description TEXT NOT NULL,
+    category_id INT  NOT NULL,
     created_by  INT  NOT NULL,
     group_id    INT  NOT NULL,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expired_at  TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users (user_id) ON DELETE CASCADE,
-    FOREIGN KEY (group_id) REFERENCES groups (group_id) ON DELETE CASCADE
+    FOREIGN KEY (group_id) REFERENCES groups (group_id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES lists_category (lists_category_id) ON DELETE CASCADE
 );
 
+INSERT INTO lists_category (name)
+VALUES ('Família'),
+       ('Amigos'),
+       ('Trabalho'),
+       ('Comunidade'),
+       ('Clube'),
+       ('Escola'),
+       ('Projeto'),
+       ('Outros');
+       
 CREATE TABLE products
 (
     product_id   SERIAL PRIMARY KEY,
@@ -217,7 +236,6 @@ CREATE TABLE products
     FOREIGN KEY (list_id) REFERENCES lists (list_id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES products_category (products_category_id) ON DELETE CASCADE
 );
-
 
 -- Agora recriamos as Views
 CREATE OR REPLACE VIEW vw_groups AS
@@ -285,10 +303,13 @@ SELECT l.list_id,
        l.created_by,
        l.group_id,
        g.name as group_name,
+       l.category_id,
+       pc.name as category_name,
        l.created_at
 FROM lists l
          LEFT JOIN groups g ON g.group_id = l.group_id
          LEFT JOIN groups_category gc ON gc.groups_category_id = g.category_id
+         LEFT JOIN products_category pc ON pc.products_category_id = l.category_id
 WHERE g.expired_at IS NULL
   AND l.expired_at IS NULL;
 
@@ -336,16 +357,13 @@ FROM ranked
 WHERE categoria_rank <= 3;
 
 CREATE OR REPLACE VIEW vw_invites AS
-    SELECT
-        ugik.group_invite_token_id AS id,
-        ugik.user_id as user_id,
-        ugik.group_id as group_id,
-        ugik.token as invite,
-        vg.group_name as group_name,
-        vg.category_name as group_type,
-        vg.user_admin_name as invited_by
-    FROM user_group_invite_keys ugik
-    INNER JOIN vw_groups vg ON ugik.group_id = vg.group_id;
-
-
-
+SELECT
+    ugik.group_invite_token_id AS id,
+    ugik.user_id as user_id,
+    ugik.group_id as group_id,
+    ugik.token as invite,
+    vg.group_name as group_name,
+    vg.category_name as group_type,
+    vg.user_admin_name as invited_by
+FROM user_group_invite_keys ugik
+LEFT JOIN vw_groups vg on ugik.group_id = vg.group_id
