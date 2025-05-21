@@ -368,4 +368,4 @@ SELECT
     vg.category_name as group_type,
     vg.user_admin_name as invited_by
 FROM user_group_invite_keys ugik
-LEFT JOIN vw_groups vg on ugik.group_id = vg.group_id 
+LEFT JOIN vw_groups vg on ugik.group_id = vg.group_id
