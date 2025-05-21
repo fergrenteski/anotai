@@ -21,6 +21,10 @@ class MemberService {
         return await runQuery("insert_invite_token", [userId, groupId, email, emailToken, expiresAt]);
     }
 
+    async getAllinvites(userId) {
+        return await runQuery("select_invites_by_user_id", [userId]);
+    }
+
     /**
      * Cria um novo membro em um grupo.
      */

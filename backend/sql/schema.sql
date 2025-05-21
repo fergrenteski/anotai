@@ -186,7 +186,6 @@ CREATE TABLE group_users
     FOREIGN KEY (group_id) REFERENCES groups (group_id) ON DELETE CASCADE
 );
 
-
 CREATE TABLE lists_category
 (
     lists_category_id SERIAL PRIMARY KEY,
@@ -218,7 +217,7 @@ VALUES ('Família'),
        ('Escola'),
        ('Projeto'),
        ('Outros');
-
+       
 CREATE TABLE products
 (
     product_id   SERIAL PRIMARY KEY,
@@ -237,7 +236,6 @@ CREATE TABLE products
     FOREIGN KEY (list_id) REFERENCES lists (list_id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES products_category (products_category_id) ON DELETE CASCADE
 );
-
 
 -- Agora recriamos as Views
 CREATE OR REPLACE VIEW vw_groups AS

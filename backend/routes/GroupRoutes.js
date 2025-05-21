@@ -41,6 +41,10 @@ router.get("/:groupId/lists/:listId", verificarToken, verificarAcessoGrupo, (req
 router.put("/:groupId/lists/:listId", verificarToken, verificarAcessoGrupo, (req, res) => ListController.update(req, res));
 router.delete("/:groupId/lists/:listId", verificarToken, verificarAcessoGrupo, (req, res) => ListController.delete(req, res));
 
+
+// Rota de Insights
+router.get("/:groupId/lists/:listId/insights", (req, res) => ProductController.getInsights(req, res));
+
 // Rotas de produtos
 router.get("/:groupId/lists/:listId/products", verificarToken, verificarAcessoGrupo, (req, res) => ProductController.getAll(req, res));
 router.post("/:groupId/lists/:listId/products", verificarToken, verificarAcessoGrupo, (req, res) => ProductController.create(req, res));
