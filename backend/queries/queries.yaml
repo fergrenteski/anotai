@@ -46,7 +46,7 @@ queries:
            updated_at = CURRENT_TIMESTAMP
        WHERE email = $1
        RETURNING user_id;
-    
+
   # Marca usuário como verificado por e-mail e retorna o ID
   update_verified_user_by_email: >
     UPDATE users
@@ -122,25 +122,25 @@ queries:
     AND u.expired_at IS NULL
     WHERE t.token = $1;
 
-#   Insere o token de convite de grupo
+  #Insere o token de convite de grupo
   insert_invite_token: >
       INSERT INTO user_group_invite_keys (user_id, group_id, email, token, expires_at)
       VALUES ($1, $2, $3, $4, $5)
       RETURNING *;
 
-# Deleta todos os tokens de usuário
-  delete_invite_token_by_user_id: >
+  # Deleta todos os tokens de usuário
+  delete_invite_token_by_user_token: >
     DELETE FROM user_group_invite_keys
-    WHERE user_id = $1
+    WHERE token = $1
 
- #   Recupera todos os grupos associados a um usuário
+ # Recupera todos os grupos associados a um usuário
   select_groups_by_user_id: >
     SELECT 
       *
       FROM vw_user_groups
     WHERE user_id = $1;
 
-# Recupera todos os membros de um grupo
+  # Recupera todos os membros de um grupo
   select_members_by_group_id: >
     SELECT 
       *
@@ -239,8 +239,6 @@ queries:
     SELECT * FROM group_users
     WHERE user_id = $1 AND group_id = $2;
 
-  # -> Queries dos produtos <-
-
   # Inserir
   insert_products: >
     INSERT INTO products
@@ -302,4 +300,44 @@ queries:
       total_gasto
     FROM vw_total_gasto_por_usuario_lista
     WHERE list_id = $1
+
+  select_invites_by_user_id: >
+    SELECT
+      *
+    FROM vw_invites 
+    WHERE user_id = $1
+
+  # Listar produtos de um usuário
+  select_products_by_user_id: >
+    SELECT
+          *
+        FROM vw_products
+        WHERE purchased_by = $1
+        AND list_id = $2;
     
+  #  Buscar todas as listas pelo grupo
+  select_lists_by_group_id: >
+   SELECT * FROM vw_lists WHERE group_id = $1;
+
+  #  Buscar todas as listas pelo usuario
+  select_lists_by_user_id: >
+   SELECT * FROM vw_lists WHERE created_by = $1;
+
+  # Atualizar uma lista
+  update_list_by_id: >
+   UPDATE lists
+    SET name =  $2, 
+        description = $3,
+        category_id = $4,
+        updated_at = CURRENT_TIMESTAMP,
+    WHERE list_id = $1
+    RETURNING *;
+  
+  # Criar uma nova lista
+  insert_list: >
+   INSERT INTO lists (name, description, category_id, created_by, group_id)
+   VALUES ($1, $2, $3, $4, $5);
+
+  #Deletar uma lista
+  delete_list_by_id: >
+   DELETE FROM lists WHERE list_id = $1;

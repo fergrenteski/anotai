@@ -319,6 +319,16 @@ async function renderInsights(filtro = '') {
         valor: parseFloat(c.total)
     }));
 
+    const usuarioInfoMap = {};
+
+    data.totalSpendingByUser.forEach(user => {
+        usuarioInfoMap[user.name] = {
+            id: user.userId,
+            email: user.userEmail,
+            total: user.amount
+        };
+    });
+
     const gastosPorUsuario = {};
     data.categorySpendingByUser.forEach(user => {
         gastosPorUsuario[user.name] = {};
@@ -329,6 +339,13 @@ async function renderInsights(filtro = '') {
 
     const usuariosFiltrados = Object.keys(gastosPorUsuario).filter(nome => nome.toLowerCase().includes(filtro.toLowerCase()));
 
+    // Aplica o filtro também ao usuarioInfoMap
+    const usuarioInfoListFiltrada = usuariosFiltrados
+        .filter(nome => usuarioInfoMap[nome]) // garante que o nome exista no map
+        .map(nome => ({
+            nome,
+            ...usuarioInfoMap[nome]
+        }));
 
     const topCategorias = categoriasBrutas
         .sort((a, b) => b.valor - a.valor)
@@ -636,7 +653,7 @@ async function renderInsights(filtro = '') {
     function renderListaUsuarios(usuariosParaRenderizar) {
         listaContainer.innerHTML = '';
 
-        usuariosParaRenderizar.forEach((nome, index) => {
+        usuariosParaRenderizar.forEach(user => {
             const container = document.createElement('div');
             container.style.display = 'flex';
             container.style.justifyContent = 'space-between';
@@ -648,9 +665,9 @@ async function renderInsights(filtro = '') {
 
             const info = document.createElement('div');
             const nomeEl = document.createElement('strong');
-            nomeEl.textContent = nome;
+            nomeEl.textContent = user.nome;
             const emailEl = document.createElement('p');
-            emailEl.textContent = `${nome.toLowerCase()}@email.com`;
+            emailEl.textContent = `${user.nome.toLowerCase()}@email.com`;
             emailEl.style.fontSize = '0.9em';
             emailEl.style.margin = '2px 0 0 0';
             info.appendChild(nomeEl);
@@ -662,12 +679,12 @@ async function renderInsights(filtro = '') {
 
             const botao = document.createElement('button');
             botao.textContent = 'Visualizar';
-            botao.addEventListener('click', () => {
-                startApp("visualizarProdutosUsuario", null, null, nome);
+            botao.addEventListener('click', async () => {
+                startApp("visualizarProdutosUsuario", null, null, user.id);
             });
 
             const valor = document.createElement('span');
-            valor.textContent = `R$ ${valoresPessoasFiltradas[index].toFixed(2)}`;
+            valor.textContent = `R$ ${user.total.toFixed(2)}`;
             valor.style.color = 'red';
             valor.style.marginRight = '10px';
             botaoContainer.appendChild(valor);
@@ -680,7 +697,7 @@ async function renderInsights(filtro = '') {
     }
 
     // Chame a função para renderizar a lista inicial
-    renderListaUsuarios(usuariosFiltrados);
+    renderListaUsuarios(usuarioInfoListFiltrada);
 
     // Adiciona o evento de input ao filtro
     filtroInput.addEventListener('input', () => {
@@ -692,7 +709,7 @@ async function renderInsights(filtro = '') {
 }
 
 // Visualizar Produtos Usuarios
-function renderVisualizarProdutosUsuario() {
+async function renderVisualizarProdutosUsuario() {
     appElement.innerHTML = '';
 
     const titulo = document.createElement('h1');
@@ -700,30 +717,9 @@ function renderVisualizarProdutosUsuario() {
     titulo.style.textAlign = 'center';
     appElement.appendChild(titulo);
 
-    // Simulando produtos e valores por usuário (com categoria)
-    const produtosFake = {
-        'Luiz': [
-            { nome: 'Arroz', categoria: 'Alimentos', valor: 20.00, quantidade: 2 },
-            { nome: 'Feijão', categoria: 'Alimentos', valor: 10.50, quantidade: 3 },
-            { nome: 'Refrigerante', categoria: 'Bebidas', valor: 5.90, quantidade: 4 }
-        ],
-        'Ana': [
-            { nome: 'Leite', categoria: 'Bebidas', valor: 4.50, quantidade: 5 },
-            { nome: 'Sabonete', categoria: 'Higiene', valor: 2.30, quantidade: 3 },
-            { nome: 'Detergente', categoria: 'Limpeza', valor: 3.90, quantidade: 2 }
-        ],
-        'Bernardo': [
-            { nome: 'Cerveja', categoria: 'Bebidas', valor: 7.00, quantidade: 6 },
-            { nome: 'Ração', categoria: 'Pet', valor: 15.00, quantidade: 4 },
-            { nome: 'Desinfetante', categoria: 'Limpeza', valor: 4.50, quantidade: 2 }
-        ],
-        'Ryan': [
-            { nome: 'Papel Higiênico', categoria: 'Higiene', valor: 6.50, quantidade: 8 },
-            { nome: 'Macarrão', categoria: 'Alimentos', valor: 3.00, quantidade: 4 }
-        ]
-    };
+    const data = await fetchComToken(`http://localhost:3000/api/member/lists/1/users/${appState.productId}/products`)
 
-    const produtos = produtosFake[appState.productId] || [];
+    const produtos = await data.data;
 
     if (produtos.length === 0) {
         const vazio = document.createElement('p');
@@ -759,21 +755,21 @@ function renderVisualizarProdutosUsuario() {
         produtos.forEach(produto => {
             const linha = document.createElement('tr');
 
-            const subtotal = produto.valor * produto.quantidade;
+            const subtotal = parseFloat(produto.price) * parseInt(produto.quantity);
             total += subtotal;
 
             const tdNome = document.createElement('td');
-            tdNome.textContent = produto.nome;
+            tdNome.textContent = produto.product_name;
 
             const tdCategoria = document.createElement('td');
-            tdCategoria.textContent = produto.categoria;
+            tdCategoria.textContent = produto.category_name;
 
             const tdValor = document.createElement('td');
-            tdValor.textContent = `R$ ${produto.valor.toFixed(2)}`;
+            tdValor.textContent = `R$ ${parseFloat(produto.price).toFixed(2)}`;
             tdValor.style.textAlign = 'right';
 
             const tdQtd = document.createElement('td');
-            tdQtd.textContent = produto.quantidade;
+            tdQtd.textContent = parseInt(produto.quantity);
 
             const tdTotal = document.createElement('td');
             tdTotal.textContent = `R$ ${subtotal.toFixed(2)}`;
@@ -1004,4 +1000,3 @@ async function renderGerenciarProduto() {
 document.addEventListener('DOMContentLoaded', async () => {
     await startApp();
 });
-
