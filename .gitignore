@@ -19,8 +19,6 @@ docker-compose.yaml
 /.idea/dataSources.xml
 /.idea/git_toolbox_prj.xml
 /.idea/jsLibraryMappings.xml
-/frontend/html/lists.html
-/frontend/js/lists.js
 /.idea/material_theme_project_new.xml
 /.idea/modules.xml
 /.idea/sqldialects.xml
