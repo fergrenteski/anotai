@@ -197,39 +197,102 @@ function renderProdutos() {
         const productsContainer = document.createElement('div');
 
         appState.products.forEach(product => {
-
-
-
             const productItem = document.createElement('div');
-            productItem.className = 'group-item';
+            productItem.className = 'product-item';
+            productItem.style.display = 'flex';
+            productItem.style.alignItems = 'center';
+            productItem.style.marginBottom = '10px';
+            productItem.style.justifyContent = 'space-evenly';
+            productItem.style.padding = '5px';
+            productItem.style.border = '1px solid #ccc';
+            productItem.style.borderRadius = '5px';
+            productItem.style.marginBottom = '10px';
 
-            // Informações do product
-            const productInfo = document.createElement('div');
-
-            productInfo.style.display = 'flex';
-
+            // Checkbox
+            const checkboxContainer = document.createElement('div');
+            checkboxContainer.style.flex = '0 0 5%';
             const checkBox = document.createElement('input');
             checkBox.type = 'checkbox';
-            productInfo.appendChild(checkBox);
+            checkBox.style.margin = '0 0 0 0';
+            checkBox.style.cursor = 'pointer';
+            checkBox.style.transform = 'scale(1.7)';
+            checkboxContainer.appendChild(checkBox);
 
-            const productInfo2 = document.createElement('div');
+            // Nome e Categoria
+            const nameCategoryContainer = document.createElement('div');
+            nameCategoryContainer.style.flex = '0 0 50%';
+            nameCategoryContainer.style.display = 'flex';
+            nameCategoryContainer.style.flexDirection = 'column';
 
             const productName = document.createElement('div');
             productName.textContent = product.product_name;
             productName.style.fontWeight = 'bold';
-            productInfo2.appendChild(productName);
+            productName.style.overflow = 'hidden';
+            productName.style.textOverflow = 'ellipsis';
+            productName.style.marginBottom = '4px';
 
-            const productType = document.createElement('div');
-            productType.textContent = product.category_name.charAt(0).toUpperCase() + product.category_name.slice(1);
-            productType.style.fontSize = '14px';
-            productInfo2.appendChild(productType);
+            const productCategory = document.createElement('div');
+            productCategory.textContent = product.category_name;
+            productCategory.style.fontSize = '14px';
 
-            productInfo.appendChild(productInfo2);
-            productItem.appendChild(productInfo);
+            nameCategoryContainer.appendChild(productName);
+            nameCategoryContainer.appendChild(productCategory);
+
+            // Quantidade e Total
+            const quantityTotalContainer = document.createElement('div');
+            quantityTotalContainer.style.flex = '0 0 15%';
+            quantityTotalContainer.style.display = 'flex';
+            quantityTotalContainer.style.flexDirection = 'column';
+            quantityTotalContainer.style.alignItems = 'flex-start';
+
+            const productQuantity = document.createElement('div');
+            productQuantity.textContent = `Quantidade: ${product.quantity}`;
+            productQuantity.style.marginBottom = '4px';
+
+            const totalValue = product.quantity * product.price;
+            const productTotal = document.createElement('div');
+            productTotal.textContent = `Total: R$ ${totalValue.toFixed(2)}`;
+
+            quantityTotalContainer.appendChild(productQuantity);
+            quantityTotalContainer.appendChild(productTotal);
+
+            // Excluir
+            const deleteContainer = document.createElement('div');
+            deleteContainer.style.flex = '0 0 10%';
+            deleteContainer.style.textAlign = 'center';
+
+            const deleteIcon = document.createElement('span');
+            deleteIcon.className = 'material-symbols-outlined';
+            deleteIcon.textContent = 'delete';  // o nome do ícone que você carregou
+            deleteIcon.style.cursor = 'pointer';
+            deleteIcon.style.color = '#ff0000';
+            deleteContainer.appendChild(deleteIcon);
+
+            productItem.appendChild(checkboxContainer);
+            productItem.appendChild(nameCategoryContainer);
+            productItem.appendChild(quantityTotalContainer);
+            productItem.appendChild(deleteContainer);
 
             productsContainer.appendChild(productItem);
 
-            productInfo.addEventListener('click', () => startApp("editarProduto", null, null, null, product.product_id));
+            deleteIcon.addEventListener('click', async () => {
+
+                const  confirm = window.confirm(`Deseja excluir o produto: "${product.product_name}"?`);
+                if (!confirm) return;
+
+                await fetchComToken(
+                    `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${product.product_id}`,
+                    {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                    }
+                )
+                startApp();
+            })
+
+            // productInfo.addEventListener('click', () => startApp("editarProduto", null, null, null, product.product_id));
         });
 
         appElement.appendChild(productsContainer);
@@ -237,6 +300,7 @@ function renderProdutos() {
         const createButton = document.createElement('button');
         createButton.textContent = 'Adicionar Produto';
         createButton.style.width = '100%';
+        createButton.style.fontSize = '13px';
         createButton.addEventListener('click', () => startApp("novoProduto"));
         appElement.appendChild(createButton);
     }

@@ -264,7 +264,7 @@ queries:
     WHERE product_id = $2;
 
   # Deletar
-  delete_products: >
+  delete_products_by_id: >
     DELETE FROM products
     WHERE product_id = $1;
 

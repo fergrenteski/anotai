@@ -32,7 +32,22 @@ class ProductController {
             console.error("Erro ao buscar produtos", error);
             return res.status(500).json({ success: false, message: error.message });
         }
+    }
 
+    async delete(req, res){
+
+        const { productId } = req.params;
+
+        try{
+
+            console.log("Entrei no delete");
+            const rows = await this.productService.delete(productId);
+            return res.status(200).json({success: true, data: rows});
+
+        }catch(error){
+            console.error("Erro ao deletar produto", error);
+            return res.status(500).json({ success: false, message: error.message });
+        }
 
     }
 }
