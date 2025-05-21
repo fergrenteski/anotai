@@ -4,9 +4,30 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Editar Perfil</title>
-  <link rel="stylesheet" href="../css/profile.css" />
+  <link rel="stylesheet" href="../css/home.css">
+  <link rel="stylesheet" href="../css/profile.css">
+<style>
+  #userInitials, #userName {
+    display: none;
+  }
+</style>
+
 </head>
 <body>
+  <div class="header">
+  <div class="logo" id="logo">Anota-ai</div>
+  <nav>
+    <a href="groups.html">GRUPOS</a>
+    <a href="#" id="list-link">LISTAS</a>
+  </nav>
+  <div class="user-area" id="userArea">
+    <span id="logout">SAIR</span>
+    <div class="user-icon" id="userInitials">AB</div>
+    <span id="userName">Usuário</span>
+  </div>
+</div>
+
+
   <div class="container">
     <div class="profile-card">
       <img src="" alt="Foto de perfil" class="profile-image" id="profileImagePreview" />
@@ -30,6 +51,6 @@
     </div>
   </div>
 
-  <script src="../js/profile.js"></script>
+  <script src="../js/navegacao.js"></script>
 </body>
 </html>

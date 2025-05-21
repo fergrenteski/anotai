@@ -9,7 +9,7 @@
 body {
   margin: 0;
   background-color: #f0f4f8;
-  display: flex;
+  
   justify-content: center;
   align-items: center;
   height: 100vh;
@@ -77,4 +77,12 @@ input[type="file"] {
 
 .edit-button:hover {
   background-color: #45a049;
+}
+.header {
+  width: 100%;
+}
+
+body {
+  display: block;
+  height: auto;
 }
