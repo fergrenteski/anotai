@@ -62,13 +62,14 @@ async function loadProducts() {
 /**
  * Inicializa o estado global da aplicação.
  */
-async function initializeAppState(currentView, activeTab, products, insights, productId, mostrarProdutosVazios) {
+async function initializeAppState(currentView, activeTab, products, insights, productId, user, mostrarProdutosVazios) {
     appState = {
         currentView,
         activeTab,
         products,
         insights,
         productId,
+        user,
         mostrarProdutosVazios
     };
 }
@@ -82,11 +83,12 @@ async function startApp(
     insights = [],
     products = [],
     productId = null,
+    user = {},
     mostrarProdutosVazios = false
 ) {
     await loadURLParams();
     products = await loadProducts();
-    await initializeAppState(currentView, activeTab, products, insights, productId, mostrarProdutosVazios);
+    await initializeAppState(currentView, activeTab, products, insights, productId, user, mostrarProdutosVazios);
     renderApp();
 }
 
@@ -680,7 +682,7 @@ async function renderInsights(filtro = '') {
             const botao = document.createElement('button');
             botao.textContent = 'Visualizar';
             botao.addEventListener('click', async () => {
-                startApp("visualizarProdutosUsuario", null, null, user.id);
+                startApp("visualizarProdutosUsuario", null, null, null, null, user);
             });
 
             const valor = document.createElement('span');
@@ -712,14 +714,14 @@ async function renderInsights(filtro = '') {
 async function renderVisualizarProdutosUsuario() {
     appElement.innerHTML = '';
 
-    const titulo = document.createElement('h1');
-    titulo.textContent = `Produtos comprados por ${appState.productId}`;
-    titulo.style.textAlign = 'center';
-    appElement.appendChild(titulo);
-
-    const data = await fetchComToken(`http://localhost:3000/api/member/lists/1/users/${appState.productId}/products`)
+    const data = await fetchComToken(`http://localhost:3000/api/member/lists/1/users/${appState.user.id}/products`)
 
     const produtos = await data.data;
+
+    const titulo = document.createElement('h1');
+    titulo.textContent = `Produtos comprados por ${appState.user.nome}`;
+    titulo.style.textAlign = 'center';
+    appElement.appendChild(titulo);
 
     if (produtos.length === 0) {
         const vazio = document.createElement('p');
