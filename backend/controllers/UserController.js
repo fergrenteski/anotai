@@ -54,8 +54,8 @@ class UserController {
             // Retorna token para o cliente
             return res.status(200).json({ success: true, name, token });
         } catch (error) {
-            console.error("Erro no login:", error);
-            return res.status(401).json({  message: error.message });
+            return res.status(error.status || 500)
+                .json({ success: false, status: error.status, message: error.message });
         }
     }
 

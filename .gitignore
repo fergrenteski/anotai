@@ -14,3 +14,12 @@ frontend/js/utils/env.js
 ./backend/database/database.js
 .vscode/launch.json
 docker-compose.yaml
+/.idea/.gitignore
+/.idea/anotai.iml
+/.idea/dataSources.xml
+/.idea/git_toolbox_prj.xml
+/.idea/jsLibraryMappings.xml
+/.idea/material_theme_project_new.xml
+/.idea/modules.xml
+/.idea/sqldialects.xml
+/.idea/vcs.xml

@@ -1,19 +1,42 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Página Principal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/home.css">
+    <title>Anota-ai - Sistema de Listas</title>
 </head>
 <body>
-    <header>
-        <nav>
-            <a href="group.html">GRUPOS</a>
-            <a href="lists.html">LISTAS</a>
-            <a href="#">PERFIL</a>
-        </nav>
-    </header>
-    <h2>Bem-vindo, <span id="nomeUsuario"></span>!</h2>
-    <button onclick="logout()">Sair</button>
-    <script type="module" src="../js/home.js"></script>
+<div class="header">
+    <div class="logo" id="logo">Anota-ai</div>
+    <nav>
+        <a href="groups.html">GRUPOS</a>
+        <a href="#" id="list-link">LISTAS</a>
+    </nav>
+    <div class="user-area" id="userArea">
+        <span id="logout">SAIR</span>
+        <div class="user-icon" id="userInitials">AB</div>
+        <span id="userName">Usuário</span>
+    </div>
+</div>
+
+<div class="container">
+    <h1>Minhas Listas</h1>
+
+    <div class="actions">
+        <button class="btn" id="btnNovaLista">Nova Lista</button>
+        <button class="btn" id="btnConvites">Convites</button>
+        <button class="btn" id="btnConfig">Configurações</button>
+    </div>
+
+    <div class="lists-container" id="listsContainer">
+        <div class="empty-message" id="emptyMessage">
+            Você ainda não possui nenhuma lista. Crie uma nova lista para começar!
+        </div>
+        <!-- As listas serão inseridas aqui via JavaScript -->
+    </div>
+</div>
+<script src="../js/navegacao.js"></script>
+<script src="../js/home.js"></script>
 </body>
 </html>

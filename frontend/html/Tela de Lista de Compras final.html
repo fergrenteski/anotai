@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Compras</title>
+    <style>
+        /* Estilos mínimos necessários */
+        * { box-sizing: border-box; font-family: sans-serif; }
+        body { margin: 0; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 500px; margin: 0 auto; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .checked { text-decoration: line-through; color: #999; }
+        .item { padding: 8px 0; border-bottom: 1px solid #eee; }
+        button { cursor: pointer; background: #7367f0; color: white; border: none; padding: 8px; border-radius: 4px; }
+        button.remove-btn { background: #f44336; width: 24px; height: 24px; }
+        .success-message { color: green; display: none; }
+        .item-price { color: #2e7d32; }
+        .total-price { font-weight: bold; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        // App principal
+        class ShoppingListApp {
+            constructor() {
+                this.items = [
+                    { id: 1, name: 'Arroz', quantity: 2, price: 22.90, category: 'Alimentos', checked: false },
+                    { id: 2, name: 'Sabão em pó', quantity: 1, price: 15.50, category: 'Limpeza', checked: true },
+                    { id: 3, name: 'Água mineral', quantity: 6, price: 2.50, category: 'Bebidas', checked: false }
+                ];
+                this.categories = ['Alimentos', 'Bebidas', 'Limpeza', 'Higiene', 'Outros'];
+                this.currentFilter = 'Todos';
+                this.nextId = 4;
+                
+                this.init();
+            }
+            
+            init() {
+                this.render();
+                this.setupEventListeners();
+            }
+            
+            render() {
+                const app = document.getElementById('app');
+                app.innerHTML = this.createHTML();
+                this.renderItems();
+                this.updateSummary();
+            }
+            
+            createHTML() {
+                return `
+                    <div class="container">
+                        <h1>Lista de Compras</h1>
+                        <p>Adicione itens à sua lista de compras e organize por categorias.</p>
+                        
+                        <div class="add-item">
+                            <input type="number" id="item-qty" placeholder="Qtd" min="1" value="1">
+                            <input type="text" id="item-name" placeholder="Nome do item" required>
+                            <input type="number" id="item-price" placeholder="Preço R$" step="0.01" min="0">
+                            <select id="item-category">
+                                ${this.categories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+                            </select>
+                            <button id="add-btn">+</button>
+                        </div>
+                        
+                        <div class="category-filter">
+                            <select id="filter-category">
+                                <option value="Todos">Todos os itens</option>
+                                ${this.categories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+                            </select>
+                            <button id="clear-checked-btn">Limpar marcados</button>
+                        </div>
+                        
+                        <div id="items-list"></div>
+                        
+                        <div id="summary">
+                            <p>Total de itens: <strong id="total-count">0</strong></p>
+                            <p>Itens marcados: <strong id="checked-count">0</strong></p>
+                            <p class="total-price">Total estimado: R$ <span id="total-price">0.00</span></p>
+                        </div>
+                        
+                        <button id="export-btn">Exportar Lista</button>
+                        <p class="success-message" id="success-msg">Lista exportada com sucesso!</p>
+                    </div>
+                `;
+            }
+            
+            renderItems() {
+                const itemsList = document.getElementById('items-list');
+                itemsList.innerHTML = '';
+                
+                const filteredItems = this.currentFilter === 'Todos' 
+                    ? this.items 
+                    : this.items.filter(item => item.category === this.currentFilter);
+                
+                filteredItems.forEach(item => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'item';
+                    itemElement.dataset.id = item.id;
+                    
+                    const totalItemPrice = (item.price * item.quantity).toFixed(2);
+                    
+                    itemElement.innerHTML = `
+                        <input type="checkbox" class="item-check" ${item.checked ? 'checked' : ''}>
+                        <span class="item-qty">${item.quantity}</span>
+                        <span class="item-name ${item.checked ? 'checked' : ''}">${item.name}</span>
+                        <span class="item-price">R$ ${item.price.toFixed(2)} (Total: R$ ${totalItemPrice})</span>
+                        <span class="item-category">${item.category}</span>
+                        <button class="remove-btn">×</button>
+                    `;
+                    
+                    itemsList.appendChild(itemElement);
+                });
+            }
+            
+            setupEventListeners() {
+                // Adicionar item
+                document.getElementById('add-btn').addEventListener('click', () => this.addItem());
+                
+                // Adicionar item com Enter
+                document.getElementById('item-name').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.addItem();
+                });
+                
+                // Filtrar por categoria
+                document.getElementById('filter-category').addEventListener('change', (e) => {
+                    this.currentFilter = e.target.value;
+                    this.renderItems();
+                });
+                
+                // Limpar itens marcados
+                document.getElementById('clear-checked-btn').addEventListener('click', () => this.clearCheckedItems());
+                
+                // Exportar lista
+                document.getElementById('export-btn').addEventListener('click', () => this.exportList());
+                
+                // Delegação de eventos para checkboxes e botões remover
+                document.getElementById('items-list').addEventListener('click', (e) => {
+                    if (e.target.classList.contains('item-check')) {
+                        this.toggleItemCheck(e.target);
+                    } else if (e.target.classList.contains('remove-btn')) {
+                        this.removeItem(e.target.closest('.item'));
+                    }
+                });
+            }
+            
+            addItem() {
+                const nameInput = document.getElementById('item-name');
+                const qtyInput = document.getElementById('item-qty');
+                const priceInput = document.getElementById('item-price');
+                const categorySelect = document.getElementById('item-category');
+                
+                const name = nameInput.value.trim();
+                const quantity = parseInt(qtyInput.value) || 1;
+                const price = parseFloat(priceInput.value) || 0;
+                const category = categorySelect.value;
+                
+                if (!name) {
+                    alert('Por favor, informe o nome do item!');
+                    return;
+                }
+                
+                this.items.push({
+                    id: this.nextId++,
+                    name,
+                    quantity,
+                    price,
+                    category,
+                    checked: false
+                });
+                
+                nameInput.value = '';
+                qtyInput.value = '1';
+                priceInput.value = '';
+                nameInput.focus();
+                
+                this.renderItems();
+                this.updateSummary();
+            }
+            
+            toggleItemCheck(checkbox) {
+                const itemElement = checkbox.closest('.item');
+                const itemId = parseInt(itemElement.dataset.id);
+                const item = this.items.find(i => i.id === itemId);
+                
+                if (item) {
+                    item.checked = checkbox.checked;
+                    const nameElement = itemElement.querySelector('.item-name');
+                    
+                    if (checkbox.checked) {
+                        nameElement.classList.add('checked');
+                    } else {
+                        nameElement.classList.remove('checked');
+                    }
+                    
+                    this.updateSummary();
+                }
+            }
+            
+            removeItem(itemElement) {
+                const itemId = parseInt(itemElement.dataset.id);
+                this.items = this.items.filter(item => item.id !== itemId);
+                
+                this.renderItems();
+                this.updateSummary();
+            }
+            
+            clearCheckedItems() {
+                this.items = this.items.filter(item => !item.checked);
+                this.renderItems();
+                this.updateSummary();
+            }
+            
+            calculateTotalPrice() {
+                return this.items.reduce((total, item) => {
+                    return total + (item.quantity * item.price);
+                }, 0);
+            }
+            
+            updateSummary() {
+                const totalCount = this.items.length;
+                const checkedCount = this.items.filter(item => item.checked).length;
+                const totalPrice = this.calculateTotalPrice().toFixed(2);
+                
+                document.getElementById('total-count').textContent = totalCount;
+                document.getElementById('checked-count').textContent = checkedCount;
+                document.getElementById('total-price').textContent = totalPrice;
+            }
+            
+            exportList() {
+                // Simula exportação
+                const successMsg = document.getElementById('success-msg');
+                successMsg.style.display = 'block';
+                
+                setTimeout(() => {
+                    successMsg.style.display = 'none';
+                }, 2000);
+                
+                // Implementação real poderia exportar para JSON, CSV, etc.
+                console.log('Lista exportada:', this.items);
+            }
+        }
+        
+        // Iniciar aplicação quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', () => {
+            new ShoppingListApp();
+        });
+    </script>
+</body>
+</html>
