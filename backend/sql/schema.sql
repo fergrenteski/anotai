@@ -131,7 +131,7 @@ CREATE TABLE user_group_invite_keys
 CREATE TABLE products_category
 (
     products_category_id SERIAL PRIMARY KEY,
-    name                 VARCHAR(100) NOT NULL
+    name                VARCHAR(100) NOT NULL
 );
 
 INSERT INTO products_category (name)
@@ -224,8 +224,8 @@ CREATE TABLE products
     name         VARCHAR(100) NOT NULL,
     description  TEXT,
     category_id  INT          NOT NULL,
-    price        NUMERIC      NOT NULL,
-    quantity     INT          NOT NULL DEFAULT 0,
+    price        NUMERIC      NOT NULL DEFAULT 0,
+    quantity     INT          NOT NULL DEFAULT 1,
     purchased_by INT                   DEFAULT NULL,
     added_by     INT          NOT NULL,
     list_id      INT          NOT NULL,

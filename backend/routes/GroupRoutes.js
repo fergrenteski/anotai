@@ -20,6 +20,7 @@ Entendimento geral das rotas do grupos:
 
 // Rotas de Categorias de Grupo
 router.get("/categories", verificarToken, (req, res) => CategoryController.getAll(req, res));
+router.get("/products/categories", (req, res) => CategoryController.getAllProducts(req, res));
 
 // Rotas de Grupo
 router.get("/", verificarToken, (req, res) => GroupController.getAll(req, res));
@@ -46,7 +47,7 @@ router.delete("/:groupId/lists/:listId", verificarToken, verificarAcessoGrupo, (
 router.get("/:groupId/lists/:listId/insights", (req, res) => ProductController.getInsights(req, res));
 
 // Rotas de produtos
-router.get("/:groupId/lists/:listId/products", verificarToken, verificarAcessoGrupo, (req, res) => ProductController.getAll(req, res));
+router.get("/:groupId/lists/:listId/products",  verificarToken, verificarAcessoGrupo, (req, res) => ProductController.getAll(req, res));
 router.post("/:groupId/lists/:listId/products", verificarToken, verificarAcessoGrupo, (req, res) => ProductController.create(req, res));
 router.get("/:groupId/lists/:listId/products/:productId", verificarToken, verificarAcessoGrupo, (req, res) => ProductController.getById(req, res));
 router.put("/:groupId/lists/:listId/products/:productId", verificarToken, verificarAcessoGrupo, (req, res) => ProductController.update(req, res));

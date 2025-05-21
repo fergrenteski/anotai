@@ -5,6 +5,8 @@
 let user = {};
 let appState = null; // Estado global da aplicação
 const appElement = document.getElementById('app'); // Elemento raiz da aplicação
+let groupIdParam = null;
+let listIdParam = null;
 
 // =========================
 // FUNÇÃO COM TOKEN
@@ -31,23 +33,26 @@ async function fetchComToken(url, options = {}) {
 // CARREGAMENTO DE DADOS
 // =========================
 
+async function loadProductCategories() {
+    // Busca categorias de product da API
+    const data = await fetchComToken('http://localhost:3000/api/groups/products/categories');
+    return data.data;
+}
+
 /**
  * Carrega a lista de produtos da API.
  */
 async function loadProducts() {
-    const data = await fetchComToken('http://localhost:3000/api/groups/1/lists/1/products');
+    const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products`);
 
-    if (!data.success) {
-        alert("Erro: " + data.message);
-        return;
-    }
     user = data.user;
     // Define Iniciais de Perfil
-    document.getElementById('userName').textContent = data.user.name;
+    document.getElementById('userName').textContent = user.name;
     // Define as iniciais do usuário para o ícone
-    document.getElementById('userInitials').textContent = data.user.name.split(' ').map(n => n[0]).join('');
+    document.getElementById('userInitials').textContent = user.name.split(' ').map(n => n[0]).join('');
 
-    return data.data;
+    return data.data.rows;
+
 }
 
 // =========================
@@ -57,10 +62,7 @@ async function loadProducts() {
 /**
  * Inicializa o estado global da aplicação.
  */
-async function initializeAppState(currentView, activeTab, insights, productId, mostrarProdutosVazios) {
-    const products = {};
-    // await loadProducts();
-
+async function initializeAppState(currentView, activeTab, products, insights, productId, mostrarProdutosVazios) {
     appState = {
         currentView,
         activeTab,
@@ -78,11 +80,23 @@ async function startApp(
     currentView = "listaProdutos",
     activeTab = "meus-produtos",
     insights = [],
+    products = [],
     productId = null,
     mostrarProdutosVazios = false
 ) {
-    await initializeAppState(currentView, activeTab, insights, productId, mostrarProdutosVazios);
+    await loadURLParams();
+    products = await loadProducts();
+    await initializeAppState(currentView, activeTab, products, insights, productId, mostrarProdutosVazios);
     renderApp();
+}
+
+async function loadURLParams() {
+    // Obtém a string da query da URL atual
+    const params = new URLSearchParams(window.location.search);
+
+    // Acessa os parâmetros
+    groupIdParam = params.get("groupid");
+    listIdParam = params.get("listid");
 }
 
 // =========================
@@ -110,6 +124,8 @@ function renderApp() {
             }
             break;
         case "novoProduto":
+            renderGerenciarProduto();
+            break;
         case "editarProduto":
             renderGerenciarProduto();
             break;
@@ -158,7 +174,7 @@ function renderProdutos() {
     appElement.appendChild(clearDiv);
 
     // Verifica se lista está vazia ou se deve forçar exibição de estado vazio
-    if (appState.products || appState.products.length === 0 || appState.mostrarProdutosVazios) {
+    if (!appState.products || appState.products.length === 0 || appState.mostrarProdutosVazios) {
         const emptyState = document.createElement('div');
         emptyState.style.textAlign = 'center';
 
@@ -178,7 +194,115 @@ function renderProdutos() {
 
         appElement.appendChild(emptyState);
     } else {
-        // TO DO: Renderizar os produtos
+        const productsContainer = document.createElement('div');
+
+        appState.products.forEach(product => {
+            const productItem = document.createElement('div');
+            productItem.className = 'product-item';
+            productItem.style.display = 'flex';
+            productItem.style.alignItems = 'center';
+            productItem.style.marginBottom = '10px';
+            productItem.style.justifyContent = 'space-evenly';
+            productItem.style.padding = '5px';
+            productItem.style.border = '1px solid #ccc';
+            productItem.style.borderRadius = '5px';
+            productItem.style.marginBottom = '10px';
+
+            // Checkbox
+            const checkboxContainer = document.createElement('div');
+            checkboxContainer.style.flex = '0 0 5%';
+            const checkBox = document.createElement('input');
+            checkBox.type = 'checkbox';
+            checkBox.style.margin = '0 0 0 0';
+            checkBox.style.cursor = 'pointer';
+            checkBox.style.transform = 'scale(1.7)';
+            checkboxContainer.appendChild(checkBox);
+
+            // Nome e Categoria
+            const nameCategoryContainer = document.createElement('div');
+            nameCategoryContainer.style.flex = '0 0 50%';
+            nameCategoryContainer.style.display = 'flex';
+            nameCategoryContainer.style.flexDirection = 'column';
+
+            const productName = document.createElement('div');
+            productName.textContent = product.product_name;
+            productName.style.fontWeight = 'bold';
+            productName.style.overflow = 'hidden';
+            productName.style.textOverflow = 'ellipsis';
+            productName.style.marginBottom = '4px';
+
+            const productCategory = document.createElement('div');
+            productCategory.textContent = product.category_name;
+            productCategory.style.fontSize = '14px';
+
+            nameCategoryContainer.appendChild(productName);
+            nameCategoryContainer.appendChild(productCategory);
+
+            // Quantidade e Total
+            const quantityTotalContainer = document.createElement('div');
+            quantityTotalContainer.style.flex = '0 0 15%';
+            quantityTotalContainer.style.display = 'flex';
+            quantityTotalContainer.style.flexDirection = 'column';
+            quantityTotalContainer.style.alignItems = 'flex-start';
+
+            const productQuantity = document.createElement('div');
+            productQuantity.textContent = `Quantidade: ${product.quantity}`;
+            productQuantity.style.marginBottom = '4px';
+
+            const totalValue = product.quantity * product.price;
+            const productTotal = document.createElement('div');
+            productTotal.textContent = `Total: R$ ${totalValue.toFixed(2)}`;
+
+            quantityTotalContainer.appendChild(productQuantity);
+            quantityTotalContainer.appendChild(productTotal);
+
+            // Excluir
+            const deleteContainer = document.createElement('div');
+            deleteContainer.style.flex = '0 0 10%';
+            deleteContainer.style.textAlign = 'center';
+
+            const deleteIcon = document.createElement('span');
+            deleteIcon.className = 'material-symbols-outlined';
+            deleteIcon.textContent = 'delete';  // o nome do ícone que você carregou
+            deleteIcon.style.cursor = 'pointer';
+            deleteIcon.style.color = '#ff0000';
+            deleteContainer.appendChild(deleteIcon);
+
+            productItem.appendChild(checkboxContainer);
+            productItem.appendChild(nameCategoryContainer);
+            productItem.appendChild(quantityTotalContainer);
+            productItem.appendChild(deleteContainer);
+
+            productsContainer.appendChild(productItem);
+
+            deleteIcon.addEventListener('click', async () => {
+
+                const  confirm = window.confirm(`Deseja excluir o produto: "${product.product_name}"?`);
+                if (!confirm) return;
+
+                await fetchComToken(
+                    `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${product.product_id}`,
+                    {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                    }
+                )
+                startApp();
+            })
+
+            // productInfo.addEventListener('click', () => startApp("editarProduto", null, null, null, product.product_id));
+        });
+
+        appElement.appendChild(productsContainer);
+
+        const createButton = document.createElement('button');
+        createButton.textContent = 'Adicionar Produto';
+        createButton.style.width = '100%';
+        createButton.style.fontSize = '13px';
+        createButton.addEventListener('click', () => startApp("novoProduto"));
+        appElement.appendChild(createButton);
     }
 }
 
@@ -693,7 +817,179 @@ async function renderVisualizarProdutosUsuario() {
  * TO DO: Implementar criação e edição.
  */
 async function renderGerenciarProduto() {
-    // TO DO: Implementar renderização de formulário para novo ou editar produto
+    // Limpa o container
+    appElement.innerHTML = '';
+
+    // Define se estamos no fluxo de criação
+    const isEditing = appState.currentView === 'editarProduto';
+    let product = {id: "", name: "", description: "", quantity: "", price: "", category_name: ""};
+
+    if(isEditing) {
+
+        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.productId}`);
+        product = data.data.rows[0];
+    }
+
+    // Título centralizado
+    const titulo = document.createElement('h1');
+    titulo.textContent = isEditing
+        ? 'Criar Produto'
+        : 'Editar Produto';
+    titulo.style.textAlign = 'center';
+
+    // Form
+    const form = document.createElement('div');
+    form.id = 'form-gerenciar-produto';
+    form.style.marginTop = '20px';
+    form.appendChild(titulo);
+
+    // --- Nome (sempre existe, mas só editável ao criar)
+    const labelNome = document.createElement('label');
+    labelNome.textContent = 'Nome:';
+    form.appendChild(labelNome);
+
+    const inputNome = document.createElement('input');
+    inputNome.type = 'text';
+    inputNome.id = 'inputName';
+    inputNome.name = 'nome';
+    inputNome.value = product.name;
+    inputNome.placeholder = 'Digite o nome do produto';
+    inputNome.required = true;
+    form.appendChild(inputNome);
+
+    // --- Descrição:
+    const labelDesc = document.createElement('label');
+    labelDesc.textContent = 'Descrição:';
+    form.appendChild(labelDesc);
+
+    const inputDesc = document.createElement('input');
+    inputDesc.type = 'text';
+    inputDesc.id = 'inputDesc';
+    inputDesc.name = 'descricao';
+    inputDesc.value = product.description;
+    inputDesc.placeholder = 'Digite a descrição';
+    inputDesc.required = true;
+    form.appendChild(inputDesc);
+
+    // --- Categoria
+    const labelCate = document.createElement('label');
+    labelCate.textContent = 'Categoria:';
+    form.appendChild(labelCate);
+
+    // Cria o select
+    const selectCate = document.createElement('select');
+    selectCate.id = 'inputCategory';
+    selectCate.name = 'category_id';
+    selectCate.required = true;
+
+    // Opção padrão
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = 'Selecione uma categoria';
+    defaultOpt.disabled = true;
+    defaultOpt.selected = !product.category_name;
+    selectCate.appendChild(defaultOpt);
+
+    appElement.innerHTML = '';
+    // Carrega as categorias e monta as opções
+    const categories = await loadProductCategories();
+    categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.id;
+        opt.textContent = cat.name.charAt(0).toUpperCase() + cat.name.slice(1);
+        // se for edição, pré-seleciona a categoria do produto
+        // if (isEditing && appState.currentProduct?.category_id === cat.id) {
+        //     opt.selected = true;
+        // }
+        selectCate.appendChild(opt);
+    });
+    appElement.innerHTML = '';
+    form.appendChild(selectCate);
+
+    if (isEditing) {
+        const labelQuantidade = document.createElement('label');
+        labelQuantidade.textContent = 'Quantidade:';
+        form.appendChild(labelQuantidade);
+
+        const inputQuantidade = document.createElement('input');
+        inputQuantidade.type = 'number';
+        inputQuantidade.id = 'inputQuan';
+        inputQuantidade.name = 'quantidade';
+        inputQuantidade.min = 0;
+        inputQuantidade.required = true;
+        form.appendChild(inputQuantidade);
+
+        // Preço
+        const labelPreco = document.createElement('label');
+        labelPreco.textContent = 'Preço:';
+        form.appendChild(labelPreco);
+
+        const inputPreco = document.createElement('input');
+        inputPreco.type = 'number';
+        inputPreco.step = '0.01';
+        inputPreco.id = 'inputPrice';
+        inputPreco.name = 'preco';
+        inputPreco.min = 0;
+        inputPreco.required = true;
+        form.appendChild(inputPreco);
+    }
+
+    // Botão salvar/criar: full width
+    const buttonSalvar = document.createElement('button');
+    buttonSalvar.textContent = isEditing ? 'Criar' : 'Salvar';
+    buttonSalvar.style.display = 'block';
+    buttonSalvar.style.width = '100%';
+    buttonSalvar.addEventListener('click', async (e) => {
+        e.preventDefault();
+        const objeto = {
+            id: null,
+            name: document.getElementById('inputName').value,
+            description: document.getElementById('inputDesc').value,
+            categoryId: document.getElementById('inputCategory').value,
+            listId: listIdParam
+        }
+
+        if (isEditing) {
+            objeto.quantity = document.getElementById('inputQuan').value;
+            objeto.price = document.getElementById('inputPrice').value;
+        }
+
+        const url = !isEditing
+            ? `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products`
+            : `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/:productId`;
+        const method = !isEditing
+            ? 'POST'
+            : 'PUT';
+        const data = await fetchComToken(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(objeto)
+        })
+
+        alert(data.message);
+
+        if(data.success) {
+            setTimeout(startApp, 1000);
+        }
+    })
+
+    form.appendChild(buttonSalvar);
+
+    // Botão Voltar: igual ao groups (full width e margem inferior)
+    const buttonVoltar = document.createElement('button');
+    buttonVoltar.type = 'button';
+    buttonVoltar.textContent = 'Voltar';
+    buttonVoltar.style.display = 'block';
+    buttonVoltar.style.width = '100%';
+    buttonVoltar.style.marginBottom = '10px';
+    buttonVoltar.addEventListener('click', () => {
+        startApp();
+    });
+    form.appendChild(buttonVoltar);
+
+    appElement.appendChild(form);
 }
 
 // =========================

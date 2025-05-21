@@ -438,7 +438,7 @@ async function renderGerenciarGrupo() {
 
     const types = await loadGroupsCategories();
     types.forEach(type => {
-        const { id, name } = type;
+        const {id, name} = type;
         const option = document.createElement('option');
         option.value = id;
         option.textContent = name.charAt(0).toUpperCase() + name.slice(1);
