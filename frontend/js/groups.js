@@ -260,6 +260,13 @@ function renderListaGrupos() {
                 actionButtons.appendChild(deleteBtn);
             }
 
+            if(grupo.user_verified) groupItem.classList.add('click-group');
+
+            // Evento de click para Redirecionar a listas do grupo.
+            groupItem.addEventListener('click', () => {
+               window.location.href = `lists.html?groupid=${grupo.group_id}`;
+            })
+
             groupItem.appendChild(actionButtons);
             groupsContainer.appendChild(groupItem);
         });
