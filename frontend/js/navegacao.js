@@ -1,10 +1,9 @@
 function abrirPerfil() {
-    alert("Página de perfil de usuário será implementada em breve!");
+    alert("Perfil de usuário será implementada em breve!");
 }
 
 function abrirListas() {
     alert("Listas de usuário será implementada em breve!");
-    window.location.href = 'lists.html';
 }
 
 function abrirHome() {

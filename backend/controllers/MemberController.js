@@ -35,6 +35,18 @@ class MemberController {
         }
     }
 
+    async getAllinvites(req, res) {
+        const userId = req.usuario.id;
+        try {
+            const { rows } = await this.memberService.getAllinvites(userId);
+            return res.status(200).json({ success: true, data: rows });
+        } catch (error) {
+            console.error("Erro na Busca de Convites: ", error);
+            return res.status(500).json({ success: false, message: error.message });
+        }
+
+    }
+
     async create(req, res) {
         const groupId = parseInt(req.params.groupId);
         const email = req.body.email;
@@ -91,7 +103,7 @@ class MemberController {
 
         try {
             // Busca o convite
-            const inviteRow = this.memberService.getUserInviteToken(invite);
+            const inviteRow = await this.memberService.getUserInviteToken(invite);
             // Verifica de existe convite
             if (!inviteRow) return res.status(400).json({success: false, message: "Convite Inválido"})
             // Busca o grupo
@@ -101,7 +113,7 @@ class MemberController {
             // Atualiza de acordo com a descisão do usuário
             await runQuery(`${accept ? "update" : "delete"}_user_group_member`, [memberId, groupId]);
             // Deleta os Tokens
-            await runQuery("delete_invite_token_by_user_id", [memberId]);
+            await runQuery("delete_invite_token_by_user_token", [invite]);
             // Retorna a resposta
             return res.status(200).json({success: true, message: `Convite de grupo ${accept ? "Aceitado" : "Rejeitado"}`})
         } catch (error) {

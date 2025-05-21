@@ -54,10 +54,6 @@ async function inicializarPagina() {
   document.getElementById('btnNovaLista').addEventListener('click', criarNovaLista);
   document.getElementById('btnConvites').addEventListener('click', verConvites);
   document.getElementById('btnConfig').addEventListener('click', abrirConfiguracoes);
-  document.getElementById('userName').addEventListener('click', abrirPerfil);
-  document.getElementById('logo').addEventListener('click', abrirHome);
-  document.getElementById('list-link').addEventListener('click', abrirListas);
-  document.getElementById('logout').addEventListener('click', logout);
 }
 
 // Função para carregar as listas
@@ -117,27 +113,6 @@ function abrirConfiguracoes() {
   alert("Funcionalidade de configurações será implementada em breve!");
   // window.location.href = '/configuracoes.html';
 }
-
-function abrirPerfil() {
-  alert("Página de perfil de usuário será implementada em breve!");
-  // window.location.href = '/perfil.html';
-}
-
-function abrirListas() {
-  alert("Listas de usuário será implementada em breve!");
-  // window.location.href = '/lists.html';
-}
-
-function abrirHome() {
-  window.location.href = 'home.html';
-}
-
-function logout() {
-  sessionStorage.removeItem("token");
-  alert(`Saindo...`);
-  window.location.href = 'index.html';
-}
-
 
 function abrirLista(id) {
   alert(`Abrindo lista ${id}...`);

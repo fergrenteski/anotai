@@ -1,22 +1,32 @@
 -- Primeiro, apagamos todas as views
-DROP VIEW IF EXISTS vw_groups;
-DROP VIEW IF EXISTS vw_products;
-DROP VIEW IF EXISTS vw_user_groups;
+DROP VIEW IF EXISTS vw_invites;
+DROP VIEW IF EXISTS vw_top3_categoria_por_usuario_lista;
+DROP VIEW IF EXISTS vw_total_categoria_lista;
+DROP VIEW IF EXISTS vw_total_gasto_por_usuario_lista;
 DROP VIEW IF EXISTS vw_lists;
+DROP VIEW IF EXISTS vw_user_groups;
+DROP VIEW IF EXISTS vw_products;
+DROP VIEW IF EXISTS vw_groups;
 
--- Agora apagamos as tabelas em ordem de dependência
+-- Tabelas que dependem de outras
 DROP TABLE IF EXISTS group_users;
-DROP TABLE IF EXISTS lists;
 DROP TABLE IF EXISTS products;
-DROP TABLE IF EXISTS products_category;
-DROP TABLE IF EXISTS groups;
-DROP TABLE IF EXISTS groups_category;
-DROP TABLE IF EXISTS user_email_verified_keys;
-DROP TABLE IF EXISTS user_reset_password_keys;
+DROP TABLE IF EXISTS lists;
 DROP TABLE IF EXISTS user_group_invite_keys;
+DROP TABLE IF EXISTS user_reset_password_keys;
+DROP TABLE IF EXISTS user_email_verified_keys;
 DROP TABLE IF EXISTS user_logs;
+
+-- Tabelas de referência
+DROP TABLE IF EXISTS groups;
+DROP TABLE IF EXISTS products_category;
+DROP TABLE IF EXISTS groups_category;
+DROP TABLE IF EXISTS lists_category;
+
+-- Tabelas independentes (raízes)
 DROP TABLE IF EXISTS request_logs;
 DROP TABLE IF EXISTS users;
+
 
 -- Recriação das tabelas
 CREATE TABLE users
@@ -74,18 +84,6 @@ CREATE TABLE user_email_verified_keys
     FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 
-CREATE TABLE user_group_invite_keys
-(
-    group_invite_token_id SERIAL PRIMARY KEY,
-    user_id               INT       NOT NULL,
-    group_id              INT       NOT NULL,
-    email                 TEXT      NOT NULL,
-    token                 TEXT      NOT NULL,
-    created_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    expires_at            TIMESTAMP NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
-    FOREIGN KEY (group_id) REFERENCES groups (group_id) ON DELETE CASCADE
-);
 
 CREATE TABLE groups_category
 (
@@ -115,6 +113,19 @@ CREATE TABLE groups
     expired_at    TIMESTAMP,
     FOREIGN KEY (user_admin_id) REFERENCES users (user_id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES groups_category (groups_category_id) ON DELETE CASCADE
+);
+
+CREATE TABLE user_group_invite_keys
+(
+    group_invite_token_id SERIAL PRIMARY KEY,
+    user_id               INT       NOT NULL,
+    group_id              INT       NOT NULL,
+    email                 TEXT      NOT NULL,
+    token                 TEXT      NOT NULL,
+    created_at            TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at            TIMESTAMP NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE,
+    FOREIGN KEY (group_id) REFERENCES groups (group_id) ON DELETE CASCADE
 );
 
 CREATE TABLE products_category
@@ -175,20 +186,38 @@ CREATE TABLE group_users
     FOREIGN KEY (group_id) REFERENCES groups (group_id) ON DELETE CASCADE
 );
 
+CREATE TABLE lists_category
+(
+    lists_category_id SERIAL PRIMARY KEY,
+    name               VARCHAR(100) NOT NULL
+);
+
 CREATE TABLE lists
 (
     list_id     SERIAL PRIMARY KEY,
     name        TEXT NOT NULL,
     description TEXT NOT NULL,
+    category_id INT  NOT NULL,
     created_by  INT  NOT NULL,
     group_id    INT  NOT NULL,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expired_at  TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users (user_id) ON DELETE CASCADE,
-    FOREIGN KEY (group_id) REFERENCES groups (group_id) ON DELETE CASCADE
+    FOREIGN KEY (group_id) REFERENCES groups (group_id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES lists_category (lists_category_id) ON DELETE CASCADE
 );
 
+INSERT INTO lists_category (name)
+VALUES ('Família'),
+       ('Amigos'),
+       ('Trabalho'),
+       ('Comunidade'),
+       ('Clube'),
+       ('Escola'),
+       ('Projeto'),
+       ('Outros');
+       
 CREATE TABLE products
 (
     product_id   SERIAL PRIMARY KEY,
@@ -207,7 +236,6 @@ CREATE TABLE products
     FOREIGN KEY (list_id) REFERENCES lists (list_id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES products_category (products_category_id) ON DELETE CASCADE
 );
-
 
 -- Agora recriamos as Views
 CREATE OR REPLACE VIEW vw_groups AS
@@ -275,10 +303,13 @@ SELECT l.list_id,
        l.created_by,
        l.group_id,
        g.name as group_name,
+       l.category_id,
+       pc.name as category_name,
        l.created_at
 FROM lists l
          LEFT JOIN groups g ON g.group_id = l.group_id
          LEFT JOIN groups_category gc ON gc.groups_category_id = g.category_id
+         LEFT JOIN products_category pc ON pc.products_category_id = l.category_id
 WHERE g.expired_at IS NULL
   AND l.expired_at IS NULL;
 
@@ -325,4 +356,14 @@ SELECT *
 FROM ranked
 WHERE categoria_rank <= 3;
 
-
+CREATE OR REPLACE VIEW vw_invites AS
+SELECT
+    ugik.group_invite_token_id AS id,
+    ugik.user_id as user_id,
+    ugik.group_id as group_id,
+    ugik.token as invite,
+    vg.group_name as group_name,
+    vg.category_name as group_type,
+    vg.user_admin_name as invited_by
+FROM user_group_invite_keys ugik
+LEFT JOIN vw_groups vg on ugik.group_id = vg.group_id

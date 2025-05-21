@@ -33,7 +33,6 @@ class ProductController {
             return res.status(500).json({ success: false, message: error.message });
         }
     }
-
     async delete(req, res){
 
         const { productId } = req.params;
@@ -47,6 +46,20 @@ class ProductController {
         }catch(error){
             console.error("Erro ao deletar produto", error);
             return res.status(500).json({ success: false, message: error.message });
+        }
+    }
+    async getProductsByUserId(req, res) {
+        const listId = req.params.listid;
+        const userId = req.params.userid;
+
+        if (!listId || !userId) return res.status(404).json({success: false, message: "Parametros incorretos"});
+
+        try {
+            const {rows} = await this.productService.getProductsByUserId(listId , userId);
+            return res.status(200).json({success: true, data: rows});
+        } catch (error) {
+            console.error("Erro ao buscar produtos do usuário:", error);
+            return res.status(500).json({success: false, message: error.message});
         }
 
     }

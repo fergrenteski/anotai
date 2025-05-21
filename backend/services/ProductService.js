@@ -15,6 +15,10 @@ class ProductService {
     async delete(productId, listId) {
         return runQuery("delete_products_by_id", [productId])
     }
+
+    async getProductsByUserId(listId, userId) {
+        return runQuery("select_products_by_user_id", [userId, listId])
+    }
 }
 // Exporta a classe ProductService
 module.exports = ProductService;

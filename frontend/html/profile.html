@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Editar Perfil</title>
+  <link rel="stylesheet" href="../css/profile.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="profile-card">
+      <img src="" alt="Foto de perfil" class="profile-image" id="profileImagePreview" />
+      <h1 class="profile-name" id="profileNameText">Carregando...</h1>
+      <p class="profile-email" id="profileEmailText">carregando@exemplo.com</p>
+
+      <form id="profile-form">
+        <label for="nameInput">Nome completo</label>
+        <input type="text" id="nameInput" name="name" required />
+
+        <label for="emailInput">E-mail</label>
+        <input type="email" id="emailInput" name="email" required />
+
+        <label for="imageInput">Foto de perfil</label>
+        <input type="file" id="imageInput" name="profile_img" accept="image/*" />
+
+        <button type="button" class="edit-button" id="button-save-profile">
+          Salvar alterações
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/profile.js"></script>
+</body>
+</html>
