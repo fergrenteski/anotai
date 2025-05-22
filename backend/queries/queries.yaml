@@ -242,8 +242,8 @@ queries:
   # Inserir
   insert_products: >
     INSERT INTO products
-    (name, description, category_id, added_by, list_id)
-    VALUES ($1, $2, $3, $4, $5);
+    (name, description, category_id, added_by, quantity, list_id)
+    VALUES ($1, $2, $3, $4, $5, $6);
 
   # Atualizar (painel-criação)
   update_products_by_id: >
