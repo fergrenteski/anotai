@@ -101,10 +101,10 @@ class ProductController {
     }
     async create(req, res){
 
-        const {name, description, categoryId, listId} = req.body;
+        const {name, description, categoryId, quantity, listId} = req.body;
         const addedBy = req.usuario.id;
         try {
-            await this.productService.create(name, description, categoryId, addedBy, listId);
+            await this.productService.create(name, description, categoryId, addedBy, quantity, listId);
 
             return res.status(201).json({ success: true , message: "Produto Adicionado com sucesso"});
         } catch (error) {
