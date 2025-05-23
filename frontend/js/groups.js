@@ -1,93 +1,50 @@
+import {authFetch} from "./utils/authFetch.js";
+import {confirmModal} from "./utils/confirmModal.js";
+import {notificar} from "./utils/notification.js";
+
 var user = {};
 
-async function fetchComToken(url, options = {}) {
-    // Recupera token do sessionStorage
-    const token = sessionStorage.getItem('token');
-    if (!options.headers) {
-        options.headers = {};
-    }
-    // Adiciona token e header JSON se disponível
-    if (token) {
-        options.headers['Authorization'] = `Bearer ${token}`;
-        options.headers['Content-Type'] = "application/json";
-    }
-    const response = await fetch(url, options);
-    // Redireciona para login se não autorizado
-    if (response.status === 401) {
-        window.location.href = '/index.html';
-        return Promise.reject(new Error('Não autorizado. Redirecionando...'));
-    }
-    // Retorna resposta em JSON
-    return await response.json();
-}
 
 async function loadGroupsCategories() {
     // Busca categorias de grupo da API
-    const data = await fetchComToken('http://localhost:3000/api/groups/categories');
+    const data = await authFetch('http://localhost:3000/api/groups/categories');
     return data.data;
 }
 
 async function loadGroups() {
     // Busca lista de grupos da API
-    const data = await fetchComToken('http://localhost:3000/api/groups');
-    if (!data.success) {
-        alert("Error: " + data.message);
-        return;
+    const resposta = await authFetch('http://localhost:3000/api/groups');
+    if (resposta) {
+        if(!user) {
+            user = resposta.user;
+            document.getElementById('userName').textContent = resposta.user.name;
+            document.getElementById('userInitials').textContent = resposta.user.name.split(' ').map(n => n[0]).join('');
+        }
     }
-    user = data.user;
-    // Define Iniciais de Perfil
-    document.getElementById('userName').textContent = data.user.name;
-    // Define as iniciais do usuário para o ícone
-    document.getElementById('userInitials').textContent = data.user.name.split(' ').map(n => n[0]).join('');
-
-    return data.data;
-}
-
-function abrirPerfil() {
-    alert("Página de perfil de usuário será implementada em breve!");
-    // window.location.href = '/perfil.html';
-}
-
-function abrirListas() {
-    alert("Listas de usuário será implementada em breve!");
-    // window.location.href = '/lists.html';
-}
-
-function abrirHome() {
-    window.location.href = 'home.html';
-}
-
-function logout() {
-    sessionStorage.removeItem("token");
-    alert(`Saindo...`);
-    window.location.href = 'index.html';
+    return resposta.data || [];
 }
 
 async function loadMembers(groupId) {
-    const data = await fetchComToken(`http://localhost:3000/api/groups/${groupId}/members`);
-    return data.data;
+    const resposta = await authFetch(`http://localhost:3000/api/groups/${groupId}/members`);
+    return resposta.data || [];
 }
 
 async function loadInvites() {
-    const data = await fetchComToken('http://localhost:3000/api/member/invites');
-    return data.data || [];
+    const resposta = await authFetch('http://localhost:3000/api/member/invites');
+    return resposta.data || [];
 }
 
 
 let appState = null; // Inicializa como nulo
 
-async function initializeAppState(currentView ,
-                                  activeTab,
-                                  convites,
-                                  groupId,
-                                  mostrarGruposVazios) {
+async function initializeAppState(currentView , activeTab, groupId, mostrarGruposVazios) {
     let grupos = await loadGroups();
-    convites = await loadInvites();
+    let convites = await loadInvites();
     appState = {
         currentView: currentView,
         activeTab: activeTab,
         grupos: grupos,
-        convites: convites,
+        convites: convites || [],
         groupId: groupId,
         mostrarGruposVazios: mostrarGruposVazios
     };
@@ -178,6 +135,7 @@ function renderListaGrupos() {
         const createButton = document.createElement('button');
         createButton.textContent = 'Criar Grupo';
         createButton.style.width = '100%';
+        createButton.classList.add('save-btn');
         createButton.addEventListener('click', () => {
             startApp("novoGrupo");
         });
@@ -222,6 +180,7 @@ function renderListaGrupos() {
             actionButtons.className = 'action-buttons';
 
             const editBtn = document.createElement('button');
+            editBtn.classList.add('action-btn');
 
             if (isAdminUser && grupo.user_verified) {
                 editBtn.innerHTML = '<i class="fa-solid fa-pen-to-square"></i>';
@@ -236,16 +195,14 @@ function renderListaGrupos() {
                 editBtn.style.backgroundColor = '#fff8e1'; // amarelo clarinho
                 editBtn.style.color = '#ffc107';           // amarelo
             }
-            editBtn.className = 'edit-btn';
 
             if (!grupo.user_verified) {
                 editBtn.disabled = true;
             }
 
-
             editBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                startApp("editarGrupo", null, null, grupo.group_id);
+                startApp("editarGrupo", null, grupo.group_id);
             });
             actionButtons.appendChild(editBtn);
 
@@ -253,20 +210,21 @@ function renderListaGrupos() {
                 const deleteBtn = document.createElement('button');
                 deleteBtn.innerHTML = '<i class="fa-solid fa-trash" style="color:#e12424;"></i>';
                 deleteBtn.className = 'delete-btn';
-                deleteBtn.addEventListener('click', async () => {
-                    if (confirm(`Tem certeza que deseja excluir o grupo "${grupo.name}"?`)) {
-
-                        // Deleta grupo pela API
-                        const data = await fetchComToken(`http://localhost:3000/api/groups/${grupo.group_id}`, {
-                            method: 'DELETE',
+                deleteBtn.classList.add('action-btn');
+                deleteBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    await confirmModal(`Tem certeza que deseja excluir o grupo "${grupo.name}"?`)
+                        .then(async resposta => {
+                            if (resposta) {
+                                await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}`,
+                                    { method: 'DELETE' }).then(data => {
+                                    notificar(data.message);
+                                });
+                            }
+                            startApp();
                         });
-                        if(data.success) {
-                            alert(`Grupo "${grupo.name}" excluído com sucesso!`);
-                        } else {
-                            alert(data.error);
-                        }
-                        startApp();
-                    }
+
                 });
                 actionButtons.appendChild(deleteBtn);
             }
@@ -287,6 +245,7 @@ function renderListaGrupos() {
         const createNewButton = document.createElement('button');
         createNewButton.textContent = 'Criar Novo Grupo';
         createNewButton.style.width = '100%';
+        createNewButton.classList.add('save-btn');
         createNewButton.addEventListener('click', () => {
             startApp("novoGrupo");
         });
@@ -356,34 +315,40 @@ function renderConvitesGrupo() {
             const acceptBtn = document.createElement('button');
             acceptBtn.innerHTML = '<i class="fa-solid fa-check" style="color: #4CAF50"></i>';
             acceptBtn.className = 'accept-btn';
+            acceptBtn.classList.add('action-btn');
             acceptBtn.addEventListener('click',  async(e) => {
                 e.preventDefault();
-                if (confirm(`Tem certeza que deseja aceitar o convite para o grupo "${convite.group_name}"`)) {
-                    const data = await fetchComToken(`http://localhost:3000/api/groups/${convite.group_id}/members/${convite.user_id}/invite/${convite.invite}/accept/${true}`,
-                        { method: "POST"});
-
-                    alert(data.message);
-                    if(data.success) {
+                e.stopPropagation();
+                await confirmModal(`Tem certeza que deseja aceitar o convite para o grupo "${convite.group_name}"`)
+                    .then(async resposta => {
+                        if (resposta) {
+                            await authFetch(`http://localhost:3000/api/groups/${convite.group_id}/members/${convite.user_id}/invite/${convite.invite}/accept/${true}`,
+                                { method: "POST"}).then(data => {
+                                    notificar(data.message);
+                            })
+                        }
                         startApp("listaGrupos", 'convites');
-                    }
-                }
+                    })
             });
             actionButtons.appendChild(acceptBtn);
 
             const rejectBtn = document.createElement('button');
             rejectBtn.innerHTML = '<i class="fa-solid fa-x" style="color: #f44336"></i>';
             rejectBtn.className = 'reject-btn';
+            rejectBtn.classList.add('action-btn');
             rejectBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
-                if (confirm(`Tem certeza que deseja recusar o convite para o grupo "${convite.group_name}"?`)) {
-                    const data = await fetchComToken(`http://localhost:3000/api/groups/${convite.group_id}/members/${convite.user_id}/invite/${convite.invite}/accept/${false}`,
-                        { method: "POST"});
-
-                    alert(data.message);
-                    if(data.success) {
+                e.stopPropagation();
+                await confirmModal(`Tem certeza que deseja recusar o convite para o grupo "${convite.group_name}"`)
+                    .then(async resposta => {
+                        if (resposta) {
+                            await authFetch(`http://localhost:3000/api/groups/${convite.group_id}/members/${convite.user_id}/invite/${convite.invite}/accept/${false}`,
+                                { method: "POST"}).then(data => {
+                                notificar(data.message);
+                            })
+                        }
                         startApp("listaGrupos", 'convites');
-                    }
-                }
+                    })
             });
             actionButtons.appendChild(rejectBtn);
 
@@ -403,7 +368,7 @@ async function renderGerenciarGrupo() {
     let data = {};
     let isAdminUser = false
     if(isEditing) {
-        data = await fetchComToken(`http://localhost:3000/api/groups/${groupId}`);
+        data = await authFetch(`http://localhost:3000/api/groups/${groupId}`);
         grupo = data.data;
         user = data.user;
         isAdminUser = user.id === grupo.user_admin_id;
@@ -433,6 +398,7 @@ async function renderGerenciarGrupo() {
     nameInput.value = grupo.group_name;
     nameInput.id = 'group-name';
     nameInput.disabled = !isAdminUser;
+    nameInput.required = true;
     form.appendChild(nameInput);
 
     const descriptionInput = document.createElement('input');
@@ -441,11 +407,13 @@ async function renderGerenciarGrupo() {
     descriptionInput.value = grupo.description;
     descriptionInput.id = 'group-description';
     descriptionInput.disabled = !isAdminUser;
+    descriptionInput.required = true;
     form.appendChild(descriptionInput);
 
     // Campo: Tipo do grupo
     const typeSelect = document.createElement('select');
     typeSelect.id = 'group-type';
+    typeSelect.required = true;
     typeSelect.disabled = !isAdminUser;
 
     const defaultOption = document.createElement('option');
@@ -528,16 +496,19 @@ async function renderGerenciarGrupo() {
                         removeBtn.style.color = '#007bff';
                     } else {
                         removeBtn.textContent = 'Remover';
-                        removeBtn.addEventListener('click', async () => {
-                            if (confirm(`Tem certeza que deseja remover: "${membro.user_name}"?`)) {
-                                const response = await fetchComToken(
-                                    `http://localhost:3000/api/groups/${grupo.group_id}/members/${membro.user_id}`,
-                                    {method: "DELETE"});
-
-                                alert(response.message);
-
-                                startApp("editarGrupo", null, null, grupo.group_id);
-                            }
+                        removeBtn.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            confirmModal(`Tem certeza que deseja remover: "${membro.user_name}"?`).then(async resposta => {
+                                if (resposta) {
+                                    await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}/members/${membro.user_id}`,
+                                        {method: "DELETE"})
+                                            .then(data => {
+                                            notificar(data.message)
+                                    })
+                                    startApp("editarGrupo", null, grupo.group_id);
+                                }
+                            })
                         });
                     }
                     // Adicionar botões às ações
@@ -555,37 +526,42 @@ async function renderGerenciarGrupo() {
         }
 
         if(isAdminUser) {
+            const divMembers = document.createElement('div');
+            divMembers.style.display = 'flex';
+            divMembers.style.gap = '10px';
+            divMembers.style.justifyContent = 'center';
+            divMembers.style.alignItems = 'center';
             // Adicionar novo membro
             const newMemberInput = document.createElement('input');
             newMemberInput.type = 'email';
             newMemberInput.id = 'new-member';
             newMemberInput.placeholder = 'E-mail do novo membro';
-            form.appendChild(newMemberInput);
+            newMemberInput.required = true;
+            newMemberInput.style.marginBlock = '0px'
+            divMembers.appendChild(newMemberInput);
 
             const addMemberBtn = document.createElement('button');
-            addMemberBtn.textContent = 'Adicionar Membro';
+            addMemberBtn.textContent = '+';
+            addMemberBtn.classList.add('add-member-btn');
             addMemberBtn.id = 'add-member-btn';
             addMemberBtn.addEventListener('click', async () => {
                 const email = newMemberInput.value.trim();
-                if (!email) {
-                    alert('Por favor, informe o e-mail do novo membro!');
-                    return;
-                }
 
-                const response = await fetchComToken(`http://localhost:3000/api/groups/${grupo.group_id}/members` ,
+                await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}/members` ,
                     { method: "POST" ,
                     body: JSON.stringify({
                         email
                     }),
-                });
-                alert(response.message);
-
+                }).then(data => {
+                    notificar(data.message)
+                })
                 // Limpar campo
                 newMemberInput.value = '';
 
-                startApp("editarGrupo", null, null, grupo.group_id);
+                startApp("editarGrupo", null, grupo.group_id);
             });
-            form.appendChild(addMemberBtn);
+            divMembers.appendChild(addMemberBtn);
+            form.appendChild(divMembers);
         }
     }
     if(isAdminUser) {
@@ -593,44 +569,36 @@ async function renderGerenciarGrupo() {
         const saveBtn = document.createElement('button');
         saveBtn.textContent = 'Salvar Grupo';
         saveBtn.style.width = '100%';
+        saveBtn.classList.add('save-btn');
         saveBtn.style.marginTop = '20px';
-        saveBtn.addEventListener('click', async () => {
+        saveBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            e.preventDefault();
             const groupName = document.getElementById('group-name').value.trim();
             const groupDescription = document.getElementById('group-description').value.trim();
             const categoryId = document.getElementById('group-type').value;
-
-            if (!groupName) {
-                alert('Por favor, informe o nome do grupo!');
-                return;
-            }
-
-            if (!categoryId) {
-                alert('Por favor, selecione o tipo do grupo!');
-                return;
-            }
 
             const url = isEditing
                 ? `http://localhost:3000/api/groups/${grupo.group_id}`
                 : 'http://localhost:3000/api/groups';
             const method = isEditing ? 'PUT' : 'POST';
-            const data = await fetchComToken(url, {
-                method: method,
-                body: JSON.stringify({
-                    name: groupName,
-                    category: categoryId,
-                    description: groupDescription
-                }),
-            });
-            if(data.success) {
-                // Mostrar mensagem de sucesso
-                alert(`Grupo ${isEditing ? 'atualizado' : 'criado'} com sucesso!`);
-            } else {
-                alert(`Grupo não foi${isEditing ? 'atualizado' : 'criado'}!`);
-            }
-
-
-            // Voltar para a lista de grupos
-            startApp("listaGrupos", "meus-grupos");
+            confirmModal(`Tem certeza em ${isEditing ? 'editar' : 'criar'} o Grupo: ${groupName}`)
+                .then(async resposta => {
+                    if(resposta) {
+                        await authFetch(url, {
+                            method: method,
+                            body: JSON.stringify({
+                                name: groupName,
+                                category: categoryId,
+                                description: groupDescription
+                            }),
+                        }).then(data => {
+                            notificar(data.message);
+                        })
+                        // Voltar para a lista de grupos
+                        startApp("listaGrupos", "meus-grupos");
+                    }
+                })
         });
         form.appendChild(saveBtn);
     }
@@ -639,6 +607,7 @@ async function renderGerenciarGrupo() {
     const backBtn = document.createElement('button');
     backBtn.textContent = 'Voltar';
     backBtn.style.width = '100%';
+    backBtn.classList.add('return-btn');
     backBtn.addEventListener('click', () => {
         startApp("listaGrupos", "meus-grupos");
     });
@@ -652,12 +621,10 @@ async function renderGerenciarGrupo() {
 
 async function startApp(currentView = "listaGrupos",
                         activeTab = "meus-grupos",
-                        convites = [],
                         groupId =  null,
                         mostrarGruposVazios = false) {
     await initializeAppState(currentView ,
         activeTab,
-        convites,
         groupId,
         mostrarGruposVazios); // Espera carregar dados
     renderApp();                // Só depois renderiza
@@ -666,8 +633,3 @@ async function startApp(currentView = "listaGrupos",
 document.addEventListener('DOMContentLoaded', async () => {
     await startApp(); // Chama o start
 });
-
-document.getElementById('userName').addEventListener('click', abrirPerfil);
-document.getElementById('logo').addEventListener('click', abrirHome);
-document.getElementById('list-link').addEventListener('click', abrirListas);
-document.getElementById('logout').addEventListener('click', logout);

@@ -1,9 +1,11 @@
+import {modal} from "./modal.js";
+
 function abrirPerfil() {
-    alert("Perfil de usuário será implementada em breve!");
+    modal("Perfil de usuário será implementada em breve!");
 }
 
 function abrirListas() {
-    alert("Listas de usuário será implementada em breve!");
+    modal("Listas de usuário será implementada em breve!");
 }
 
 function abrirHome() {
@@ -12,7 +14,7 @@ function abrirHome() {
 
 function logout() {
     sessionStorage.removeItem("token");
-    alert("Saindo...");
+    modal("Saindo...");
     window.location.href = 'index.html';
 }
 

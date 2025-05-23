@@ -207,6 +207,13 @@ queries:
     INSERT INTO group_users (user_id, group_id, verified)
     VALUES ($1, $2, $3)
 
+  # busca associação um usuário a um grupo
+  select_user_groups: >
+    SELECT *
+    FROM group_users
+    WHERE user_id = $1
+    AND group_id = $2;
+
   # Remove a associação de um usuário a um grupo por ID grupo
   expire_user_groups: >
     DELETE FROM group_users
