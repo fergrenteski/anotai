@@ -141,7 +141,24 @@ class ProductController {
             console.error("Erro ao deletar produto", error);
             return res.status(500).json({ success: false, message: error.message });
         }
+    }
 
+    async updateBuy(req, res){
+
+        const buyBy = req.usuario.id;
+        const { productId } = req.params;
+        const { price } = req.body;
+
+        try {
+
+            console.log("Entrei no updadeBuy");
+            const rows = await this.productService.updadeBuy(buyBy,price,productId);
+            return res.status(200).json({success: true, data: rows});
+
+        }catch(error){
+            console.error("Erro ao atualizar o comprador", error);
+            return res.status(500).json({ success: false, message: error.message });
+        }
     }
 }
 

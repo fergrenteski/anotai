@@ -16,6 +16,11 @@ class ProductService {
         return runQuery("delete_products_by_id", [productId])
     }
 
+    async updateBuy(buyBy,price,productId) {
+        return runQuery("update_products_purchased", [buyBy,price,productId])
+    }
+
+    //----------------------
     async getProductsByUserId(listId, userId) {
         return runQuery("select_products_by_user_id", [userId, listId])
     }
