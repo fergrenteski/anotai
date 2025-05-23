@@ -249,11 +249,10 @@ queries:
   update_products_by_id: >
     UPDATE products
     SET
-      name = $1, description = $2, category_id  = $3, price = $4,
-      quantity = $5, updated_at = CURRENT_TIMESTAMP
+      name = $1, description = $2, category_id  = $3,
+      quantity = $4, updated_at = CURRENT_TIMESTAMP
     WHERE
-      product_id   = $6
-    RETURNING * ;
+      product_id   = $5;
 
   # Atualizar (painel quem comprou)
   update_products_purchased: >
@@ -268,10 +267,15 @@ queries:
     DELETE FROM products
     WHERE product_id = $1;
 
-  #Buscar produtos
+  #Buscar produtos por id list
   select_products_by_id: >
     SELECT * FROM vw_products
     WHERE list_id = $1;
+
+  #Buscar produtos por seu id
+  select_products_by_id_products: >
+    SELECT * FROM vw_products
+    WHERE product_id = $1;
 
   # Buscar Total de categorias por ID da lista
   select_total_categories_by_list_id: >
