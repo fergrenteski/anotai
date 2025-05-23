@@ -146,14 +146,17 @@ class ProductController {
     async updateBuy(req, res){
 
         const buyBy = req.usuario.id;
-        const { productId } = req.params;
+        const { productId, option } = req.params;
         const { price } = req.body;
+
+        if(option !== 'sell' && option !== 'buy') return res.status(401).json({ success: false, message: "Rota Inválida" });
+
+        const buy = option === 'buy';
 
         try {
 
-            console.log("Entrei no updadeBuy");
-            const rows = await this.productService.updadeBuy(buyBy,price,productId);
-            return res.status(200).json({success: true, data: rows});
+            const rows = await this.productService.updateBuy(buy ? buyBy : null,buy ? price : null, productId);
+            return res.status(200).json({success: true, data: rows, message:  `Produto ${buy ? 'Comprado' : 'Revertido'} com sucesso`});
 
         }catch(error){
             console.error("Erro ao atualizar o comprador", error);

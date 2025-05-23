@@ -284,9 +284,14 @@ async function renderProdutos() {
                 buttonBuy.addEventListener('click', async (e) => {
                     e.stopPropagation();
                     if(confirm("Reverter Compra")) {
-                        startApp("meusProdutos");
-
-                        // TODO: REVERTER
+                        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${product.product_id}/sell`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        alert(data.message);
+                        await startApp("meusProdutos");
                     }
                 })
             } else {
@@ -860,9 +865,10 @@ async function renderGerenciarProduto() {
     titulo.style.textAlign = 'center';
 
     // Form
-    const form = document.createElement('div');
+    const form = document.createElement('form');
     form.id = 'form-gerenciar-produto';
     form.style.marginTop = '20px';
+    form.method = 'POST';
     form.appendChild(titulo);
 
     // --- Nome (sempre existe, mas só editável ao criar)
@@ -931,33 +937,18 @@ async function renderGerenciarProduto() {
     inputQuantidade.type = 'number';
     inputQuantidade.id = 'inputQuan';
     inputQuantidade.name = 'quantidade';
-    inputQuantidade.min = 0;
+    inputQuantidade.min = 1;
+    inputQuantidade.value = 1;
     inputQuantidade.required = true;
     form.appendChild(inputQuantidade);
-
-    if (isEditing) {
-
-        // Preço
-        const labelPreco = document.createElement('label');
-        labelPreco.textContent = 'Preço:';
-        form.appendChild(labelPreco);
-
-        const inputPreco = document.createElement('input');
-        inputPreco.type = 'number';
-        inputPreco.step = '0.01';
-        inputPreco.id = 'inputPrice';
-        inputPreco.name = 'preco';
-        inputPreco.min = 0;
-        inputPreco.required = true;
-        form.appendChild(inputPreco);
-    }
 
     // Botão salvar/criar: full width
     const buttonSalvar = document.createElement('button');
     buttonSalvar.textContent = isEditing ? 'Criar' : 'Salvar';
     buttonSalvar.style.display = 'block';
     buttonSalvar.style.width = '100%';
-    buttonSalvar.addEventListener('click', async (e) => {
+    form.addEventListener('submit', async (e) => {
+        e.stopPropagation();
         e.preventDefault();
         const objeto = {
             id: null,
@@ -1048,13 +1039,20 @@ async function renderComprarProduto() {
     form.appendChild(buttonConfirmarBuy);
     buttonConfirmarBuy.addEventListener('click', async (e) => {
         e.preventDefault()
+
+        const price = document.getElementById('inputBuyPrice').value;
+
+        if(!price || price <= 0) {
+            alert("Produto deve ter preço");
+            return;
+        }
         const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.productId}/buy`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                price: document.getElementById('inputBuyPrice').value
+                price: price
             })
         })
         alert(data.message);
