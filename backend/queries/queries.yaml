@@ -258,8 +258,10 @@ queries:
   # Atualizar (painel quem comprou)
   update_products_purchased: >
     UPDATE products
-    SET purchased_by = $1
-    WHERE product_id = $2;
+    SET
+    purchased_by = $1,
+    price = $2
+    WHERE product_id = $3;
 
   # Deletar
   delete_products_by_id: >
