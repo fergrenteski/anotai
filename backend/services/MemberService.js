@@ -15,6 +15,11 @@ class MemberService {
         return await runQuery("select_invite_by_token", [invite]);
     }
 
+    async getUserGroupsByBoth(userId, groupId) {
+        const { rows } = await runQuery("select_user_groups", [userId, groupId])
+        return rows[0];
+    }
+
     // Cria o invite
     async createUserInviteToken(userId, groupId, email, emailToken, expiresAt) {
         // Executa a consulta SQL.
