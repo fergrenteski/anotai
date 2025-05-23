@@ -104,11 +104,29 @@ class ProductController {
         const {name, description, categoryId, quantity, listId} = req.body;
         const addedBy = req.usuario.id;
         try {
-            await this.productService.create(name, description, categoryId, addedBy, quantity, listId);
 
+            await this.productService.create(name, description, categoryId, addedBy, quantity, listId);
             return res.status(201).json({ success: true , message: "Produto Adicionado com sucesso"});
+
         } catch (error) {
             console.error("Erro ao criar produto", error);
+            return res.status(500).json({ success: false, message: error.message });
+        }
+    }
+
+    async update(req, res){
+
+        const { name, description, categoryId, quantity } = req.body;
+        const { productId } = req.params;
+
+        try {
+
+            await  this.productService.update(productId,name, description, categoryId, quantity);
+            return res.status(200).json({ success: true, message: "Produto Atualizado com sucesso"});
+
+
+        }catch(error){
+            console.error("Erro ao atualizar produto", error);
             return res.status(500).json({ success: false, message: error.message });
         }
     }
@@ -141,7 +159,42 @@ class ProductController {
             console.error("Erro ao deletar produto", error);
             return res.status(500).json({ success: false, message: error.message });
         }
+    }
 
+    async updateBuy(req, res){
+
+        const buyBy = req.usuario.id;
+        const { productId, option } = req.params;
+        const { price } = req.body;
+
+        if(option !== 'sell' && option !== 'buy') return res.status(401).json({ success: false, message: "Rota Inválida" });
+
+        const buy = option === 'buy';
+
+        try {
+
+            const rows = await this.productService.updateBuy(buy ? buyBy : null,buy ? price : null, productId);
+            return res.status(200).json({success: true, data: rows, message:  `Produto ${buy ? 'Comprado' : 'Revertido'} com sucesso`});
+
+        }catch(error){
+            console.error("Erro ao atualizar o comprador", error);
+            return res.status(500).json({ success: false, message: error.message });
+        }
+    }
+
+    async getById(req, res) {
+
+        const {productId} = req.params;
+
+        try{
+
+            const rows = await this.productService.getById(productId);
+            return res.status(200).json({success: true, data: rows, message:"Produto encontrado"});
+
+        }catch(error){
+            console.error("Erro ao buscar produto", error);
+            return res.status(500).json({ success: false, message: error.message });
+        }
     }
 }
 
