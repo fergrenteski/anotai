@@ -133,6 +133,11 @@ queries:
     DELETE FROM user_group_invite_keys
     WHERE token = $1
 
+  # Deleta todos os tokens de usuário de um grupo
+  delete_invite_token_by_user_id: >
+    DELETE FROM user_group_invite_keys
+    WHERE user_id = $1 AND group_id = $2;
+
  # Recupera todos os grupos associados a um usuário
   select_groups_by_user_id: >
     SELECT 

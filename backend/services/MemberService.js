@@ -59,6 +59,11 @@ class MemberService {
         // Executa a query de atualização do groupId
         return runQuery("expire_user_groups_member", [userId, groupId]);
     }
+
+    async deleteInvite(userId, groupId) {
+        // Executa a query de atualização do groupId
+        return runQuery("delete_invite_token_by_user_id", [userId, groupId]);
+    }
 }
 // Exporta a classe MemberService
 module.exports = MemberService;

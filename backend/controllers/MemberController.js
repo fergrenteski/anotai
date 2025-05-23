@@ -87,6 +87,7 @@ class MemberController {
         const memberId = req.params.memberId;
         try {
             await this.memberService.delete(parseInt(memberId), parseInt(groupId));
+            await this.memberService.deleteInvite(parseInt(memberId), parseInt(groupId));
             return res.status(200).json({ success: true, message: "Membro removido com sucesso" });
         } catch (error) {
             console.error("Erro ao remover usuário: ", error);
