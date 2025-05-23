@@ -1,21 +1,32 @@
 import {authFetch} from "./utils/authFetch.js";
 import {confirmModal} from "./utils/confirmModal.js";
 import {notificar} from "./utils/notification.js";
+import {getBackButton} from "./utils/backButton.js";
+import {createInput} from "./utils/createInput.js";
 
-var user = {};
+// Variáveis
+let user = null;
+let appState = null;
 
-
+/**
+ * Funcão que retorna as Categorias dos grupos.
+ * @returns {Promise<*>}
+ */
 async function loadGroupsCategories() {
     // Busca categorias de grupo da API
     const data = await authFetch('http://localhost:3000/api/groups/categories');
     return data.data;
 }
 
+/**
+ * Funcão que retorna os grupos do usuário.
+ * @returns {Promise<*[]>}
+ */
 async function loadGroups() {
     // Busca lista de grupos da API
     const resposta = await authFetch('http://localhost:3000/api/groups');
     if (resposta) {
-        if(!user) {
+        if (!user) {
             user = resposta.user;
             document.getElementById('userName').textContent = resposta.user.name;
             document.getElementById('userInitials').textContent = resposta.user.name.split(' ').map(n => n[0]).join('');
@@ -24,20 +35,26 @@ async function loadGroups() {
     return resposta.data || [];
 }
 
+/**
+ * Funcão que retorna os Membros de um grupo.
+ * @param groupId Identificador de Grupo.
+ * @returns {Promise<*[]>}
+ */
 async function loadMembers(groupId) {
     const resposta = await authFetch(`http://localhost:3000/api/groups/${groupId}/members`);
     return resposta.data || [];
 }
 
+/**
+ * Funcão que retorna os Convites de um usuário.
+ * @returns {Promise<*[]>}
+ */
 async function loadInvites() {
     const resposta = await authFetch('http://localhost:3000/api/member/invites');
     return resposta.data || [];
 }
 
-
-let appState = null; // Inicializa como nulo
-
-async function initializeAppState(currentView , activeTab, groupId, mostrarGruposVazios) {
+async function initializeAppState(currentView, activeTab, groupId, mostrarGruposVazios) {
     let grupos = await loadGroups();
     let convites = await loadInvites();
     appState = {
@@ -52,7 +69,6 @@ async function initializeAppState(currentView , activeTab, groupId, mostrarGrupo
 
 // Elemento raiz da aplicação
 const appElement = document.getElementById('app');
-
 
 // Função principal para renderizar a interface
 function renderApp() {
@@ -206,7 +222,7 @@ function renderListaGrupos() {
             });
             actionButtons.appendChild(editBtn);
 
-            if(isAdminUser) {
+            if (isAdminUser) {
                 const deleteBtn = document.createElement('button');
                 deleteBtn.innerHTML = '<i class="fa-solid fa-trash" style="color:#e12424;"></i>';
                 deleteBtn.className = 'delete-btn';
@@ -214,27 +230,18 @@ function renderListaGrupos() {
                 deleteBtn.addEventListener('click', async (e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    await confirmModal(`Tem certeza que deseja excluir o grupo "${grupo.name}"?`)
-                        .then(async resposta => {
-                            if (resposta) {
-                                await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}`,
-                                    { method: 'DELETE' }).then(data => {
-                                    notificar(data.message);
-                                });
-                            }
-                            startApp();
-                        });
+                    await deleteGroup(grupo);
 
                 });
                 actionButtons.appendChild(deleteBtn);
             }
 
-            if(grupo.user_verified) groupItem.classList.add('click-group');
+            if (grupo.user_verified) groupItem.classList.add('click-group');
 
             // Evento de click para Redirecionar a listas do grupo.
-            if(grupo.user_verified) groupItem.addEventListener('click', (e) => {
+            if (grupo.user_verified) groupItem.addEventListener('click', (e) => {
                 e.stopPropagation();
-               window.location.href = `lists.html?groupid=${grupo.group_id}`;
+                window.location.href = `lists.html?groupid=${grupo.group_id}`;
             })
 
             groupItem.appendChild(actionButtons);
@@ -316,15 +323,15 @@ function renderConvitesGrupo() {
             acceptBtn.innerHTML = '<i class="fa-solid fa-check" style="color: #4CAF50"></i>';
             acceptBtn.className = 'accept-btn';
             acceptBtn.classList.add('action-btn');
-            acceptBtn.addEventListener('click',  async(e) => {
+            acceptBtn.addEventListener('click', async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 await confirmModal(`Tem certeza que deseja aceitar o convite para o grupo "${convite.group_name}"`)
                     .then(async resposta => {
                         if (resposta) {
                             await authFetch(`http://localhost:3000/api/groups/${convite.group_id}/members/${convite.user_id}/invite/${convite.invite}/accept/${true}`,
-                                { method: "POST"}).then(data => {
-                                    notificar(data.message);
+                                {method: "POST"}).then(data => {
+                                notificar(data.message);
                             })
                         }
                         startApp("listaGrupos", 'convites');
@@ -343,7 +350,7 @@ function renderConvitesGrupo() {
                     .then(async resposta => {
                         if (resposta) {
                             await authFetch(`http://localhost:3000/api/groups/${convite.group_id}/members/${convite.user_id}/invite/${convite.invite}/accept/${false}`,
-                                { method: "POST"}).then(data => {
+                                {method: "POST"}).then(data => {
                                 notificar(data.message);
                             })
                         }
@@ -364,10 +371,10 @@ function renderConvitesGrupo() {
 async function renderGerenciarGrupo() {
     const isEditing = appState.currentView === "editarGrupo";
     const groupId = appState.groupId;
-    let grupo = { group_name: "", description: "", category_name: "" };
+    let grupo = {group_name: "", description: "", category_name: ""};
     let data = {};
     let isAdminUser = false
-    if(isEditing) {
+    if (isEditing) {
         data = await authFetch(`http://localhost:3000/api/groups/${groupId}`);
         grupo = data.data;
         user = data.user;
@@ -392,22 +399,10 @@ async function renderGerenciarGrupo() {
     const form = document.createElement('div');
 
     // Campo: Nome do grupo
-    const nameInput = document.createElement('input');
-    nameInput.type = 'text';
-    nameInput.placeholder = 'Nome do Grupo';
-    nameInput.value = grupo.group_name;
-    nameInput.id = 'group-name';
-    nameInput.disabled = !isAdminUser;
-    nameInput.required = true;
+    const nameInput = createInput('text', 'group-name', 'Nome do Grupo', grupo.group_name, true, !isAdminUser)
     form.appendChild(nameInput);
 
-    const descriptionInput = document.createElement('input');
-    descriptionInput.type = 'text';
-    descriptionInput.placeholder = 'Descrição do Grupo';
-    descriptionInput.value = grupo.description;
-    descriptionInput.id = 'group-description';
-    descriptionInput.disabled = !isAdminUser;
-    descriptionInput.required = true;
+    const descriptionInput = createInput('text', 'group-description', 'Descrição do Grupo', grupo.description, true, !isAdminUser);
     form.appendChild(descriptionInput);
 
     // Campo: Tipo do grupo
@@ -435,7 +430,7 @@ async function renderGerenciarGrupo() {
 
     form.appendChild(typeSelect);
 
-    if(isEditing) {
+    if (isEditing) {
         // Seção de membros
         const membersTitle = document.createElement('h3');
         membersTitle.textContent = 'Membros do Grupo';
@@ -465,7 +460,7 @@ async function renderGerenciarGrupo() {
                 memberName.textContent = membro.user_name + statusText;
                 memberInfo.appendChild(memberName);
 
-                if(isAdminUser) {
+                if (isAdminUser) {
                     // Indicador de verificação
                     const verifiedIndicator = document.createElement('span');
                     if (membro.user_verified) {
@@ -480,7 +475,7 @@ async function renderGerenciarGrupo() {
 
                 memberItem.appendChild(memberInfo);
 
-                if(isAdminUser) {
+                if (isAdminUser) {
                     const actionButtons = document.createElement('div');
                     actionButtons.className = 'action-buttons';
 
@@ -499,16 +494,7 @@ async function renderGerenciarGrupo() {
                         removeBtn.addEventListener('click', async (e) => {
                             e.stopPropagation();
                             e.preventDefault();
-                            confirmModal(`Tem certeza que deseja remover: "${membro.user_name}"?`).then(async resposta => {
-                                if (resposta) {
-                                    await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}/members/${membro.user_id}`,
-                                        {method: "DELETE"})
-                                            .then(data => {
-                                            notificar(data.message)
-                                    })
-                                    startApp("editarGrupo", null, grupo.group_id);
-                                }
-                            })
+                            await removeMember(membro, grupo);
                         });
                     }
                     // Adicionar botões às ações
@@ -525,18 +511,14 @@ async function renderGerenciarGrupo() {
             form.appendChild(notHaveMembers);
         }
 
-        if(isAdminUser) {
+        if (isAdminUser) {
             const divMembers = document.createElement('div');
             divMembers.style.display = 'flex';
             divMembers.style.gap = '10px';
             divMembers.style.justifyContent = 'center';
             divMembers.style.alignItems = 'center';
             // Adicionar novo membro
-            const newMemberInput = document.createElement('input');
-            newMemberInput.type = 'email';
-            newMemberInput.id = 'new-member';
-            newMemberInput.placeholder = 'E-mail do novo membro';
-            newMemberInput.required = true;
+            const newMemberInput = createInput('email', 'new-member', 'E-mail do novo membro', '', true)
             newMemberInput.style.marginBlock = '0px'
             divMembers.appendChild(newMemberInput);
 
@@ -544,90 +526,154 @@ async function renderGerenciarGrupo() {
             addMemberBtn.textContent = '+';
             addMemberBtn.classList.add('add-member-btn');
             addMemberBtn.id = 'add-member-btn';
-            addMemberBtn.addEventListener('click', async () => {
-                const email = newMemberInput.value.trim();
-
-                await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}/members` ,
-                    { method: "POST" ,
-                    body: JSON.stringify({
-                        email
-                    }),
-                }).then(data => {
-                    notificar(data.message)
-                })
-                // Limpar campo
-                newMemberInput.value = '';
-
-                startApp("editarGrupo", null, grupo.group_id);
+            addMemberBtn.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                await addMember(newMemberInput, grupo);
             });
             divMembers.appendChild(addMemberBtn);
             form.appendChild(divMembers);
         }
     }
-    if(isAdminUser) {
+
+    const crudBtns = document.createElement('div');
+    crudBtns.classList.add('crud-div');
+
+    const backBtn = getBackButton();
+
+    backBtn.addEventListener('click', () => {
+        startApp("listaGrupos", "meus-grupos");
+    });
+
+    crudBtns.appendChild(backBtn);
+
+    if (isAdminUser) {
         // Botão salvar
         const saveBtn = document.createElement('button');
         saveBtn.textContent = 'Salvar Grupo';
         saveBtn.style.width = '100%';
         saveBtn.classList.add('save-btn');
-        saveBtn.style.marginTop = '20px';
         saveBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             e.preventDefault();
-            const groupName = document.getElementById('group-name').value.trim();
-            const groupDescription = document.getElementById('group-description').value.trim();
-            const categoryId = document.getElementById('group-type').value;
-
-            const url = isEditing
-                ? `http://localhost:3000/api/groups/${grupo.group_id}`
-                : 'http://localhost:3000/api/groups';
-            const method = isEditing ? 'PUT' : 'POST';
-            confirmModal(`Tem certeza em ${isEditing ? 'editar' : 'criar'} o Grupo: ${groupName}`)
-                .then(async resposta => {
-                    if(resposta) {
-                        await authFetch(url, {
-                            method: method,
-                            body: JSON.stringify({
-                                name: groupName,
-                                category: categoryId,
-                                description: groupDescription
-                            }),
-                        }).then(data => {
-                            notificar(data.message);
-                        })
-                        // Voltar para a lista de grupos
-                        startApp("listaGrupos", "meus-grupos");
-                    }
-                })
+            await persistGroup(isEditing, grupo);
         });
-        form.appendChild(saveBtn);
+        crudBtns.appendChild(saveBtn);
     }
 
-    // Botão voltar
-    const backBtn = document.createElement('button');
-    backBtn.textContent = 'Voltar';
-    backBtn.style.width = '100%';
-    backBtn.classList.add('return-btn');
-    backBtn.addEventListener('click', () => {
-        startApp("listaGrupos", "meus-grupos");
-    });
-    form.appendChild(backBtn);
+    form.appendChild(crudBtns);
 
     appElement.appendChild(form);
 }
 
-// Inicializar a aplicação
 
+/**
+ * Função para persistir Grupos
+ * @param isEditing Boleano indicador de edição
+ * @param grupo Grupo a ser persistido
+ * @returns {Promise<void>} Promise
+ */
+async function persistGroup(isEditing, grupo) {
 
-async function startApp(currentView = "listaGrupos",
-                        activeTab = "meus-grupos",
-                        groupId =  null,
-                        mostrarGruposVazios = false) {
-    await initializeAppState(currentView ,
-        activeTab,
-        groupId,
-        mostrarGruposVazios); // Espera carregar dados
-    renderApp();                // Só depois renderiza
+    const groupName = document.getElementById('group-name').value.trim();
+    const groupDescription = document.getElementById('group-description').value.trim();
+    const categoryId = document.getElementById('group-type').value;
+
+    const url = isEditing
+        ? `http://localhost:3000/api/groups/${grupo.group_id}`
+        : 'http://localhost:3000/api/groups';
+    const method = isEditing ? 'PUT' : 'POST';
+    confirmModal(`Tem certeza em ${isEditing ? 'editar' : 'criar'} o Grupo: ${groupName}`)
+        .then(async resposta => {
+            if (resposta) {
+                await authFetch(url, {
+                    method: method,
+                    body: JSON.stringify({
+                        name: groupName,
+                        category: categoryId,
+                        description: groupDescription
+                    }),
+                }).then(data => {
+                    notificar(data.message);
+                })
+                // Voltar para a lista de grupos
+                await startApp("listaGrupos", "meus-grupos");
+            }
+        })
+}
+
+/**
+ * Função para deletar Grupo.
+ * @param grupo Grupo a ser deletado.
+ * @returns {Promise<void>}
+ */
+async function deleteGroup(grupo) {
+    await confirmModal(`Tem certeza que deseja excluir o grupo "${grupo.name}"?`)
+        .then(async resposta => {
+            if (resposta) {
+                await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}`,
+                    {method: 'DELETE'}).then(data => {
+                    notificar(data.message);
+                });
+            }
+            await startApp();
+        });
+}
+
+/**
+ * Função para Adicionar novo membro.
+ * @param newMemberInput Elemento input do Membro.
+ * @param grupo Grupo do membro.
+ * @returns {Promise<void>} Promise
+ */
+async function addMember(newMemberInput, grupo) {
+    const email = newMemberInput.value.trim();
+
+    await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}/members`,
+        {
+            method: "POST",
+            body: JSON.stringify({
+                email
+            }),
+        }).then(data => {
+        notificar(data.message)
+    })
+    // Limpar campo
+    newMemberInput.value = '';
+
+    await startApp("editarGrupo", null, grupo.group_id);
+}
+
+/**
+ * Remover membro de um grupo
+ * @param membro Membro a ser removido
+ * @param grupo Grupo do membro
+ * @returns {Promise<void>} Promise
+ */
+async function removeMember(membro, grupo) {
+    confirmModal(`Tem certeza que deseja remover: "${membro.user_name}"?`).then(async resposta => {
+        if (resposta) {
+            await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}/members/${membro.user_id}`,
+                {method: "DELETE"})
+                .then(data => {
+                    notificar(data.message)
+                })
+            await startApp("editarGrupo", null, grupo.group_id);
+        }
+    })
+}
+
+/**
+ * Função para Inicializar o Estado da Aplicação
+ * @param currentView
+ * @param activeTab
+ * @param groupId
+ * @param mostrarGruposVazios
+ * @returns {Promise<void>}
+ */
+async function startApp(currentView = "listaGrupos", activeTab = "meus-grupos", groupId = null, mostrarGruposVazios = false) {
+    await initializeAppState(currentView, activeTab, groupId, mostrarGruposVazios);
+    renderApp();
 }
 
 document.addEventListener('DOMContentLoaded', async () => {

@@ -34,19 +34,19 @@ export function authFetch(url, options = {}) {
         })
         .then(data => {
             if (!data.success) {
-                if (response.status === 401 || response.status === 403) {
-                    modal(data.message)
-                        .then(() => {
-                            window.location.href = 'index.html';
-                        });
-                } else if (response.status === 500) {
-                    throw new Error(data.message);
-                }
+                const err = new Error(data.message);
+                err.status = response.status;
+                throw err;
             }
             return data;
         })
         .catch(err => {
-            modal(err.message);
             console.error(err);
+            modal(err.message).then(() => {
+                if(err.status === 401 || err.status === 403) {
+                    window.location.href = 'index.html';
+                }
+            });
+
         });
 }

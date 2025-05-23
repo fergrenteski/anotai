@@ -31,30 +31,6 @@ p {
     color: #666;
 }
 
-.save-btn, .return-btn {
-    padding: 6px 8px;
-    border: none;
-    border-radius: 4px;
-    background: #7367f0;
-    color: #fff;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: background 0.3s;
-    font-size: 12px;
-}
-
-.return-btn {
-    padding: 6px 8px;
-    border: none;
-    border-radius: 4px;
-    background: rgba(115, 103, 240, 0.1);
-    color: #7367f0;
-    cursor: pointer;
-    margin-top: 8px;
-    transition: background 0.3s;
-    font-size: 12px;
-}
-
 .action-btn {
     padding: 6px 8px;
 }
