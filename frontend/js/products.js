@@ -850,25 +850,27 @@ async function renderGerenciarProduto() {
 
     // Define se estamos no fluxo de criação
     const isEditing = appState.currentView === 'editarProduto';
-    let product = {id: "", name: "", description: "", quantity: "", price: "", category_name: ""};
+    let product = {id: "", product_name: "", description: "", quantity: "", price: "", category_name: ""};
 
     if(isEditing) {
-        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.productId}`);
+        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.productId}`)
         product = data.data.rows[0];
     }
 
     // Título centralizado
     const titulo = document.createElement('h1');
     titulo.textContent = isEditing
-        ? 'Criar Produto'
-        : 'Editar Produto';
+        ? 'Editar Produto'
+        : 'Criar Produto';
     titulo.style.textAlign = 'center';
 
     // Form
     const form = document.createElement('form');
     form.id = 'form-gerenciar-produto';
     form.style.marginTop = '20px';
-    form.method = 'POST';
+    form.method = isEditing
+        ? 'PUT'
+        : 'POST';
     form.appendChild(titulo);
 
     // --- Nome (sempre existe, mas só editável ao criar)
@@ -880,7 +882,7 @@ async function renderGerenciarProduto() {
     inputNome.type = 'text';
     inputNome.id = 'inputName';
     inputNome.name = 'nome';
-    inputNome.value = product.name;
+    inputNome.value = product.product_name;
     inputNome.placeholder = 'Digite o nome do produto';
     inputNome.required = true;
     form.appendChild(inputNome);
@@ -938,13 +940,13 @@ async function renderGerenciarProduto() {
     inputQuantidade.id = 'inputQuan';
     inputQuantidade.name = 'quantidade';
     inputQuantidade.min = 1;
-    inputQuantidade.value = 1;
+    inputQuantidade.value = isEditing? product.quantity : 1;
     inputQuantidade.required = true;
     form.appendChild(inputQuantidade);
 
     // Botão salvar/criar: full width
     const buttonSalvar = document.createElement('button');
-    buttonSalvar.textContent = isEditing ? 'Criar' : 'Salvar';
+    buttonSalvar.textContent = isEditing ? 'Salvar' : 'Criar';
     buttonSalvar.style.display = 'block';
     buttonSalvar.style.width = '100%';
     form.addEventListener('submit', async (e) => {
@@ -961,7 +963,7 @@ async function renderGerenciarProduto() {
 
         const url = !isEditing
             ? `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products`
-            : `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/:productId`;
+            : `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.productId}`;
         const method = !isEditing
             ? 'POST'
             : 'PUT';
