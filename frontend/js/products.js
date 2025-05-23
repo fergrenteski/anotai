@@ -1007,14 +1007,73 @@ async function renderGerenciarProduto() {
 }
 
 async function renderComprarProduto() {
+    // Limpa conteúdo anterior
+    const appElement = document.getElementById('app');
+    appElement.innerHTML = '';
 
     // Título centralizado
     const titulo = document.createElement('h1');
-    titulo.textContent = 'Verificação de compra'
+    titulo.textContent = 'Verificação de compra';
     titulo.style.textAlign = 'center';
-
     appElement.appendChild(titulo);
+
+    // Cria o form
+    const form = document.createElement('form');
+    form.id = 'form-compra-produto';
+    form.style.marginTop = '20px';
+
+    // Label e input para preço
+    const labelBuyPrice = document.createElement('label');
+    labelBuyPrice.textContent = 'Preço:';
+    form.appendChild(labelBuyPrice);
+
+    const inputBuyPrice = document.createElement('input');
+    inputBuyPrice.type = 'number';
+    inputBuyPrice.id = 'inputBuyPrice';
+    inputBuyPrice.name = 'price';
+    inputBuyPrice.placeholder = 'Digite o preço do produto';
+    inputBuyPrice.required = true;
+    inputBuyPrice.step = '0.01';
+    inputBuyPrice.min = '0';
+    inputBuyPrice.style.display = 'block';
+    inputBuyPrice.style.width = '100%';
+    inputBuyPrice.style.margin = '5px 0 15px';
+    form.appendChild(inputBuyPrice);
+
+    const buttonConfirmarBuy = document.createElement('button');
+    buttonConfirmarBuy.type = 'submit';
+    buttonConfirmarBuy.textContent = 'Confirmar compra';
+    buttonConfirmarBuy.style.display = 'block';
+    buttonConfirmarBuy.style.width = '100%';
+    form.appendChild(buttonConfirmarBuy);
+    buttonConfirmarBuy.addEventListener('click', async (e) => {
+        e.preventDefault()
+        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.productId}/buy`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                price: document.getElementById('inputBuyPrice').value
+            })
+        })
+        alert(data.message);
+        startApp();
+    })
+
+    const buttonVoltar = document.createElement('button');
+    buttonVoltar.type = 'button';
+    buttonVoltar.textContent = 'Voltar';
+    buttonVoltar.style.display = 'block';
+    buttonVoltar.style.width = '100%';
+    buttonVoltar.style.marginBottom = '10px';
+    buttonVoltar.addEventListener('click', () => startApp());
+    form.appendChild(buttonVoltar);
+
+    // Anexa o form ao container principal
+    appElement.appendChild(form);
 }
+
 // =========================
 // EVENTOS DOM
 // =========================
