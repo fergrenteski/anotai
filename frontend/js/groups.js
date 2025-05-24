@@ -44,8 +44,7 @@ async function loadGroups() {
 }
 
 function abrirPerfil() {
-    alert("Página de perfil de usuário será implementada em breve!");
-    // window.location.href = '/perfil.html';
+    window.location.href = 'profile.html';
 }
 
 function abrirListas() {

@@ -1,5 +1,5 @@
 function abrirPerfil() {
-    alert("Perfil de usuário será implementada em breve!");
+    window.location.href = 'profile.html';
 }
 
 function abrirListas() {

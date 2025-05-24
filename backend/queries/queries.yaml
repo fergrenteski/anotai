@@ -347,3 +347,8 @@ queries:
   #Deletar uma lista
   delete_list_by_id: >
    DELETE FROM lists WHERE list_id = $1;
+
+  update_user_profile: >
+    UPDATE users
+    SET name = $1, bio = $2, profile_img_url = $3, updated_at = CURRENT_TIMESTAMP
+    WHERE user_id = $4;

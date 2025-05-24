@@ -162,6 +162,33 @@ class UserService {
         const { rows } = await runQuery("select_user_by_email", [email]);
         return rows[0];
     }
+  
+    async alterarSenhaAutenticado(userId, senhaAtual, novaSenha) {
+  const { rows } = await runQuery("select_user_by_id", [userId]);
+  if (!rows.length) throw new Error("Usuário não encontrado.");
+
+  const senhaValida = await bcrypt.compare(senhaAtual, rows[0].password_hash);
+  if (!senhaValida) throw new Error("Senha atual incorreta.");
+
+  const novaSenhaHash = await bcrypt.hash(novaSenha, SALT_ROUNDS);
+  await runQuery("update_password_by_user_id", [novaSenhaHash, userId]);
+}
+
+/**
+ * Atualiza os dados do perfil do usuário.
+ * @param {number} userId - ID do usuário.
+ * @param {string} nome - Novo nome.
+ * @param {string} bio - Nova bio.
+ * @param {string} profile_img_url - URL da nova imagem de perfil.
+ */
+async atualizarPerfil(userId, nome, bio, profile_img_url) {
+    const { rowCount } = await runQuery("update_user_profile", [nome, bio, profile_img_url, userId]);
+
+    if (rowCount === 0) {
+        throw new Error("Usuário não encontrado ou nenhuma alteração feita.");
+    }
+}
+
 }
 // Exporta classe UserService
 module.exports = UserService;

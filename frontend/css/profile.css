@@ -6,75 +6,95 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body {
-  margin: 0;
-  background-color: #f0f4f8;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-}
-
 .container {
-  width: 100%;
-  max-width: 400px;
-  padding: 20px;
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 0 20px;
 }
 
-.profile-card {
+.card {
   background-color: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 25px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin-bottom: 30px;
+}
+
+.card h2 {
+  margin-top: 0;
+  color: #2d3436;
+}
+
+.profile-form {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.profile-picture {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
 }
 
-.profile-image {
-  width: 120px;
-  height: 120px;
+.profile-picture img {
   border-radius: 50%;
-  object-fit: cover;
-  margin-bottom: 16px;
+  width: 100px;
+  height: 100px;
 }
 
-.profile-name {
-  font-size: 24px;
-  margin: 8px 0 4px;
-  color: #333;
-}
-
-.profile-email {
-  font-size: 14px;
-  color: #777;
-  margin-bottom: 16px;
-}
-
-label {
-  display: block;
-  margin: 10px 0 4px;
-  text-align: left;
-}
-
-input[type="text"],
-input[type="email"],
-input[type="file"] {
-  width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
-  margin-bottom: 12px;
-}
-
-.edit-button {
-  margin-top: 16px;
-  background-color: #4caf50;
+.upload-btn {
+  background-color: #6c5ce7;
   color: white;
-  border: none;
-  padding: 10px 20px;
+  padding: 10px 16px;
   border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  display: inline-block;
+  font-size: 14px;
+  position: relative;
+  overflow: hidden;
 }
 
-.edit-button:hover {
-  background-color: #45a049;
+.upload-btn input[type="file"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.profile-fields,
+.password-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+input, textarea {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+textarea {
+  resize: vertical;
+  height: 80px;
+}
+
+.save-btn {
+  background-color: #6c5ce7;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
 }
