@@ -1,12 +1,17 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Editar Perfil</title>
-    <link rel="stylesheet" href="../css/header.css">
-    <link rel="stylesheet" href="../css/profile.css">
+  <style>
+   #userInitials, #userName {
+    display: none;
+  }
+</style>
 
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Editar Perfil</title>
+  <link rel="stylesheet" href="../css/header.css">
+  <link rel="stylesheet" href="../css/profile.css">
 </head>
 <body>
 <div class="header">
@@ -34,13 +39,13 @@
                 </label>
             </div>
             <div class="profile-fields">
-                <label>Nome</label>
-                <input type="text" placeholder="Digite seu nome">
+                <label>Alterar Nome</label>
+                <input type="text" placeholder="Digite seu nome" id="bio-nome">
 
                 <label>Bio</label>
-                <textarea placeholder="Digite uma descrição sobre você"></textarea>
+                <textarea placeholder="Digite uma descrição sobre você" id="bio-texto"></textarea>
 
-                <button class="save-btn">Salvar</button>
+                <button class="save-btn" id="salvarPerfil">Salvar</button>
             </div>
         </div>
     </section>
@@ -49,18 +54,19 @@
         <h2>Alterar Senha</h2>
         <div class="password-fields">
             <label>Senha atual</label>
-            <input type="password" placeholder="Senha atual">
+            <input type="password" placeholder="Senha atual" id="senha-atual">
 
             <label>Nova senha</label>
-            <input type="password" placeholder="Nova senha">
+            <input type="password" placeholder="Nova senha" id="nova-senha">
 
             <label>Confirmar nova senha</label>
-            <input type="password" placeholder="Confirme a nova senha">
+            <input type="password" placeholder="Confirme a nova senha" id="confirmar-nova-senha">
 
-            <button class="save-btn">Salvar Nova Senha</button>
+            <button class="save-btn" id="salvarNovaSenha">Salvar Nova Senha</button>
         </div>
     </section>
 </main>
+
 <script src="../js/navegacao.js"></script>
 <script src="../js/profile.js"></script>
 </body>
