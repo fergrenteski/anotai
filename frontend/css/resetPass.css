@@ -49,7 +49,7 @@ input {
   font-size: 15px;
 }
 
-button {
+.send-link {
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
@@ -65,4 +65,52 @@ a {
   text-decoration: none;
   display: inline-block;
   margin-top: 20px;
+}
+
+#requisitosSenha {
+  list-style: none;
+  text-align: left;
+}
+
+#requisitosSenha li {
+  color: gray;
+  font-size: 10px;
+}
+
+#requisitosSenha li.ok {
+  color: green;
+  font-weight: bold;
+}
+
+input.valid {
+  border-color: green;
+  color: green;
+}
+input.invalid {
+  border-color: red;
+  color: red;
+}
+
+.error-message {
+  font-size: 12px;
+  color: red;
+}
+
+.pass-container {
+  position: relative;
+  display: block;
+}
+.pass-container button {
+  position: absolute;
+  top: 20px;
+  right: 10px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color:black;
+}
+
+.reset-pass-message {
+  text-align: left ;
 }

@@ -1,6 +1,4 @@
-// Importa bibliotecas e funçöes:
-const pool = require("../database/database");
-const { loadQueries } = require("../utils/queries");
+const {runQuery} = require("../utils/queryHelper");
 
 // Service para gerenciar operações relacionadas a listas de um grupo.
 
@@ -12,13 +10,19 @@ class ListService {
      * @returns Lista de Grupos
      */
     async getAllListsByGroupId(groupId) {
+        return runQuery("select_list_by_group_id", [groupId]);
+    }
 
-        // Carrega todas as queries SQL definidas na aplicação
-        const queries = await loadQueries();
+    async getById(listId) {
+        return runQuery("select_list_by_id", [listId]);
+    }
 
-         // Executa a query passando o parâmetro groupId e obtém linhas
-        const { rows } = await pool.query(queries.select_list_by_group_id, [groupId]);
-        return { rows }; // Retorna o objeto com o resultado das linhas
+    async create(name, description, categoryId, createdBy, groupId) {
+        return runQuery("insert_list", [name, description, categoryId, createdBy, groupId]);
+    }
+
+    async update(listId, name, description, categoryId) {
+        return runQuery("update_list_by_id", [listId, name, description, categoryId]);
     }
 }
 // Exporta a classe ListService

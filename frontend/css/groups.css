@@ -31,14 +31,30 @@ p {
     color: #666;
 }
 
-button {
+.action-btn {
     padding: 6px 8px;
+}
+
+.add-member-btn {
+    padding: 8px 12px;
+    height: 100%;
     border: none;
-    border-radius: 4px;
-    background: #7367f0;
-    color: #fff;
+    border-radius: 10px;
+    background: rgb(63, 206, 31);
+    color: #ffffff;
     cursor: pointer;
-    margin-top: 8px;
+    transition: background 0.3s;
+}
+
+.add-member-btn:hover {
+    opacity: 0.8;
+}
+
+button {
+    border: none;
+    background-color: transparent;
+    border-radius: 4px;
+    cursor: pointer;
     transition: background 0.3s;
     font-size: 12px;
 }

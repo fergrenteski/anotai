@@ -27,7 +27,7 @@ class GroupController {
             return res.status(200).json({ success: true, data: rows, user: req.usuario });
         } catch (error) {
             console.error("Erro na Busca de Grupos:", error);
-            return res.status(500).json({ error: error.message });
+            return res.status(500).json({ success: false, user: req.usuario, message: "Erro ao Buscar Grupos"});
         }
     }
 
@@ -44,7 +44,7 @@ class GroupController {
           return res.status(200).json({ success: true, data: rows[0], user: req.usuario });
       } catch (error) {
           console.error("Erro na Busca do Grupo", error);
-          return res.status(500).json({ error: error.message });
+          return res.status(500).json({ success: false, message: "Erro ao Busca Grupo" });
       }
     }
 
@@ -67,10 +67,10 @@ class GroupController {
             
             // Adiciona na Relação de usuários e grupos
             await this.memberService.create(userId, groupId, true);
-            return res.status(200).json({ success: true, data: rows });
+            return res.status(200).json({ success: true, data: rows, message: `Grupo: ${name} criado com sucesso.` });
         } catch (error) {
-            console.error("Erro na Busca de Grupos:", error);
-            return res.status(500).json({ error: error.message });
+            console.error("Erro na criação de Grupos:", error);
+            return res.status(500).json({ success: false, message: `Erro ao criar grupo: ${name}.`  });
         }
     }
 
@@ -87,11 +87,11 @@ class GroupController {
 
             // Atualiza os dados do grupo.
             const data = await this.groupService.update(name, category, description, groupId);
-            return res.status(200).json({ success: true, data: data.rows });
+            return res.status(200).json({ success: true, data: data.rows, message: `Grupo: ${name} editado com sucesso.` });
 
         } catch (error) {
             console.error("Erro ao Atualizar Grupo:", groupId, error);
-            return res.status(500).json({ error: error.message });
+            return res.status(500).json({ success: false, message: `Erro ao editar grupo: ${name}.`  });
         }
     }
 
@@ -106,11 +106,11 @@ class GroupController {
             
             // Deleta a relação de usuário e grupos
             await this.memberService.deleteGroup(groupId);
-            return res.status(200).json({ success: true, data: rows });
+            return res.status(200).json({ success: true, data: rows, message: `Grupo excluído com sucesso.` });
 
         } catch (error) {
             console.error("Erro ao Deletar Grupo:", groupId, error);
-            return res.status(500).json({ error: error.message });
+            return res.status(500).json({ success: false, message: `Erro ao excluir grupo.`});
         }
     }
 }

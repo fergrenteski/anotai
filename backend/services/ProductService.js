@@ -28,7 +28,6 @@ class ProductService {
         return runQuery("select_products_by_id_products", [productId])
     }
 
-    //----------------------
     async getProductsByUserId(listId, userId) {
         return runQuery("select_products_by_user_id", [userId, listId])
     }

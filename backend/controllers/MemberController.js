@@ -57,6 +57,10 @@ class MemberController {
             if (!rows) return res.status(400).json({ success: false, message:"Usuário não encontrado" });
             // Obtém o ID de usuário
             userId = rows.user_id;
+            // Verifica se ja possui convite.
+            const hasInviteRow = await this.memberService.getUserGroupsByBoth(userId, groupId);
+            // Membro ja convidado
+            if (hasInviteRow) return res.status(400).json({ success: false, message: "Usuário já está no grupo" });
             // Insere a relação de membro do usuário
             await this.memberService.create(parseInt(userId), groupId);
             // Pega os grupos
@@ -74,7 +78,7 @@ class MemberController {
         } catch (error){
             console.error("Erro na criação de Membros: ", error);
             await this.memberService.delete(parseInt(userId), groupId);
-            return res.status(500).json({ success: false, message: error.message });
+            return res.status(500).json({ success: false, message: "Erro no convite do membro" });
         }
     }
 
@@ -83,6 +87,7 @@ class MemberController {
         const memberId = req.params.memberId;
         try {
             await this.memberService.delete(parseInt(memberId), parseInt(groupId));
+            await this.memberService.deleteInvite(parseInt(memberId), parseInt(groupId));
             return res.status(200).json({ success: true, message: "Membro removido com sucesso" });
         } catch (error) {
             console.error("Erro ao remover usuário: ", error);

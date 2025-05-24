@@ -1,3 +1,4 @@
+
 .header {
     background-color: #7367f0;
     color: white;
@@ -35,7 +36,6 @@
     font-weight: bold;
 }
 
-
 #logout {
     margin-right: 20px;
     color: white;
@@ -57,4 +57,38 @@ nav a {
 
 nav a:hover {
     color: rgba(255, 255, 255, 0.5);
+}
+
+.container-breadcrumb {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 5px 20px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#breadcrumb {
+    font-family: sans-serif;
+    font-size: 14px;
+    margin: 10px 0;
+    text-decoration: none;
+}
+
+#breadcrumb a {
+    color: rgba(0, 0, 0, 0.5);
+    text-decoration: none;
+    margin: 0 5px;
+}
+
+#breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+#breadcrumb span {
+    margin: 0 5px;
+}
+
+.page-active {
+    color: #7367f0;
 }

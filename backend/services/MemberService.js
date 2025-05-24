@@ -15,6 +15,11 @@ class MemberService {
         return await runQuery("select_invite_by_token", [invite]);
     }
 
+    async getUserGroupsByBoth(userId, groupId) {
+        const { rows } = await runQuery("select_user_groups", [userId, groupId])
+        return rows[0];
+    }
+
     // Cria o invite
     async createUserInviteToken(userId, groupId, email, emailToken, expiresAt) {
         // Executa a consulta SQL.
@@ -53,6 +58,11 @@ class MemberService {
     async delete(userId, groupId) {
         // Executa a query de atualização do groupId
         return runQuery("expire_user_groups_member", [userId, groupId]);
+    }
+
+    async deleteInvite(userId, groupId) {
+        // Executa a query de atualização do groupId
+        return runQuery("delete_invite_token_by_user_id", [userId, groupId]);
     }
 }
 // Exporta a classe MemberService

@@ -1,3 +1,5 @@
+import {authFetch} from "./utils/authFetch.js";
+import {notificar} from "./utils/notification.js";
 
 const url = "http://localhost:3000/api/user";
 
@@ -10,14 +12,15 @@ async function resetPassword() {
         return;
     }
 
-    const response = await fetch(`${url}/redefinir-senha`, {
+    await authFetch(`${url}/redefinir-senha`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
-    });
-
-    const data = await response.json();
-    document.getElementById("mensagem").innerText = data.message;
+    }).then(data => {
+        notificar(data.message);
+    }).catch(() => {
+        // Nada aqui. Silencia completamente.
+    })
 }
 
 document.getElementById("resetForm").addEventListener("submit", (e) => {

@@ -2,10 +2,10 @@
 <html lang="pt-BR">
 <head>
   <style>
-   #userInitials, #userName {
-    display: none;
-  }
-</style>
+    #userInitials, #userName {
+      display: none;
+    }
+  </style>
 
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -15,59 +15,62 @@
 </head>
 <body>
 <div class="header">
-    <div class="logo" id="logo">Anota-ai</div>
-    <nav>
-        <a href="groups.html">GRUPOS</a>
-        <a href="#" id="list-link">LISTAS</a>
-    </nav>
-    <div class="user-area" id="userArea">
-        <span id="logout">SAIR</span>
-        <div class="user-icon" id="userInitials">AB</div>
-        <span id="userName">Usuário</span>
-    </div>
+  <div class="logo" id="logo">Anota-ai</div>
+  <nav>
+    <a href="groups.html">GRUPOS</a>
+    <a href="#" id="list-link">LISTAS</a>
+  </nav>
+  <div class="user-area" id="userArea">
+    <span id="logout">SAIR</span>
+    <div class="user-icon" id="userInitials">AB</div>
+    <span id="userName">Usuário</span>
+  </div>
 </div>
-
+<div class="container-breadcrumb">
+  <div id="breadcrumb"></div>
+</div>
 <main class="container">
-    <section class="card">
-        <h2>Perfil</h2>
-        <div class="profile-form">
-            <div class="profile-picture">
-                <img id="profileImage" src="https://via.placeholder.com/100" alt="Foto de Perfil">
-                <label class="upload-btn">
-                    Alterar Foto
-                    <input type="file" accept="image/*" id="file-input">
-                </label>
-            </div>
-            <div class="profile-fields">
-                <label>Alterar Nome</label>
-                <input type="text" placeholder="Digite seu nome" id="bio-nome">
+  <section class="card">
+    <h2>Perfil</h2>
+    <div class="profile-form">
+      <div class="profile-picture">
+        <img id="profileImage" src="https://via.placeholder.com/100" alt="Foto de Perfil">
+        <label class="upload-btn">
+          Alterar Foto
+          <input type="file" accept="image/*" id="file-input">
+        </label>
+      </div>
+      <div class="profile-fields">
+        <label for="bio-nome"> Alterar Nome</label>
+        <input type="text" placeholder="Digite seu nome" id="bio-nome">
 
-                <label>Bio</label>
-                <textarea placeholder="Digite uma descrição sobre você" id="bio-texto"></textarea>
+        <label for="bio-texto">Bio</label>
+        <textarea placeholder="Digite uma descrição sobre você" id="bio-texto"></textarea>
 
-                <button class="save-btn" id="salvarPerfil">Salvar</button>
-            </div>
-        </div>
-    </section>
+        <button class="save-btn" id="salvarPerfil">Salvar</button>
+      </div>
+    </div>
+  </section>
 
-    <section class="card">
-        <h2>Alterar Senha</h2>
-        <div class="password-fields">
-            <label>Senha atual</label>
-            <input type="password" placeholder="Senha atual" id="senha-atual">
+  <section class="card">
+    <h2>Alterar Senha</h2>
+    <div class="password-fields">
+      <label for="senha-atual">Senha atual</label>
+      <input type="password" placeholder="Senha atual" id="senha-atual">
 
-            <label>Nova senha</label>
-            <input type="password" placeholder="Nova senha" id="nova-senha">
+      <label for="nova-senha">Nova senha</label>
+      <input type="password" placeholder="Nova senha" id="nova-senha">
 
-            <label>Confirmar nova senha</label>
-            <input type="password" placeholder="Confirme a nova senha" id="confirmar-nova-senha">
+      <label for="confirmar-nova-senha">Confirmar nova senha</label>
+      <input type="password" placeholder="Confirme a nova senha" id="confirmar-nova-senha">
 
-            <button class="save-btn" id="salvarNovaSenha">Salvar Nova Senha</button>
-        </div>
-    </section>
+      <button class="save-btn" id="salvarNovaSenha">Salvar Nova Senha</button>
+    </div>
+  </section>
 </main>
 
-<script src="../js/navegacao.js"></script>
+<script src="../js/utils/navigation.js"></script>
+<script type="module" src="../js/utils/breadcrumb.js"></script>
 <script src="../js/profile.js"></script>
 </body>
 </html>

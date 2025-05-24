@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<link rel="stylesheet" href="../css/header.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/header.css">
     <link rel="stylesheet" href="../css/home.css">
     <title>Anota-ai - Sistema de Listas</title>
 </head>
@@ -20,7 +20,9 @@
         <span id="userName">Usuário</span>
     </div>
 </div>
-
+<div class="container-breadcrumb">
+    <div id="breadcrumb"></div>
+</div>
 <div class="container">
     <h1>Minhas Listas</h1>
 
@@ -37,7 +39,8 @@
         <!-- As listas serão inseridas aqui via JavaScript -->
     </div>
 </div>
-<script src="../js/navegacao.js"></script>
+<script type="module" src="../js/utils/navigation.js"></script>
+<script type="module" src="../js/utils/breadcrumb.js"></script>
 <script src="../js/home.js"></script>
 </body>
 </html>

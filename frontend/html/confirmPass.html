@@ -3,23 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Confirmar Nova Senha</title>
   <link rel="stylesheet" href="../css/resetPass.css" />
+  <script src="https://kit.fontawesome.com/08264effb9.js" crossorigin="anonymous"></script>
+  <title>Confirmar Nova Senha</title>
 </head>
 <body>
   <div class="container">
+    <div class="icon">🔑</div>
     <h1>Confirmar Nova Senha</h1>
+    <p>Escolha uma senha como você quiser, mas lembre-se, não solicitamos senhas de nenhuma maneira!</p>
     <form id="form-confirm-reset-pass">
-      <input type="password" id="senha" placeholder="Nova senha" required />
-      <input type="password" id="confirmarSenha" placeholder="Confirmar senha" required />
-      <p id="mensagem" class="error-message"></p>
+      <div class="pass-container">
+        <input type="password" placeholder="Senha" id="senha" required>
+        <button id="btn-show-pass">
+          <i id="pass-i" class="fa-solid fa-eye"></i>
+        </button>
+      </div>
+      <div class="pass-container">
+        <input type="password" placeholder="Confirmar senha" id="confirmarSenha" required>
+        <button id="btn-show-confirm-pass">
+          <i  id="conf-i" class="fa-solid fa-eye"></i>
+        </button>
+        <ul id="requisitosSenha">
+          <li id="req-comprimento">✔ Pelo menos 8 caracteres</li>
+          <li id="req-maiuscula">✔ Pelo menos 1 letra maiúscula</li>
+          <li id="req-numero">✔ Pelo menos 1 número</li>
+          <li id="req-especial">✔ Pelo menos 1 caractere especial</li>
+        </ul>
+        <p id="message" class="error-message reset-pass-message"></p>
+      </div>
+
       <!-- botão tipo button para não recarregar a página -->
-      <button type="button" id="button-confirm-reset">
+      <button class="send-link" type="submit" id="button-confirm-reset">
         Confirmar Nova Senha
       </button>
     </form>
+    <p>
+      <a href="index.html">Voltar para Login</a>
+    </p>
   </div>
 
-  <script src="../js/confirmPass.js"></script>
+  <script type="module" src="../js/confirmPass.js"></script>
 </body>
 </html>

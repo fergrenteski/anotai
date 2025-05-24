@@ -1,4 +1,3 @@
-// Importa bibliotecas e funçöes:
 const CategoryService = require("../services/CategoryService");
 
 class CategoryController {
@@ -7,38 +6,55 @@ class CategoryController {
     }
 
     /**
-     * Método assíncrono que retorna todas as categorias do sistema.
-     * @param req - Objeto de requisição HTTP.
-     * @param res - Objeto de resposta HTTP.
-     * @returns {Promise<*>} - Retorna uma resposta JSON com as categorias ou erro.
+     * Função que retorna as categorias de Grupo
      */
-    async getAll(req, res) {
+    async getGroupsCategories(req, res) {
         try {
 
-            // Obitem as categorias.
-            const { rows } = await this.categoryService.getAll();
+            // Obtem as categorias.
+            const { rows } = await this.categoryService.getGroupsCategories();
 
             //Retorna os dados das categorias
             return res.status(200).json({ success: true, data: rows });
         } catch (error) {
             console.error("Erro na Busca de Categorias:", error);
-            return res.status(500).json({ success: false, message: error.message });
+            return res.status(500).json({ success: false, message: "Erro na Busca de Categorias" });
         }
     }
 
-    async getAllProducts(req, res) {
-
-        console.log("Entrei no getAllProducts");
-
+    /**
+     * Função que retorna as categorias de Lista
+     */
+    async getListsCategories(req, res) {
         try {
-            const {rows} = await this.categoryService.getAllProducts();
-            return res.status(200).json({success: true, data: rows});
-        }
-        catch (error) {
+
+            // Obtem as categorias.
+            const { rows } = await this.categoryService.getListsCategories();
+
+            //Retorna os dados das categorias
+            return res.status(200).json({ success: true, data: rows });
+        } catch (error) {
             console.error("Erro na Busca de Categorias:", error);
-            return res.status(500).json({success: false, message: error.message});
+            return res.status(500).json({ success: false, message: "Erro na Busca de Categorias" });
+        }
+    }
+
+    /**
+     * Função que retorna as categorias de Produto
+     */
+    async getProductsCategories(req, res) {
+        try {
+
+            // Obtem as categorias.
+            const { rows } = await this.categoryService.getProductsCategories();
+
+            //Retorna os dados das categorias
+            return res.status(200).json({ success: true, data: rows });
+        } catch (error) {
+            console.error("Erro na Busca de Categorias:", error);
+            return res.status(500).json({ success: false, message: "Erro na Busca de Categorias" });
         }
     }
 }
-// Exporta o CategoryController
+
 module.exports = new CategoryController();

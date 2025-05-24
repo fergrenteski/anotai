@@ -3,14 +3,18 @@ const { runQuery } = require("../utils/queryHelper");
 
 class CategoryService {
 
-    // Busca todas as categorias e seus grupos associados no banco de dados.
-    async getAll() {
-        
-        // Executa a consulta SQL identificada por "select_groups_categories"
+    // Categoria de Grupos
+    async getGroupsCategories() {
         return runQuery("select_groups_categories");
     }
 
-    async getAllProducts() {
+    // Categoria de Lista
+    async getListsCategories() {
+        return runQuery("select_lists_categories");
+    }
+
+    // Categoria de Produto
+    async getProductsCategories() {
         return runQuery("select_products_categories");
     }
 }
