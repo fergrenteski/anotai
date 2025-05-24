@@ -38,6 +38,7 @@ path.forEach((page, i) => {
     if (i === path.length - 1) {
         const span = document.createElement('span');
         span.textContent = name;
+        span.classList.add('page-active');
         container.appendChild(span);
     } else {
         const a = document.createElement('a');

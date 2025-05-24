@@ -337,6 +337,7 @@ SELECT p.list_id,
        SUM(p.price * p.quantity) AS total_categoria
 FROM products p
          JOIN products_category c ON p.category_id = c.products_category_id
+WHERE p.purchased_by IS NOT NULL
 GROUP BY p.list_id, p.category_id, c.name;
 
 -- View Gasto por categoria por usuário.
