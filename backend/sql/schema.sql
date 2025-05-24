@@ -21,6 +21,7 @@ DROP TABLE IF EXISTS user_logs;
 DROP TABLE IF EXISTS groups;
 DROP TABLE IF EXISTS products_category;
 DROP TABLE IF EXISTS groups_category;
+DROP TABLE IF EXISTS lists_category;
 
 -- Tabelas independentes (raízes)
 DROP TABLE IF EXISTS request_logs;
@@ -130,50 +131,52 @@ CREATE TABLE user_group_invite_keys
 CREATE TABLE products_category
 (
     products_category_id SERIAL PRIMARY KEY,
-    name                 VARCHAR(100) NOT NULL
+    name                 VARCHAR(100) NOT NULL,
+    icon                 VARCHAR(100) NOT NULL,
+    color                VARCHAR(100) NOT NULL
 );
 
-INSERT INTO products_category (name)
-VALUES ('Alimentos'),
-       ('Bebidas'),
-       ('Limpeza'),
-       ('Higiene Pessoal'),
-       ('Papelaria'),
-       ('Vestuário'),
-       ('Calçados'),
-       ('Eletrônicos'),
-       ('Eletrodomésticos'),
-       ('Móveis'),
-       ('Decoração'),
-       ('Produtos de Beleza'),
-       ('Pet Shop'),
-       ('Automotivos'),
-       ('Ferramentas'),
-       ('Material de Construção'),
-       ('Brinquedos'),
-       ('Esporte e Lazer'),
-       ('Livros e Revistas'),
-       ('Artesanato'),
-       ('Itens para Festas'),
-       ('Jardinagem'),
-       ('Produtos Naturais e Orgânicos'),
-       ('Cama, Mesa e Banho'),
-       ('Produtos Gourmet'),
-       ('Roupas Íntimas'),
-       ('Malas e Mochilas'),
-       ('Instrumentos Musicais'),
-       ('Energia Sustentável'),
-       ('Artigos de Colecionador'),
-       ('Camping e Aventura'),
-       ('Material Escolar'),
-       ('Segurança e Vigilância'),
-       ('Suplementos e Vitaminas'),
-       ('Produtos de Panificação'),
-       ('Produtos Digitais'),
-       ('Games e Consoles'),
-       ('Produtos de Bebê'),
-       ('Itens de Escritório'),
-       ('Diversos');
+INSERT INTO products_category (name, icon, color) VALUES
+  ('Alimentos', 'fa-utensils', '#D32F2F'),
+  ('Bebidas', 'fa-wine-bottle', '#8E24AA'),
+  ('Limpeza', 'fa-spray-can-sparkles', '#039BE5'),
+  ('Higiene Pessoal', 'fa-soap', '#00ACC1'),
+  ('Papelaria', 'fa-pen', '#5D4037'),
+  ('Vestuário', 'fa-shirt', '#6D4C41'),
+  ('Calçados', 'fa-shoe-prints', '#4E342E'),
+  ('Eletrônicos', 'fa-tv', '#1E88E5'),
+  ('Eletrodomésticos', 'fa-blender', '#3949AB'),
+  ('Móveis', 'fa-couch', '#8D6E63'),
+  ('Decoração', 'fa-paint-roller', '#F4511E'),
+  ('Produtos de Beleza', 'fa-pump-soap', '#C2185B'),
+  ('Pet Shop', 'fa-dog', '#795548'),
+  ('Automotivos', 'fa-car', '#424242'),
+  ('Ferramentas', 'fa-hammer', '#FF8F00'),
+  ('Material de Construção', 'fa-hard-hat', '#FBC02D'),
+  ('Brinquedos', 'fa-puzzle-piece', '#FDD835'),
+  ('Esporte e Lazer', 'fa-futbol', '#43A047'),
+  ('Livros e Revistas', 'fa-book', '#6A1B9A'),
+  ('Artesanato', 'fa-scissors', '#C62828'),
+  ('Itens para Festas', 'fa-party-horn', '#E91E63'),
+  ('Jardinagem', 'fa-seedling', '#2E7D32'),
+  ('Produtos Naturais e Orgânicos', 'fa-leaf', '#388E3C'),
+  ('Cama, Mesa e Banho', 'fa-bed', '#5C6BC0'),
+  ('Produtos Gourmet', 'fa-bowl-food', '#FFA726'),
+  ('Roupas Íntimas', 'fa-heart', '#AD1457'),
+  ('Malas e Mochilas', 'fa-suitcase-rolling', '#455A64'),
+  ('Instrumentos Musicais', 'fa-guitar', '#8E24AA'),
+  ('Energia Sustentável', 'fa-solar-panel', '#00C853'),
+  ('Artigos de Colecionador', 'fa-star', '#FFD600'),
+  ('Camping e Aventura', 'fa-campground', '#558B2F'),
+  ('Material Escolar', 'fa-school', '#1565C0'),
+  ('Segurança e Vigilância', 'fa-shield-halved', '#37474F'),
+  ('Suplementos e Vitaminas', 'fa-capsules', '#AB47BC'),
+  ('Produtos de Panificação', 'fa-bread-slice', '#FF7043'),
+  ('Produtos Digitais', 'fa-cloud', '#29B6F6'),
+  ('Games e Consoles', 'fa-gamepad', '#7E57C2'),
+  ('Produtos de Bebê', 'fa-baby', '#F06292'),
+  ('Itens de Escritório', 'fa-briefcase', '#546E7A'),
+  ('Diversos', 'fa-box', '#BDBDBD');
 
 CREATE TABLE group_users
 (
@@ -185,28 +188,46 @@ CREATE TABLE group_users
     FOREIGN KEY (group_id) REFERENCES groups (group_id) ON DELETE CASCADE
 );
 
+CREATE TABLE lists_category
+(
+    lists_category_id SERIAL PRIMARY KEY,
+    name               VARCHAR(100) NOT NULL
+);
+
 CREATE TABLE lists
 (
     list_id     SERIAL PRIMARY KEY,
     name        TEXT NOT NULL,
     description TEXT NOT NULL,
+    category_id INT  NOT NULL,
     created_by  INT  NOT NULL,
     group_id    INT  NOT NULL,
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     expired_at  TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users (user_id) ON DELETE CASCADE,
-    FOREIGN KEY (group_id) REFERENCES groups (group_id) ON DELETE CASCADE
+    FOREIGN KEY (group_id) REFERENCES groups (group_id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES lists_category (lists_category_id) ON DELETE CASCADE
 );
 
+INSERT INTO lists_category (name)
+VALUES ('Família'),
+       ('Amigos'),
+       ('Trabalho'),
+       ('Comunidade'),
+       ('Clube'),
+       ('Escola'),
+       ('Projeto'),
+       ('Outros');
+       
 CREATE TABLE products
 (
     product_id   SERIAL PRIMARY KEY,
     name         VARCHAR(100) NOT NULL,
     description  TEXT,
     category_id  INT          NOT NULL,
-    price        NUMERIC      NOT NULL,
-    quantity     INT          NOT NULL DEFAULT 0,
+    price        NUMERIC      DEFAULT 0,
+    quantity     INT          NOT NULL DEFAULT 1,
     purchased_by INT                   DEFAULT NULL,
     added_by     INT          NOT NULL,
     list_id      INT          NOT NULL,
@@ -217,7 +238,6 @@ CREATE TABLE products
     FOREIGN KEY (list_id) REFERENCES lists (list_id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES products_category (products_category_id) ON DELETE CASCADE
 );
-
 
 -- Agora recriamos as Views
 CREATE OR REPLACE VIEW vw_groups AS
@@ -243,6 +263,8 @@ SELECT p.product_id,
        p.name   AS product_name,
        p.category_id,
        pc.name  AS category_name,
+       pc.icon AS category_icon,
+       pc.color AS category_color,
        p.description,
        p.price,
        p.quantity,
@@ -285,10 +307,13 @@ SELECT l.list_id,
        l.created_by,
        l.group_id,
        g.name as group_name,
+       l.category_id,
+       pc.name as category_name,
        l.created_at
 FROM lists l
          LEFT JOIN groups g ON g.group_id = l.group_id
          LEFT JOIN groups_category gc ON gc.groups_category_id = g.category_id
+         LEFT JOIN products_category pc ON pc.products_category_id = l.category_id
 WHERE g.expired_at IS NULL
   AND l.expired_at IS NULL;
 
@@ -336,16 +361,13 @@ FROM ranked
 WHERE categoria_rank <= 3;
 
 CREATE OR REPLACE VIEW vw_invites AS
-    SELECT
-        ugik.group_invite_token_id AS id,
-        ugik.user_id as user_id,
-        ugik.group_id as group_id,
-        ugik.token as invite,
-        vg.group_name as group_name,
-        vg.category_name as group_type,
-        vg.user_admin_name as invited_by
-    FROM user_group_invite_keys ugik
-    INNER JOIN vw_groups vg ON ugik.group_id = vg.group_id;
-
-
-
+SELECT
+    ugik.group_invite_token_id AS id,
+    ugik.user_id as user_id,
+    ugik.group_id as group_id,
+    ugik.token as invite,
+    vg.group_name as group_name,
+    vg.category_name as group_type,
+    vg.user_admin_name as invited_by
+FROM user_group_invite_keys ugik
+LEFT JOIN vw_groups vg on ugik.group_id = vg.group_id

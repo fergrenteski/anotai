@@ -5,6 +5,8 @@
 let user = {};
 let appState = null; // Estado global da aplicação
 const appElement = document.getElementById('app'); // Elemento raiz da aplicação
+let groupIdParam = null;
+let listIdParam = null;
 
 // =========================
 // FUNÇÃO COM TOKEN
@@ -31,23 +33,26 @@ async function fetchComToken(url, options = {}) {
 // CARREGAMENTO DE DADOS
 // =========================
 
+async function loadProductCategories() {
+    // Busca categorias de product da API
+    const data = await fetchComToken('http://localhost:3000/api/groups/products/categories');
+    return data.data;
+}
+
 /**
  * Carrega a lista de produtos da API.
  */
 async function loadProducts() {
-    const data = await fetchComToken('http://localhost:3000/api/groups/1/lists/1/products');
+    const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products`);
 
-    if (!data.success) {
-        alert("Erro: " + data.message);
-        return;
-    }
     user = data.user;
     // Define Iniciais de Perfil
-    document.getElementById('userName').textContent = data.user.name;
+    document.getElementById('userName').textContent = user.name;
     // Define as iniciais do usuário para o ícone
-    document.getElementById('userInitials').textContent = data.user.name.split(' ').map(n => n[0]).join('');
+    document.getElementById('userInitials').textContent = user.name.split(' ').map(n => n[0]).join('');
 
-    return data.data;
+    return data.data.rows;
+
 }
 
 // =========================
@@ -57,16 +62,14 @@ async function loadProducts() {
 /**
  * Inicializa o estado global da aplicação.
  */
-async function initializeAppState(currentView, activeTab, insights, productId, mostrarProdutosVazios) {
-    const products = {};
-    // await loadProducts();
-
+async function initializeAppState(currentView, activeTab, products, insights, productId, user, mostrarProdutosVazios) {
     appState = {
         currentView,
         activeTab,
         products,
         insights,
         productId,
+        user,
         mostrarProdutosVazios
     };
 }
@@ -78,11 +81,24 @@ async function startApp(
     currentView = "listaProdutos",
     activeTab = "meus-produtos",
     insights = [],
+    products = [],
     productId = null,
+    user = {},
     mostrarProdutosVazios = false
 ) {
-    await initializeAppState(currentView, activeTab, insights, productId, mostrarProdutosVazios);
+    await loadURLParams();
+    products = await loadProducts();
+    await initializeAppState(currentView, activeTab, products, insights, productId, user, mostrarProdutosVazios);
     renderApp();
+}
+
+async function loadURLParams() {
+    // Obtém a string da query da URL atual
+    const params = new URLSearchParams(window.location.search);
+
+    // Acessa os parâmetros
+    groupIdParam = params.get("groupid");
+    listIdParam = params.get("listid");
 }
 
 // =========================
@@ -95,9 +111,10 @@ async function startApp(
 function renderApp() {
     appElement.innerHTML = '';
 
+    renderTabs();
+
     switch (appState.currentView) {
         case "listaProdutos":
-            renderTabs();
             switch (appState.activeTab) {
                 case "meus-produtos":
                     renderProdutos();
@@ -110,14 +127,18 @@ function renderApp() {
             }
             break;
         case "novoProduto":
+            renderGerenciarProduto();
+            break;
         case "editarProduto":
             renderGerenciarProduto();
+            break;
+        case "comprarProduto":
+            renderComprarProduto();
             break;
         case "visualizarProdutosUsuario":
             renderVisualizarProdutosUsuario();
             break;
         default:
-            renderTabs();
             renderProdutos();
     }
 }
@@ -147,7 +168,8 @@ function renderTabs() {
 /**
  * Renderiza a tela de produtos.
  */
-function renderProdutos() {
+async function renderProdutos() {
+
     const titulo = document.createElement('h1');
     titulo.textContent = 'Produtos da Lista';
     titulo.style.textAlign = 'center';
@@ -157,8 +179,9 @@ function renderProdutos() {
     clearDiv.style.clear = 'both';
     appElement.appendChild(clearDiv);
 
-    // Verifica se lista está vazia ou se deve forçar exibição de estado vazio
-    if (appState.products || appState.products.length === 0 || appState.mostrarProdutosVazios) {
+    appState.products = await loadProducts();
+
+    if (!appState.products || appState.products.length === 0 || appState.mostrarProdutosVazios) {
         const emptyState = document.createElement('div');
         emptyState.style.textAlign = 'center';
 
@@ -173,12 +196,167 @@ function renderProdutos() {
         const createButton = document.createElement('button');
         createButton.textContent = 'Adicionar Produto';
         createButton.style.width = '100%';
-        createButton.addEventListener('click', () => startApp("novoProduto"));
+        createButton.addEventListener('click', async (e) => {
+            e.preventDefault();
+            startApp("novoProduto")
+        });
         emptyState.appendChild(createButton);
 
         appElement.appendChild(emptyState);
     } else {
-        // TO DO: Renderizar os produtos
+
+        function hexToRgba(hex, alpha = 1) {
+            const hexClean = hex.replace('#', '');
+            const r = parseInt(hexClean.slice(0, 2), 16);
+            const g = parseInt(hexClean.slice(2, 4), 16);
+            const b = parseInt(hexClean.slice(4, 6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        appState.products.forEach((product) => {
+            const div = document.createElement("div");
+            div.className = "item";
+
+            const compradoPorMim = product.purchased_by === user.id;
+            const adicionadoPorMim = product.added_by === user.id;
+            const comprado = !!product.purchased_by;
+
+            if (comprado) div.classList.add("comprado");
+
+            div.innerHTML = `
+                <div class="item-info">
+                  <i class="fa-solid ${product.category_icon}" style="color: ${product.category_color}; background-color: ${hexToRgba(product.category_color, 0.1)}"></i>
+                  <div class="div-info" style="display: flex; flex-direction: column">
+                    <div style="display: flex; align-items: center; gap: 3px">
+                        <strong>${product.product_name}</strong>|<span class="item-meta">${product.description}</span>
+                    </div>
+                    <div class="div-info" style="display: flex; align-items: center; gap: 3px">
+                        ${comprado ? `<span>R$ ${parseFloat(product.price).toFixed(2)}</span> |` : ""}<span class="item-meta">Qtd. ${parseInt(product.quantity)}</span>
+                    </div>
+                    <span class="item-meta comprador">${comprado ? `Comprado por: ${product.purchased_name}` : `Adicionado por: ${product.added_name}`}</span>
+                  </div>
+                </div>
+                <div class="actions">
+                  <button class="comprar"><i class="fa-solid"></i></button>
+                  <button class="excluir" style="background-color: ${hexToRgba("#e12424", 0.2)}"><i class="fa-solid fa-trash" style="color:#e12424;"></i></button>
+                </div>
+              `;
+
+            const buttonBuy = div.querySelector(".comprar");
+            const buttonDelete = div.querySelector(".excluir");
+            const icon = buttonBuy.querySelector("i");
+
+            const naoMostrarDelete =
+                (!compradoPorMim && !adicionadoPorMim) ||
+                (!comprado && !adicionadoPorMim) ||
+                (comprado && compradoPorMim && !adicionadoPorMim);
+
+            if (naoMostrarDelete) {
+                buttonDelete.style.display = 'none';
+            }
+
+            buttonDelete.addEventListener('click', async(e) => {
+                e.stopPropagation();
+
+                const  confirm = window.confirm(`Deseja excluir o produto: "${product.product_name}"?`);
+                if (!confirm) return;
+
+                await fetchComToken(
+                    `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${product.product_id}`,
+                    {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                    }
+                )
+
+                startApp();
+            });
+
+            if (comprado) {
+                // Estilo de "comprado"
+                icon.className = "fa-solid fa-rotate-left";
+                icon.style.color = "#b68713";
+                buttonBuy.style.backgroundColor = hexToRgba("#b68713", 0.2);
+                buttonBuy.classList.add("btn-amarelo");
+                if(!compradoPorMim && !adicionadoPorMim) buttonBuy.style.display = "none";
+                buttonBuy.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    if(confirm("Reverter Compra")) {
+                        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${product.product_id}/sell`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        alert(data.message);
+                        await startApp("meusProdutos");
+                    }
+                })
+            } else {
+                // Estilo de "não comprado"
+                icon.className = "fa-solid fa-check";
+                icon.style.color = "#4CAF50";
+                buttonBuy.style.backgroundColor = hexToRgba("#4CAF50", 0.2);
+                buttonBuy.classList.add("btn-verde");
+                if(adicionadoPorMim) {
+                    div.classList.add("clicavel");
+                    div.addEventListener("click", (e) => {
+                        e.stopPropagation();
+                        startApp("editarProduto", null, null,null, product.product_id)
+                    });
+                }
+                buttonBuy.addEventListener("click", async (e) => {
+                    e.stopPropagation();
+                    startApp("comprarProduto", "meus-produtos", null,null, product.product_id);
+                })
+
+            }
+
+            buttonBuy.addEventListener("click",  (e) => {
+                e.stopPropagation();
+                const meta = div.querySelector(".comprador");
+
+                if (div.classList.contains("comprado")) {
+                    // Desfazer compra
+                    div.classList.remove("comprado");
+                    product.purchased_by = null;
+
+                    meta.textContent = `Adicionado por: ${product.added_name}`;
+                    icon.className = "fa-solid fa-check";
+                    icon.style.color = "#4CAF50";
+                    buttonBuy.style.backgroundColor = hexToRgba("#4CAF50", 0.2);
+                    buttonBuy.classList.remove("btn-amarelo");
+                    buttonBuy.classList.add("btn-verde");
+                } else {
+                    // Marcar como comprado
+                    const comprador = product.purchased_name;
+                    product.purchased_by = comprador;
+                    product.purchased_name = comprador;
+
+                    div.classList.add("comprado");
+                    meta.textContent = `Comprado por: ${comprador}`;
+                    icon.className = "fa-solid fa-rotate-left";
+                    icon.style.color = "#b68713";
+                    buttonBuy.style.backgroundColor = hexToRgba("#b68713", 0.2);
+                    buttonBuy.classList.remove("btn-verde");
+                    buttonBuy.classList.add("btn-amarelo");
+                }
+            });
+
+            appElement.appendChild(div);
+
+        });
+        // Botão Criar
+        const createButton = document.createElement('button');
+        createButton.textContent = 'Adicionar Produto';
+        createButton.style.width = '100%';
+        createButton.addEventListener('click', async (e) => {
+            e.preventDefault();
+            startApp("novoProduto")
+        });
+        appElement.appendChild(createButton);
     }
 }
 
@@ -195,6 +373,16 @@ async function renderInsights(filtro = '') {
         valor: parseFloat(c.total)
     }));
 
+    const usuarioInfoMap = {};
+
+    data.totalSpendingByUser.forEach(user => {
+        usuarioInfoMap[user.name] = {
+            id: user.userId,
+            email: user.userEmail,
+            total: user.amount
+        };
+    });
+
     const gastosPorUsuario = {};
     data.categorySpendingByUser.forEach(user => {
         gastosPorUsuario[user.name] = {};
@@ -205,6 +393,13 @@ async function renderInsights(filtro = '') {
 
     const usuariosFiltrados = Object.keys(gastosPorUsuario).filter(nome => nome.toLowerCase().includes(filtro.toLowerCase()));
 
+    // Aplica o filtro também ao usuarioInfoMap
+    const usuarioInfoListFiltrada = usuariosFiltrados
+        .filter(nome => usuarioInfoMap[nome]) // garante que o nome exista no map
+        .map(nome => ({
+            nome,
+            ...usuarioInfoMap[nome]
+        }));
 
     const topCategorias = categoriasBrutas
         .sort((a, b) => b.valor - a.valor)
@@ -512,7 +707,7 @@ async function renderInsights(filtro = '') {
     function renderListaUsuarios(usuariosParaRenderizar) {
         listaContainer.innerHTML = '';
 
-        usuariosParaRenderizar.forEach((nome, index) => {
+        usuariosParaRenderizar.forEach(user => {
             const container = document.createElement('div');
             container.style.display = 'flex';
             container.style.justifyContent = 'space-between';
@@ -524,9 +719,9 @@ async function renderInsights(filtro = '') {
 
             const info = document.createElement('div');
             const nomeEl = document.createElement('strong');
-            nomeEl.textContent = nome;
+            nomeEl.textContent = user.nome;
             const emailEl = document.createElement('p');
-            emailEl.textContent = `${nome.toLowerCase()}@email.com`;
+            emailEl.textContent = `${user.nome.toLowerCase()}@email.com`;
             emailEl.style.fontSize = '0.9em';
             emailEl.style.margin = '2px 0 0 0';
             info.appendChild(nomeEl);
@@ -538,12 +733,12 @@ async function renderInsights(filtro = '') {
 
             const botao = document.createElement('button');
             botao.textContent = 'Visualizar';
-            botao.addEventListener('click', () => {
-                startApp("visualizarProdutosUsuario", null, null, nome);
+            botao.addEventListener('click', async () => {
+                startApp("visualizarProdutosUsuario", null, null, null, null, user);
             });
 
             const valor = document.createElement('span');
-            valor.textContent = `R$ ${valoresPessoasFiltradas[index].toFixed(2)}`;
+            valor.textContent = `R$ ${user.total.toFixed(2)}`;
             valor.style.color = 'red';
             valor.style.marginRight = '10px';
             botaoContainer.appendChild(valor);
@@ -556,7 +751,7 @@ async function renderInsights(filtro = '') {
     }
 
     // Chame a função para renderizar a lista inicial
-    renderListaUsuarios(usuariosFiltrados);
+    renderListaUsuarios(usuarioInfoListFiltrada);
 
     // Adiciona o evento de input ao filtro
     filtroInput.addEventListener('input', () => {
@@ -568,38 +763,16 @@ async function renderInsights(filtro = '') {
 }
 
 // Visualizar Produtos Usuarios
-function renderVisualizarProdutosUsuario() {
-    appElement.innerHTML = '';
+async function renderVisualizarProdutosUsuario() {
+
+    const data = await fetchComToken(`http://localhost:3000/api/member/lists/1/users/${appState.user.id}/products`)
+
+    const produtos = await data.data;
 
     const titulo = document.createElement('h1');
-    titulo.textContent = `Produtos comprados por ${appState.productId}`;
+    titulo.textContent = `Produtos comprados por ${appState.user.nome}`;
     titulo.style.textAlign = 'center';
     appElement.appendChild(titulo);
-
-    // Simulando produtos e valores por usuário (com categoria)
-    const produtosFake = {
-        'Luiz': [
-            { nome: 'Arroz', categoria: 'Alimentos', valor: 20.00, quantidade: 2 },
-            { nome: 'Feijão', categoria: 'Alimentos', valor: 10.50, quantidade: 3 },
-            { nome: 'Refrigerante', categoria: 'Bebidas', valor: 5.90, quantidade: 4 }
-        ],
-        'Ana': [
-            { nome: 'Leite', categoria: 'Bebidas', valor: 4.50, quantidade: 5 },
-            { nome: 'Sabonete', categoria: 'Higiene', valor: 2.30, quantidade: 3 },
-            { nome: 'Detergente', categoria: 'Limpeza', valor: 3.90, quantidade: 2 }
-        ],
-        'Bernardo': [
-            { nome: 'Cerveja', categoria: 'Bebidas', valor: 7.00, quantidade: 6 },
-            { nome: 'Ração', categoria: 'Pet', valor: 15.00, quantidade: 4 },
-            { nome: 'Desinfetante', categoria: 'Limpeza', valor: 4.50, quantidade: 2 }
-        ],
-        'Ryan': [
-            { nome: 'Papel Higiênico', categoria: 'Higiene', valor: 6.50, quantidade: 8 },
-            { nome: 'Macarrão', categoria: 'Alimentos', valor: 3.00, quantidade: 4 }
-        ]
-    };
-
-    const produtos = produtosFake[appState.productId] || [];
 
     if (produtos.length === 0) {
         const vazio = document.createElement('p');
@@ -635,21 +808,18 @@ function renderVisualizarProdutosUsuario() {
         produtos.forEach(produto => {
             const linha = document.createElement('tr');
 
-            const subtotal = produto.valor * produto.quantidade;
+            const subtotal = parseFloat(produto.price) * parseInt(produto.quantity);
             total += subtotal;
 
             const tdNome = document.createElement('td');
-            tdNome.textContent = produto.nome;
+            tdNome.textContent = produto.product_name;
 
             const tdCategoria = document.createElement('td');
-            tdCategoria.textContent = produto.categoria;
+            tdCategoria.textContent = produto.category_name;
 
-            const tdValor = document.createElement('td');
-            tdValor.textContent = `R$ ${produto.valor.toFixed(2)}`;
-            tdValor.style.textAlign = 'right';
 
             const tdQtd = document.createElement('td');
-            tdQtd.textContent = produto.quantidade;
+            tdQtd.textContent = parseInt(produto.quantity);
 
             const tdTotal = document.createElement('td');
             tdTotal.textContent = `R$ ${subtotal.toFixed(2)}`;
@@ -668,27 +838,7 @@ function renderVisualizarProdutosUsuario() {
             linha.appendChild(tdTotal);
             tbody.appendChild(linha);
         });
-
-        tabela.appendChild(tbody);
-        appElement.appendChild(tabela);
-
-        // Total geral
-        const totalDiv = document.createElement('div');
-        totalDiv.style.textAlign = 'right';
-        totalDiv.style.marginTop = '10px';
-        const totalTexto = document.createElement('strong');
-        totalTexto.textContent = `Total: R$ ${total.toFixed(2)}`;
-        totalTexto.style.marginRight = '8px';
-        totalTexto.style.fontSize = '1.25em';
-        totalDiv.appendChild(totalTexto);
-        appElement.appendChild(totalDiv);
     }
-
-    const voltar = document.createElement('button');
-    voltar.textContent = '← Voltar';
-    voltar.style.marginTop = '20px';
-    voltar.addEventListener('click', () => startApp("listaProdutos", "insights"));
-    appElement.appendChild(voltar);
 }
 
 
@@ -697,7 +847,231 @@ function renderVisualizarProdutosUsuario() {
  * TO DO: Implementar criação e edição.
  */
 async function renderGerenciarProduto() {
-    // TO DO: Implementar renderização de formulário para novo ou editar produto
+
+    // Define se estamos no fluxo de criação
+    const isEditing = appState.currentView === 'editarProduto';
+    let product = {id: "", product_name: "", description: "", quantity: "", price: "", category_name: ""};
+
+    if(isEditing) {
+        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.productId}`)
+        product = data.data.rows[0];
+    }
+
+    // Título centralizado
+    const titulo = document.createElement('h1');
+    titulo.textContent = isEditing
+        ? 'Editar Produto'
+        : 'Criar Produto';
+    titulo.style.textAlign = 'center';
+
+    // Form
+    const form = document.createElement('form');
+    form.id = 'form-gerenciar-produto';
+    form.style.marginTop = '20px';
+    form.method = isEditing
+        ? 'PUT'
+        : 'POST';
+    form.appendChild(titulo);
+
+    // --- Nome (sempre existe, mas só editável ao criar)
+    const labelNome = document.createElement('label');
+    labelNome.textContent = 'Nome:';
+    form.appendChild(labelNome);
+
+    const inputNome = document.createElement('input');
+    inputNome.type = 'text';
+    inputNome.id = 'inputName';
+    inputNome.name = 'nome';
+    inputNome.value = product.product_name;
+    inputNome.placeholder = 'Digite o nome do produto';
+    inputNome.required = true;
+    form.appendChild(inputNome);
+
+    // --- Descrição:
+    const labelDesc = document.createElement('label');
+    labelDesc.textContent = 'Descrição:';
+    form.appendChild(labelDesc);
+
+    const inputDesc = document.createElement('input');
+    inputDesc.type = 'text';
+    inputDesc.id = 'inputDesc';
+    inputDesc.name = 'descricao';
+    inputDesc.value = product.description;
+    inputDesc.placeholder = 'Digite a descrição';
+    inputDesc.required = true;
+    form.appendChild(inputDesc);
+
+    // --- Categoria
+    const labelCate = document.createElement('label');
+    labelCate.textContent = 'Categoria:';
+    form.appendChild(labelCate);
+
+    // Cria o select
+    const selectCate = document.createElement('select');
+    selectCate.id = 'inputCategory';
+    selectCate.name = 'category_id';
+    selectCate.required = true;
+
+    // Opção padrão
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = 'Selecione uma categoria';
+    defaultOpt.disabled = true;
+    defaultOpt.selected = !product.category_name;
+    selectCate.appendChild(defaultOpt);
+
+    // Carrega as categorias e monta as opções
+    const categories = await loadProductCategories();
+    categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.id;
+        opt.textContent = cat.name.charAt(0).toUpperCase() + cat.name.slice(1);
+        selectCate.appendChild(opt);
+    });
+
+    form.appendChild(selectCate);
+
+    const labelQuantidade = document.createElement('label');
+    labelQuantidade.textContent = 'Quantidade:';
+    form.appendChild(labelQuantidade);
+
+    const inputQuantidade = document.createElement('input');
+    inputQuantidade.type = 'number';
+    inputQuantidade.id = 'inputQuan';
+    inputQuantidade.name = 'quantidade';
+    inputQuantidade.min = 1;
+    inputQuantidade.value = isEditing? product.quantity : 1;
+    inputQuantidade.required = true;
+    form.appendChild(inputQuantidade);
+
+    // Botão salvar/criar: full width
+    const buttonSalvar = document.createElement('button');
+    buttonSalvar.textContent = isEditing ? 'Salvar' : 'Criar';
+    buttonSalvar.style.display = 'block';
+    buttonSalvar.style.width = '100%';
+    form.addEventListener('submit', async (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const objeto = {
+            id: null,
+            name: document.getElementById('inputName').value,
+            description: document.getElementById('inputDesc').value,
+            categoryId: document.getElementById('inputCategory').value,
+            quantity: document.getElementById('inputQuan').value,
+            listId: listIdParam
+        }
+
+        const url = !isEditing
+            ? `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products`
+            : `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.productId}`;
+        const method = !isEditing
+            ? 'POST'
+            : 'PUT';
+        const data = await fetchComToken(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(objeto)
+        })
+
+        alert(data.message);
+
+        if(data.success) {
+            setTimeout(startApp, 1000);
+        }
+    })
+
+    form.appendChild(buttonSalvar);
+
+    // Botão Voltar: igual ao groups (full width e margem inferior)
+    const buttonVoltar = document.createElement('button');
+    buttonVoltar.type = 'button';
+    buttonVoltar.textContent = 'Voltar';
+    buttonVoltar.style.display = 'block';
+    buttonVoltar.style.width = '100%';
+    buttonVoltar.style.marginBottom = '10px';
+    buttonVoltar.addEventListener('click', () => {
+        startApp();
+    });
+    form.appendChild(buttonVoltar);
+
+    appElement.appendChild(form);
+}
+
+async function renderComprarProduto() {
+    // Limpa conteúdo anterior
+    const appElement = document.getElementById('app');
+    appElement.innerHTML = '';
+
+    // Título centralizado
+    const titulo = document.createElement('h1');
+    titulo.textContent = 'Verificação de compra';
+    titulo.style.textAlign = 'center';
+    appElement.appendChild(titulo);
+
+    // Cria o form
+    const form = document.createElement('form');
+    form.id = 'form-compra-produto';
+    form.style.marginTop = '20px';
+
+    // Label e input para preço
+    const labelBuyPrice = document.createElement('label');
+    labelBuyPrice.textContent = 'Preço:';
+    form.appendChild(labelBuyPrice);
+
+    const inputBuyPrice = document.createElement('input');
+    inputBuyPrice.type = 'number';
+    inputBuyPrice.id = 'inputBuyPrice';
+    inputBuyPrice.name = 'price';
+    inputBuyPrice.placeholder = 'Digite o preço do produto';
+    inputBuyPrice.required = true;
+    inputBuyPrice.step = '0.01';
+    inputBuyPrice.min = '0';
+    inputBuyPrice.style.display = 'block';
+    inputBuyPrice.style.width = '100%';
+    inputBuyPrice.style.margin = '5px 0 15px';
+    form.appendChild(inputBuyPrice);
+
+    const buttonConfirmarBuy = document.createElement('button');
+    buttonConfirmarBuy.type = 'submit';
+    buttonConfirmarBuy.textContent = 'Confirmar compra';
+    buttonConfirmarBuy.style.display = 'block';
+    buttonConfirmarBuy.style.width = '100%';
+    form.appendChild(buttonConfirmarBuy);
+    buttonConfirmarBuy.addEventListener('click', async (e) => {
+        e.preventDefault()
+
+        const price = document.getElementById('inputBuyPrice').value;
+
+        if(!price || price <= 0) {
+            alert("Produto deve ter preço");
+            return;
+        }
+        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.productId}/buy`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                price: price
+            })
+        })
+        alert(data.message);
+        startApp();
+    })
+
+    const buttonVoltar = document.createElement('button');
+    buttonVoltar.type = 'button';
+    buttonVoltar.textContent = 'Voltar';
+    buttonVoltar.style.display = 'block';
+    buttonVoltar.style.width = '100%';
+    buttonVoltar.style.marginBottom = '10px';
+    buttonVoltar.addEventListener('click', () => startApp());
+    form.appendChild(buttonVoltar);
+
+    // Anexa o form ao container principal
+    appElement.appendChild(form);
 }
 
 // =========================
@@ -708,4 +1082,3 @@ async function renderGerenciarProduto() {
 document.addEventListener('DOMContentLoaded', async () => {
     await startApp();
 });
-
