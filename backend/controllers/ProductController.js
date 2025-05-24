@@ -16,6 +16,7 @@ class ProductController {
      * @returns {Promise<import("express").Response>}
      */
     async getInsights(req, res) {
+
         try {
             const listId = req.params.listId;
 
@@ -78,20 +79,19 @@ class ProductController {
 
         } catch (error) {
             console.error("Erro ao buscar insights da lista:", error);
-            return res.status(500).json({
-                success: false,
-                message: "Erro ao buscar insights da lista"
-            });
+            return res.status(500).json({ success: false, message: "Erro ao buscar insights da lista"});
         }
     }
+
     async getProductsByUserId(req, res) {
+
         const listId = req.params.listid;
         const userId = req.params.userid;
 
         if (!listId || !userId) return res.status(404).json({success: false, message: "Parametros incorretos"});
 
         try {
-            const {rows} = await this.productService.getProductsByUserId(listId , userId);
+            const {rows} = await this.productService.getProductsByUserId(listId, userId);
             return res.status(200).json({success: true, data: rows});
         } catch (error) {
             console.error("Erro ao buscar produtos do usuário:", error);
@@ -99,84 +99,84 @@ class ProductController {
         }
 
     }
-    async create(req, res){
+
+    async create(req, res) {
 
         const {name, description, categoryId, quantity, listId} = req.body;
         const addedBy = req.usuario.id;
         try {
             await this.productService.create(name, description, categoryId, addedBy, quantity, listId);
-            return res.status(201).json({ success: true , message: "Produto Adicionado com sucesso"});
+            return res.status(201).json({success: true, message: "Produto Adicionado com sucesso"});
         } catch (error) {
             console.error("Erro ao criar produto", error);
-            return res.status(500).json({ success: false, message: error.message });
+            return res.status(500).json({success: false, message: error.message});
         }
     }
 
-    async update(req, res){
+    async update(req, res) {
 
-        const { name, description, categoryId, quantity } = req.body;
-        const { productId } = req.params;
+        const {name, description, categoryId, quantity} = req.body;
+        const {productId} = req.params;
 
         try {
-
-            await  this.productService.update(productId,name, description, categoryId, quantity);
-            return res.status(200).json({ success: true, message: "Produto Atualizado com sucesso"});
-
-
-        }catch(error){
+            await this.productService.update(productId, name, description, categoryId, quantity);
+            return res.status(200).json({success: true, message: "Produto Atualizado com sucesso"});
+        } catch (error) {
             console.error("Erro ao atualizar produto", error);
-            return res.status(500).json({ success: false, message: error.message });
+            return res.status(500).json({success: false, message: error.message});
         }
     }
 
-    async getAll(req, res){
+    async getAll(req, res) {
 
-        const { listId } = req.params;
+        const {listId} = req.params;
 
         try {
-            const rows = await this.productService.getAll(listId);
-
+            const {rows} = await this.productService.getAll(listId);
             return res.status(200).json({success: true, data: rows, user: req.usuario});
         } catch (error) {
             console.error("Erro ao buscar produtos", error);
-            return res.status(500).json({ success: false, message: error.message });
+            return res.status(500).json({success: false, message: "Erro ao buscar produtos"});
         }
     }
 
-    async delete(req, res){
+    async delete(req, res) {
 
-        const { productId } = req.params;
+        const {productId} = req.params;
 
-        try{
-
-            console.log("Entrei no delete");
-            const rows = await this.productService.delete(productId);
-            return res.status(200).json({success: true, data: rows});
-
-        }catch(error){
+        try {
+            await this.productService.delete(productId);
+            return res.status(200).json({success: true, message: "Produto Deletado com sucesso"});
+        } catch (error) {
             console.error("Erro ao deletar produto", error);
-            return res.status(500).json({ success: false, message: error.message });
+            return res.status(500).json({success: false, message: "Erro ao deletar produto"});
         }
     }
 
-    async updateBuy(req, res){
+    async updateBuy(req, res) {
 
         const buyBy = req.usuario.id;
-        const { productId, option } = req.params;
+        const {productId, option} = req.params;
         const { price } = req.body;
 
-        if(option !== 'sell' && option !== 'buy') return res.status(401).json({ success: false, message: "Rota Inválida" });
+        if (option !== 'sell' && option !== 'buy') return res.status(401).json({
+            success: false,
+            message: "Rota Inválida"
+        });
 
         const buy = option === 'buy';
 
         try {
 
-            const rows = await this.productService.updateBuy(buy ? buyBy : null,buy ? price : null, productId);
-            return res.status(200).json({success: true, data: rows, message:  `Produto ${buy ? 'Comprado' : 'Revertido'} com sucesso`});
+            await this.productService.updateBuy(buy ? buyBy : null, buy ? price : null, productId);
+            return res.status(200).json({
+                success: true,
+                message: `Produto ${buy ? 'Comprado' : 'Revertido'} com sucesso`
+            });
 
-        }catch(error){
-            console.error("Erro ao atualizar o comprador", error);
-            return res.status(500).json({ success: false, message: error.message });
+        } catch (error) {
+            console.error("Erro ao atualizar o estado do produto", error);
+            return res.status(500).json({success: false, message: "Erro ao atualizar o estado do produto"});
         }
     }
 
@@ -184,14 +184,12 @@ class ProductController {
 
         const {productId} = req.params;
 
-        try{
-
+        try {
             const rows = await this.productService.getById(productId);
-            return res.status(200).json({success: true, data: rows, message:"Produto encontrado"});
-
-        }catch(error){
+            return res.status(200).json({success: true, data: rows, message: "Produto encontrado"});
+        } catch (error) {
             console.error("Erro ao buscar produto", error);
-            return res.status(500).json({ success: false, message: error.message });
+            return res.status(500).json({success: false, message: error.message});
         }
     }
 }

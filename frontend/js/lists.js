@@ -240,6 +240,7 @@ async function deleteList(lista) {
                 }).catch(() => {
                     // Nada aqui. Silencia completamente.
                 })
+                await startApp();
             }
         })
 }

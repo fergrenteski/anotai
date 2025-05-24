@@ -336,8 +336,8 @@ function renderConvitesGrupo() {
                             }).catch(() => {
                                 // Nada aqui. Silencia completamente.
                             });
+                            startApp("listaGrupos", 'convites');
                         }
-                        startApp("listaGrupos", 'convites');
                     })
             });
             actionButtons.appendChild(acceptBtn);
@@ -358,8 +358,8 @@ function renderConvitesGrupo() {
                             }).catch(() => {
                                 // Nada aqui. Silencia completamente.
                             });
+                            startApp("listaGrupos", 'convites');
                         }
-                        startApp("listaGrupos", 'convites');
                     })
             });
             actionButtons.appendChild(rejectBtn);
@@ -623,8 +623,8 @@ async function deleteGroup(grupo) {
                 }).catch(() => {
                     // Nada aqui. Silencia completamente.
                 });
+                await startApp();
             }
-            await startApp();
         });
 }
 

@@ -90,12 +90,6 @@ input {
     margin-top: 5px;
 }
 
-.toggle-btn {
-    background: transparent;
-    border: 1px solid #fff;
-    margin-top: 15px;
-}
-
 .container.active .login-container {
     opacity: 0;
 }
@@ -117,6 +111,12 @@ input {
     cursor: pointer;
     margin-top: 5px;
     width: 100%;
+}
+
+.toggle-btn {
+    background: transparent;
+    border: 1px solid #fff;
+    margin-top: 15px;
 }
 
 #requisitosSenha {
