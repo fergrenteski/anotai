@@ -9,8 +9,26 @@ const pool = require("../database/database");
  */
 async function runQuery(queryKey, params = []) {
     const queries = await loadQueries();
-    const { rows } = await pool.query(queries[queryKey], params);
-    return { rows };
+
+    if (!queries) {
+        throw new Error("Falha ao carregar queries do YAML.");
+    }
+
+    console.log("Queries carregadas:", Object.keys(queries));
+
+    const query = queries[queryKey];
+
+    if (!query) {
+        throw new Error(`Query com a chave "${queryKey}" não encontrada no YAML.`);
+    }
+
+    try {
+        const { rows } = await pool.query(query, params);
+        return { rows };
+    } catch (error) {
+        console.error(`Erro ao executar a query "${queryKey}":`, error);
+        throw new Error(`Erro na execução da query: ${error.message}`);
+    }
 }
 
 module.exports = { runQuery };

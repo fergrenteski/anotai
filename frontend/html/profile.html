@@ -1,36 +1,73 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
+  <style>
+    #userInitials, #userName {
+      display: none;
+    }
+  </style>
+
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Editar Perfil</title>
   <link rel="stylesheet" href="../css/header.css">
-  <link rel="stylesheet" href="../css/profile.css" />
+  <link rel="stylesheet" href="../css/profile.css">
 </head>
 <body>
-  <div class="container">
-    <div class="profile-card">
-      <img src="" alt="Foto de perfil" class="profile-image" id="profileImagePreview" />
-      <h1 class="profile-name" id="profileNameText">Carregando...</h1>
-      <p class="profile-email" id="profileEmailText">carregando@exemplo.com</p>
-
-      <form id="profile-form">
-        <label for="nameInput">Nome completo</label>
-        <input type="text" id="nameInput" name="name" required />
-
-        <label for="emailInput">E-mail</label>
-        <input type="email" id="emailInput" name="email" required />
-
-        <label for="imageInput">Foto de perfil</label>
-        <input type="file" id="imageInput" name="profile_img" accept="image/*" />
-
-        <button type="button" class="edit-button" id="button-save-profile">
-          Salvar alterações
-        </button>
-      </form>
-    </div>
+<div class="header">
+  <div class="logo" id="logo">Anota-ai</div>
+  <nav>
+    <a href="groups.html">GRUPOS</a>
+    <a href="#" id="list-link">LISTAS</a>
+  </nav>
+  <div class="user-area" id="userArea">
+    <span id="logout">SAIR</span>
+    <div class="user-icon" id="userInitials">AB</div>
+    <span id="userName">Usuário</span>
   </div>
+</div>
 
-  <script src="../js/profile.js"></script>
+<main class="container">
+  <section class="card">
+    <h2>Perfil</h2>
+    <div class="profile-form">
+      <div class="profile-picture">
+        <img id="profileImage" src="https://via.placeholder.com/100" alt="Foto de Perfil">
+        <label class="upload-btn">
+          Alterar Foto
+          <input type="file" accept="image/*" id="file-input">
+        </label>
+      </div>
+      <div class="profile-fields">
+        <label for="bio-nome"> Alterar Nome</label>
+        <input type="text" placeholder="Digite seu nome" id="bio-nome">
+
+        <label for="bio-texto">Bio</label>
+        <textarea placeholder="Digite uma descrição sobre você" id="bio-texto"></textarea>
+
+        <button class="save-btn" id="salvarPerfil">Salvar</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Alterar Senha</h2>
+    <div class="password-fields">
+      <label for="senha-atual">Senha atual</label>
+      <input type="password" placeholder="Senha atual" id="senha-atual">
+
+      <label for="nova-senha">Nova senha</label>
+      <input type="password" placeholder="Nova senha" id="nova-senha">
+
+      <label for="confirmar-nova-senha">Confirmar nova senha</label>
+      <input type="password" placeholder="Confirme a nova senha" id="confirmar-nova-senha">
+
+      <button class="save-btn" id="salvarNovaSenha">Salvar Nova Senha</button>
+    </div>
+  </section>
+</main>
+
+<script src="../js/utils/navigation.js"></script>
+<script src="../js/profile.js"></script>
 </body>
 </html>

@@ -81,7 +81,6 @@ async function startApp(
     currentView = "listaProdutos",
     activeTab = "meus-produtos",
     insights = [],
-    products = [],
     productId = null,
     user = {},
     mostrarProdutosVazios = false
@@ -284,9 +283,14 @@ async function renderProdutos() {
                 buttonBuy.addEventListener('click', async (e) => {
                     e.stopPropagation();
                     if(confirm("Reverter Compra")) {
-                        startApp("meusProdutos");
-
-                        // TODO: REVERTER
+                        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${product.product_id}/sell`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                        alert(data.message);
+                        await startApp("meusProdutos");
                     }
                 })
             } else {
@@ -297,13 +301,15 @@ async function renderProdutos() {
                 buttonBuy.classList.add("btn-verde");
                 if(adicionadoPorMim) {
                     div.classList.add("clicavel");
-                    div.addEventListener("click", (e) => {
+                    div.addEventListener("click", async (e) => {
                         e.stopPropagation();
-                        startApp("editarProduto", null, null,null, product.product_id)
+                        e.preventDefault();
+                        await startApp("editarProduto", "meus-produtos", null,null, product.product_id)
                     });
                 }
                 buttonBuy.addEventListener("click", async (e) => {
                     e.stopPropagation();
+                    e.preventDefault();
                     startApp("comprarProduto", "meus-produtos", null,null, product.product_id);
                 })
 
@@ -381,7 +387,7 @@ async function renderInsights(filtro = '') {
     const gastosPorUsuario = {};
     data.categorySpendingByUser.forEach(user => {
         gastosPorUsuario[user.name] = {};
-        for (const [categoryId, categoryData] of Object.entries(user.categories)) {
+        for (const [categoryData] of Object.entries(user.categories)) {
             gastosPorUsuario[user.name][categoryData.name] = categoryData.amount;
         }
     });
@@ -845,24 +851,27 @@ async function renderGerenciarProduto() {
 
     // Define se estamos no fluxo de criação
     const isEditing = appState.currentView === 'editarProduto';
-    let product = {id: "", name: "", description: "", quantity: "", price: "", category_name: ""};
+    let product = {id: "", product_name: "", description: "", quantity: "", price: "", category_name: ""};
 
     if(isEditing) {
-        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.productId}`);
+        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.productId}`)
         product = data.data.rows[0];
     }
 
     // Título centralizado
     const titulo = document.createElement('h1');
     titulo.textContent = isEditing
-        ? 'Criar Produto'
-        : 'Editar Produto';
+        ? 'Editar Produto'
+        : 'Criar Produto';
     titulo.style.textAlign = 'center';
 
     // Form
-    const form = document.createElement('div');
+    const form = document.createElement('form');
     form.id = 'form-gerenciar-produto';
     form.style.marginTop = '20px';
+    form.method = isEditing
+        ? 'PUT'
+        : 'POST';
     form.appendChild(titulo);
 
     // --- Nome (sempre existe, mas só editável ao criar)
@@ -874,7 +883,7 @@ async function renderGerenciarProduto() {
     inputNome.type = 'text';
     inputNome.id = 'inputName';
     inputNome.name = 'nome';
-    inputNome.value = product.name;
+    inputNome.value = product.product_name;
     inputNome.placeholder = 'Digite o nome do produto';
     inputNome.required = true;
     form.appendChild(inputNome);
@@ -931,33 +940,18 @@ async function renderGerenciarProduto() {
     inputQuantidade.type = 'number';
     inputQuantidade.id = 'inputQuan';
     inputQuantidade.name = 'quantidade';
-    inputQuantidade.min = 0;
+    inputQuantidade.min = 1;
+    inputQuantidade.value = isEditing? product.quantity : 1;
     inputQuantidade.required = true;
     form.appendChild(inputQuantidade);
 
-    if (isEditing) {
-
-        // Preço
-        const labelPreco = document.createElement('label');
-        labelPreco.textContent = 'Preço:';
-        form.appendChild(labelPreco);
-
-        const inputPreco = document.createElement('input');
-        inputPreco.type = 'number';
-        inputPreco.step = '0.01';
-        inputPreco.id = 'inputPrice';
-        inputPreco.name = 'preco';
-        inputPreco.min = 0;
-        inputPreco.required = true;
-        form.appendChild(inputPreco);
-    }
-
     // Botão salvar/criar: full width
     const buttonSalvar = document.createElement('button');
-    buttonSalvar.textContent = isEditing ? 'Criar' : 'Salvar';
+    buttonSalvar.textContent = isEditing ? 'Salvar' : 'Criar';
     buttonSalvar.style.display = 'block';
     buttonSalvar.style.width = '100%';
-    buttonSalvar.addEventListener('click', async (e) => {
+    form.addEventListener('submit', async (e) => {
+        e.stopPropagation();
         e.preventDefault();
         const objeto = {
             id: null,
@@ -970,7 +964,7 @@ async function renderGerenciarProduto() {
 
         const url = !isEditing
             ? `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products`
-            : `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/:productId`;
+            : `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.productId}`;
         const method = !isEditing
             ? 'POST'
             : 'PUT';
@@ -1007,14 +1001,80 @@ async function renderGerenciarProduto() {
 }
 
 async function renderComprarProduto() {
+    // Limpa conteúdo anterior
+    const appElement = document.getElementById('app');
+    appElement.innerHTML = '';
 
     // Título centralizado
     const titulo = document.createElement('h1');
-    titulo.textContent = 'Verificação de compra'
+    titulo.textContent = 'Verificação de compra';
     titulo.style.textAlign = 'center';
-
     appElement.appendChild(titulo);
+
+    // Cria o form
+    const form = document.createElement('form');
+    form.id = 'form-compra-produto';
+    form.style.marginTop = '20px';
+
+    // Label e input para preço
+    const labelBuyPrice = document.createElement('label');
+    labelBuyPrice.textContent = 'Preço:';
+    form.appendChild(labelBuyPrice);
+
+    const inputBuyPrice = document.createElement('input');
+    inputBuyPrice.type = 'number';
+    inputBuyPrice.id = 'inputBuyPrice';
+    inputBuyPrice.name = 'price';
+    inputBuyPrice.placeholder = 'Digite o preço do produto';
+    inputBuyPrice.required = true;
+    inputBuyPrice.step = '0.01';
+    inputBuyPrice.min = '0';
+    inputBuyPrice.style.display = 'block';
+    inputBuyPrice.style.width = '100%';
+    inputBuyPrice.style.margin = '5px 0 15px';
+    form.appendChild(inputBuyPrice);
+
+    const buttonConfirmarBuy = document.createElement('button');
+    buttonConfirmarBuy.type = 'submit';
+    buttonConfirmarBuy.textContent = 'Confirmar compra';
+    buttonConfirmarBuy.style.display = 'block';
+    buttonConfirmarBuy.style.width = '100%';
+    form.appendChild(buttonConfirmarBuy);
+    buttonConfirmarBuy.addEventListener('click', async (e) => {
+        e.preventDefault()
+
+        const price = document.getElementById('inputBuyPrice').value;
+
+        if(!price || price <= 0) {
+            alert("Produto deve ter preço");
+            return;
+        }
+        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.productId}/buy`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                price: price
+            })
+        })
+        alert(data.message);
+        startApp();
+    })
+
+    const buttonVoltar = document.createElement('button');
+    buttonVoltar.type = 'button';
+    buttonVoltar.textContent = 'Voltar';
+    buttonVoltar.style.display = 'block';
+    buttonVoltar.style.width = '100%';
+    buttonVoltar.style.marginBottom = '10px';
+    buttonVoltar.addEventListener('click', () => startApp());
+    form.appendChild(buttonVoltar);
+
+    // Anexa o form ao container principal
+    appElement.appendChild(form);
 }
+
 // =========================
 // EVENTOS DOM
 // =========================

@@ -1,7 +1,7 @@
 import {modal} from "./modal.js";
 
 function abrirPerfil() {
-    modal("Perfil de usuário será implementada em breve!");
+    window.location.href = 'profile.html';
 }
 
 function abrirListas() {

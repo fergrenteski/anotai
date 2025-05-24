@@ -41,12 +41,11 @@ export function authFetch(url, options = {}) {
             return data;
         })
         .catch(err => {
-            console.error(err);
             modal(err.message).then(() => {
                 if(err.status === 401 || err.status === 403) {
                     window.location.href = 'index.html';
                 }
             });
-
+            throw err;
         });
 }

@@ -168,6 +168,49 @@ class UserController {
             return res.status(500).json({ success: false, message: "Erro ao reenviar email!", });
         }
     }
+    async alterarSenhaAutenticado(req, res) {
+  const userId = req.usuario.id;
+  const { senhaAtual, novaSenha, confirmarNovaSenha } = req.body;
+
+  if (!senhaAtual || !novaSenha || !confirmarNovaSenha) {
+    return res.status(400).json({ success: false, message: "Todos os campos são obrigatórios!" });
+  }
+
+  if (novaSenha !== confirmarNovaSenha) {
+    return res.status(400).json({ success: false, message: "As novas senhas não coincidem!" });
+  }
+
+  try {
+    await this.userService.alterarSenhaAutenticado(userId, senhaAtual, novaSenha);
+    return res.status(200).json({ success: true, message: "Senha alterada com sucesso!" });
+  } catch (error) {
+    console.error("Erro ao alterar senha:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+}
+
+/**
+ * Atualiza o perfil do usuário.
+ * @param {Object} req - Requisição HTTP.
+ * @param {Object} res - Resposta HTTP.
+ */
+async atualizarPerfil(req, res) {
+    const userId = req.usuario.id; // Pegamos do token
+    const { nome, bio, profile_img_url } = req.body;
+
+    if (!nome || !bio || !profile_img_url) {
+        return res.status(400).json({ success: false, message: "Todos os campos são obrigatórios!" });
+    }
+
+    try {
+        await this.userService.atualizarPerfil(userId, nome, bio, profile_img_url);
+        return res.status(200).json({ success: true, message: "Perfil atualizado com sucesso!" });
+    } catch (error) {
+        console.error("Erro ao atualizar perfil:", error);
+        return res.status(500).json({ success: false, message: error.message });
+    }
+}
+
 }
 // Exporta o UserController
 module.exports = new UserController();

@@ -332,7 +332,9 @@ function renderConvitesGrupo() {
                             await authFetch(`http://localhost:3000/api/groups/${convite.group_id}/members/${convite.user_id}/invite/${convite.invite}/accept/${true}`,
                                 {method: "POST"}).then(data => {
                                 notificar(data.message);
-                            })
+                            }).catch(() => {
+                                // Nada aqui. Silencia completamente.
+                            });
                         }
                         startApp("listaGrupos", 'convites');
                     })
@@ -351,8 +353,10 @@ function renderConvitesGrupo() {
                         if (resposta) {
                             await authFetch(`http://localhost:3000/api/groups/${convite.group_id}/members/${convite.user_id}/invite/${convite.invite}/accept/${false}`,
                                 {method: "POST"}).then(data => {
-                                notificar(data.message);
-                            })
+                               notificar(data.message);
+                            }).catch(() => {
+                                // Nada aqui. Silencia completamente.
+                            });
                         }
                         startApp("listaGrupos", 'convites');
                     })
@@ -594,8 +598,10 @@ async function persistGroup(isEditing, grupo) {
                         description: groupDescription
                     }),
                 }).then(data => {
-                    notificar(data.message);
-                })
+                   notificar(data.message);
+                }).catch(() => {
+                    // Nada aqui. Silencia completamente.
+                });
                 // Voltar para a lista de grupos
                 await startApp("listaGrupos", "meus-grupos");
             }
@@ -613,7 +619,9 @@ async function deleteGroup(grupo) {
             if (resposta) {
                 await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}`,
                     {method: 'DELETE'}).then(data => {
-                    notificar(data.message);
+                   notificar(data.message);
+                }).catch(() => {
+                    // Nada aqui. Silencia completamente.
                 });
             }
             await startApp();
@@ -636,8 +644,10 @@ async function addMember(newMemberInput, grupo) {
                 email
             }),
         }).then(data => {
-        notificar(data.message)
-    })
+       notificar(data.message);
+    }).catch(() => {
+        // Nada aqui. Silencia completamente.
+    });
     // Limpar campo
     newMemberInput.value = '';
 
@@ -656,8 +666,10 @@ async function removeMember(membro, grupo) {
             await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}/members/${membro.user_id}`,
                 {method: "DELETE"})
                 .then(data => {
-                    notificar(data.message)
-                })
+                   notificar(data.message);
+                }).catch(() => {
+                    // Nada aqui. Silencia completamente.
+                });
             await startApp("editarGrupo", null, grupo.group_id);
         }
     })
