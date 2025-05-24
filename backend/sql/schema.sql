@@ -305,17 +305,17 @@ SELECT l.list_id,
        l.name as list_name,
        l.description,
        l.created_by,
+       u.name AS created_name,
        l.group_id,
-       g.name as group_name,
+       g.group_name,
        l.category_id,
-       pc.name as category_name,
+       lc.name as category_name,
        l.created_at
 FROM lists l
-         LEFT JOIN groups g ON g.group_id = l.group_id
-         LEFT JOIN groups_category gc ON gc.groups_category_id = g.category_id
-         LEFT JOIN products_category pc ON pc.products_category_id = l.category_id
-WHERE g.expired_at IS NULL
-  AND l.expired_at IS NULL;
+         LEFT JOIN vw_groups g ON g.group_id = l.group_id
+         LEFT JOIN lists_category lc on l.category_id = lc.lists_category_id
+         LEFT JOIN users u on l.created_by = u.user_id
+WHERE l.expired_at IS NULL;
 
 -- View de Total gasto por usuário (ANT-67)
 CREATE OR REPLACE VIEW vw_total_gasto_por_usuario_lista AS

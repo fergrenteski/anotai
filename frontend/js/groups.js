@@ -7,6 +7,7 @@ import {createInput} from "./utils/createInput.js";
 // Variáveis
 let user = null;
 let appState = null;
+let categories = null;
 
 /**
  * Funcão que retorna as Categorias dos grupos.
@@ -14,8 +15,8 @@ let appState = null;
  */
 async function loadGroupsCategories() {
     // Busca categorias de grupo da API
-    const data = await authFetch('http://localhost:3000/api/groups/categories');
-    return data.data;
+    const resposta = await authFetch('http://localhost:3000/api/groups/categories');
+    return resposta.data;
 }
 
 /**
@@ -177,7 +178,7 @@ function renderListaGrupos() {
             groupInfo.appendChild(groupName);
 
             const groupType = document.createElement('div');
-            groupType.textContent = grupo.category_name.charAt(0).toUpperCase() + grupo.category_name.slice(1);
+            groupType.textContent = grupo.category_name;
             groupType.style.fontSize = '14px';
             groupInfo.appendChild(groupType);
 
@@ -303,7 +304,7 @@ function renderConvitesGrupo() {
             inviteInfo.appendChild(groupName);
 
             const groupType = document.createElement('div');
-            groupType.textContent = convite.group_type.charAt(0).toUpperCase() + convite.group_type.slice(1);
+            groupType.textContent = convite.group_type;
             groupType.style.fontSize = '14px';
             inviteInfo.appendChild(groupType);
 
@@ -422,12 +423,11 @@ async function renderGerenciarGrupo() {
     defaultOption.selected = !grupo.category_name;
     typeSelect.appendChild(defaultOption);
 
-    const types = await loadGroupsCategories();
-    types.forEach(type => {
+    categories.forEach(type => {
         const {id, name} = type;
         const option = document.createElement('option');
         option.value = id;
-        option.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+        option.textContent = name;
         option.selected = name === grupo.category_name;
         typeSelect.appendChild(option);
     });
@@ -573,7 +573,7 @@ async function renderGerenciarGrupo() {
 
 /**
  * Função para persistir Grupos
- * @param isEditing Boleano indicador de edição
+ * @param isEditing Boolean indicador de edição
  * @param grupo Grupo a ser persistido
  * @returns {Promise<void>} Promise
  */
@@ -587,7 +587,7 @@ async function persistGroup(isEditing, grupo) {
         ? `http://localhost:3000/api/groups/${grupo.group_id}`
         : 'http://localhost:3000/api/groups';
     const method = isEditing ? 'PUT' : 'POST';
-    confirmModal(`Tem certeza em ${isEditing ? 'editar' : 'criar'} o Grupo: ${groupName}`)
+    await confirmModal(`Tem certeza em ${isEditing ? 'editar' : 'criar'} o Grupo: ${groupName}`)
         .then(async resposta => {
             if (resposta) {
                 await authFetch(url, {
@@ -689,5 +689,6 @@ async function startApp(currentView = "listaGrupos", activeTab = "meus-grupos", 
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    categories = await loadGroupsCategories();
     await startApp(); // Chama o start
 });

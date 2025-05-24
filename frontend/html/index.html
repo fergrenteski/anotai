@@ -15,7 +15,7 @@
         <input type="password" placeholder="Senha" id="senhaLogin" required>
         <a href="./resetPass.html" style="color: #7367f0; font-size: 14px; text-align: right; text-decoration: none; margin-bottom: 10px;">Esqueceu a senha?</a>
         <p class="error-message" id="mensagemLogin" ></p>
-        <button type="submit" >Entrar</button>
+        <button class="button" type="submit" >Entrar</button>
     </form>
 
     <form class="form-container signup-container" id="form-signup">
@@ -33,21 +33,27 @@
             <button id="btn-show-confirm-pass">
                 <i  id="conf-i" class="fa-solid fa-eye"></i>
             </button>
+            <ul id="requisitosSenha">
+                <li id="req-comprimento">✔ Pelo menos 8 caracteres</li>
+                <li id="req-maiuscula">✔ Pelo menos 1 letra maiúscula</li>
+                <li id="req-numero">✔ Pelo menos 1 número</li>
+                <li id="req-especial">✔ Pelo menos 1 caractere especial</li>
+            </ul>
         </div>
         <p class="error-message" id="mensagemCadastro" ></p>
-        <button type="submit" id="button-signup" disabled>Cadastrar</button>
+        <button class="button" type="submit" id="button-signup" disabled>Cadastrar</button>
     </form>
 
     <div class="info-container">
         <div id="login-info">
             <h1>Bem-vindo</h1>
             <p>Não tem uma conta?</p>
-            <button class="toggle-btn" id="show-signup">Criar conta</button>
+            <button class="toggle-btn button" id="show-signup">Criar conta</button>
         </div>
         <div id="signup-info" style="display: none;">
             <h1 id="greeting">Olá</h1>
             <p>Já tem uma conta?</p>
-            <button class="toggle-btn" id="show-login">Fazer login</button>
+            <button class="toggle-btn button" id="show-login">Fazer login</button>
         </div>
     </div>
 </div>

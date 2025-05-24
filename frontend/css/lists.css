@@ -112,7 +112,7 @@ input, select {
     border-radius: 5px;
 }
 
-.group-item {
+.list-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -124,7 +124,7 @@ input, select {
     text-align: left;
 }
 
-.click-group:hover {
+.click-list:hover {
     box-shadow: rgba(0, 0, 0, 0.10) 0.1px 5px 7px 0.1px;
 }
 
@@ -147,41 +147,6 @@ input, select {
     opacity: 0.8;
 }
 
-.group-members {
-    max-height: 200px;
-    overflow-y: auto;
-    margin-bottom: 15px;
-    border: 1px solid #eee;
-    border-radius: 5px;
-    padding: 10px;
-}
-
-.member-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
-}
-
-.verified-indicator {
-    background: #4CAF50;
-    color: white;
-    padding: 2px 4px;
-    border-radius: 3px;
-    font-size: 11px;
-    margin-left: 5px;
-}
-
-.unverified-indicator {
-    background: #FFC107;
-    color: #333;
-    padding: 2px 4px;
-    border-radius: 3px;
-    font-size: 11px;
-    margin-left: 5px;
-}
-
 .tabs {
     display: flex;
     margin-bottom: 20px;
@@ -198,36 +163,6 @@ input, select {
     border-bottom: 2px solid #7367f0;
     color: #7367f0;
     font-weight: bold;
-}
-
-.invite-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
-    margin-bottom: 10px;
-    background: #f9f9f9;
-    border-radius: 5px;
-    border-left: 4px solid #ffc107;
-}
-
-.invite-buttons {
-    display: flex;
-    gap: 5px;
-}
-
-.accept-btn {
-    background: rgba(76, 175, 80, 0.2);
-}
-
-.reject-btn {
-    background: rgba(244, 67, 54, 0.2);
-}
-
-.member-item .action-buttons button {
-    padding: 4px 6px;
-    font-size: 11px;
-    margin-top: 0;
 }
 
 @media (max-width: 768px) {

@@ -58,3 +58,26 @@ nav a {
 nav a:hover {
     color: rgba(255, 255, 255, 0.5);
 }
+
+#breadcrumb {
+    font-family: sans-serif;
+    font-size: 14px;
+    margin: 10px 0;
+    text-decoration: none;
+    text-align: center;
+}
+
+#breadcrumb a {
+    color: rgba(0, 0, 0, 0.5);
+    text-decoration: none;
+    margin: 0 5px;
+}
+
+#breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+#breadcrumb span {
+    margin: 0 5px;
+    color: #000000;
+}

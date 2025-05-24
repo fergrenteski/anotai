@@ -29,7 +29,7 @@ export function authFetch(url, options = {}) {
             response = res;
             return res.json().catch(err => {
                 modal('Resposta inválida do servidor.');
-                throw new Promise.reject(err); // rejeita para cair no catch final
+                throw err;
             });
         })
         .then(data => {

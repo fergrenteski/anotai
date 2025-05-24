@@ -1,4 +1,5 @@
 import {modal} from "./modal.js";
+import {notificar} from "./notification.js";
 
 function abrirPerfil() {
     window.location.href = 'profile.html';
@@ -14,8 +15,9 @@ function abrirHome() {
 
 function logout() {
     sessionStorage.removeItem("token");
-    modal("Saindo...");
-    window.location.href = 'index.html';
+    notificar("Saindo...").then(() => {
+        window.location.href = 'index.html';
+    });
 }
 
 

@@ -13,7 +13,7 @@ async function confirmarEmail() {
     });
 
     const data = await response.json();
-    document.getElementById("mensagem").innerText = data.message; // Mostra retorno
+    document.getElementById("message").innerText = data.message; // Mostra retorno
 }
 
 // Executa a função após o carregamento da página

@@ -18,9 +18,10 @@ Entendimento geral das rotas do grupos:
 * @param res - Objeto de resposta HTTP.
 */
 
-// Rotas de Categorias de Grupo
-router.get("/categories", verificarToken, (req, res) => CategoryController.getAll(req, res));
-router.get("/products/categories", (req, res) => CategoryController.getAllProducts(req, res));
+// Rotas de Categorias
+router.get("/categories", verificarToken, (req, res) => CategoryController.getGroupsCategories(req, res));
+router.get("/lists/categories", verificarToken, (req, res) => CategoryController.getListsCategories(req, res));
+router.get("/products/categories", verificarToken, (req, res) => CategoryController.getProductsCategories(req, res));
 
 // Rotas de Grupo
 router.get("/", verificarToken, (req, res) => GroupController.getAll(req, res));
@@ -51,7 +52,6 @@ router.get("/:groupId/lists/:listId/products",  verificarToken, verificarAcessoG
 router.post("/:groupId/lists/:listId/products", verificarToken, verificarAcessoGrupo, (req, res) => ProductController.create(req, res));
 router.get("/:groupId/lists/:listId/products/:productId", verificarToken, verificarAcessoGrupo, (req, res) => ProductController.getById(req, res));
 router.put("/:groupId/lists/:listId/products/:productId/:option",verificarToken, verificarAcessoGrupo, (req, res) => ProductController.updateBuy(req, res));
-//update geral Editar
 router.put("/:groupId/lists/:listId/products/:productId", verificarToken, verificarAcessoGrupo, (req, res) => ProductController.update(req, res));
 router.delete("/:groupId/lists/:listId/products/:productId", verificarToken, verificarAcessoGrupo, (req, res) => ProductController.delete(req, res));
 

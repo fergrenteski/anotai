@@ -62,13 +62,12 @@ async function loadProducts() {
 /**
  * Inicializa o estado global da aplicação.
  */
-async function initializeAppState(currentView, activeTab, products, insights, productId, user, mostrarProdutosVazios) {
+async function initializeAppState(currentView, activeTab, products, product, user, mostrarProdutosVazios) {
     appState = {
         currentView,
         activeTab,
         products,
-        insights,
-        productId,
+        product,
         user,
         mostrarProdutosVazios
     };
@@ -80,14 +79,12 @@ async function initializeAppState(currentView, activeTab, products, insights, pr
 async function startApp(
     currentView = "listaProdutos",
     activeTab = "meus-produtos",
-    insights = [],
-    productId = null,
+    product = {},
     user = {},
     mostrarProdutosVazios = false
 ) {
-    await loadURLParams();
-    products = await loadProducts();
-    await initializeAppState(currentView, activeTab, products, insights, productId, user, mostrarProdutosVazios);
+    let products = await loadProducts();
+    await initializeAppState(currentView, activeTab, products, product, user, mostrarProdutosVazios);
     renderApp();
 }
 
@@ -304,13 +301,13 @@ async function renderProdutos() {
                     div.addEventListener("click", async (e) => {
                         e.stopPropagation();
                         e.preventDefault();
-                        await startApp("editarProduto", "meus-produtos", null,null, product.product_id)
+                        await startApp("editarProduto", "meus-produtos", product)
                     });
                 }
                 buttonBuy.addEventListener("click", async (e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    startApp("comprarProduto", "meus-produtos", null,null, product.product_id);
+                    startApp("comprarProduto", "meus-produtos",  product);
                 })
 
             }
@@ -367,7 +364,7 @@ async function renderProdutos() {
 let pieChart, barChart, stackedChart; // Variáveis para armazenar as instâncias dos gráficos
 
 async function renderInsights(filtro = '') {
-    const data = await fetchComToken("http://localhost:3000/api/groups/1/lists/1/insights");
+    const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/insights`);
 
     const categoriasBrutas = data.totalByCategory.map(c => ({
         nome: c.name,
@@ -735,7 +732,7 @@ async function renderInsights(filtro = '') {
             const botao = document.createElement('button');
             botao.textContent = 'Visualizar';
             botao.addEventListener('click', async () => {
-                startApp("visualizarProdutosUsuario", null, null, null, null, user);
+                startApp("visualizarProdutosUsuario", "insights", null, user);
             });
 
             const valor = document.createElement('span');
@@ -766,7 +763,7 @@ async function renderInsights(filtro = '') {
 // Visualizar Produtos Usuarios
 async function renderVisualizarProdutosUsuario() {
 
-    const data = await fetchComToken(`http://localhost:3000/api/member/lists/1/users/${appState.user.id}/products`)
+    const data = await fetchComToken(`http://localhost:3000/api/member/lists/${listIdParam}/users/${appState.user.id}/products`)
 
     const produtos = await data.data;
 
@@ -818,6 +815,8 @@ async function renderVisualizarProdutosUsuario() {
             const tdCategoria = document.createElement('td');
             tdCategoria.textContent = produto.category_name;
 
+            const tdValor = document.createElement('td');
+            tdNome.textContent = parseFloat(produto.price);
 
             const tdQtd = document.createElement('td');
             tdQtd.textContent = parseInt(produto.quantity);
@@ -839,6 +838,31 @@ async function renderVisualizarProdutosUsuario() {
             linha.appendChild(tdTotal);
             tbody.appendChild(linha);
         });
+
+        tabela.appendChild(tbody);
+
+        const totalProducts = document.createElement('p');
+        totalProducts.textContent = `Total: R$ ${parseFloat(total).toFixed(2)}`;
+        totalProducts.style.fontWeight = 'bold';
+        totalProducts.style.textAlign = 'right';
+        totalProducts.style.fontSize = '24px';
+        totalProducts.style.marginTop = '12px';
+        totalProducts.style.marginRight = '8px';
+
+        // Botão Voltar: igual ao groups (full width e margem inferior)
+        const buttonVoltar = document.createElement('button');
+        buttonVoltar.type = 'button';
+        buttonVoltar.textContent = 'Voltar';
+        buttonVoltar.style.display = 'block';
+        buttonVoltar.style.width = '100%';
+        buttonVoltar.style.marginBottom = '10px';
+        buttonVoltar.addEventListener('click', () => {
+            startApp("listaProdutos", "insights");
+        });
+
+        appElement.appendChild(tabela);
+        appElement.appendChild(totalProducts);
+        appElement.appendChild(buttonVoltar);
     }
 }
 
@@ -854,7 +878,7 @@ async function renderGerenciarProduto() {
     let product = {id: "", product_name: "", description: "", quantity: "", price: "", category_name: ""};
 
     if(isEditing) {
-        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.productId}`)
+        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.product.product_id}`)
         product = data.data.rows[0];
     }
 
@@ -926,7 +950,7 @@ async function renderGerenciarProduto() {
     categories.forEach(cat => {
         const opt = document.createElement('option');
         opt.value = cat.id;
-        opt.textContent = cat.name.charAt(0).toUpperCase() + cat.name.slice(1);
+        opt.textContent = cat.name;
         selectCate.appendChild(opt);
     });
 
@@ -964,7 +988,7 @@ async function renderGerenciarProduto() {
 
         const url = !isEditing
             ? `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products`
-            : `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.productId}`;
+            : `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.product.product_id}`;
         const method = !isEditing
             ? 'POST'
             : 'PUT';
@@ -1001,15 +1025,24 @@ async function renderGerenciarProduto() {
 }
 
 async function renderComprarProduto() {
-    // Limpa conteúdo anterior
-    const appElement = document.getElementById('app');
-    appElement.innerHTML = '';
 
+    const product = appState.product;
     // Título centralizado
     const titulo = document.createElement('h1');
     titulo.textContent = 'Verificação de compra';
     titulo.style.textAlign = 'center';
     appElement.appendChild(titulo);
+
+    // Título centralizado
+    const subTitulo = document.createElement('h2');
+    subTitulo.textContent = `Produto: ${product.product_name}`;
+    subTitulo.style.textAlign = 'center';
+    appElement.appendChild(subTitulo);
+
+    const quantidade = document.createElement('h2');
+    quantidade.textContent = `Quantidade: ${product.quantity}`;
+    quantidade.style.textAlign = 'center';
+    appElement.appendChild(quantidade);
 
     // Cria o form
     const form = document.createElement('form');
@@ -1049,7 +1082,7 @@ async function renderComprarProduto() {
             alert("Produto deve ter preço");
             return;
         }
-        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.productId}/buy`, {
+        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.product.product_id}/buy`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -1081,5 +1114,6 @@ async function renderComprarProduto() {
 
 // Inicialização ao carregar o DOM
 document.addEventListener('DOMContentLoaded', async () => {
+    await loadURLParams();
     await startApp();
 });
