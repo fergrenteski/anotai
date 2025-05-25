@@ -374,3 +374,11 @@ queries:
     UPDATE users
     SET name = $1, bio = $2, profile_img_url = $3, updated_at = CURRENT_TIMESTAMP
     WHERE user_id = $4;
+
+  # Obtém o caminho da imagem do usuário
+  select_user_profile_img_by_id: >
+    SELECT image_path FROM users WHERE user_id = $1
+
+  # Atualiza o caminho da imagem do usuário
+  update_user_profile_img_by_id: >
+    UPDATE users SET image_path = $1 WHERE user_id = $2

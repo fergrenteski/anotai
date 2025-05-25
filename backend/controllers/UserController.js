@@ -3,6 +3,8 @@ const UserService = require("../services/UserService");
 const EmailService = require("../services/EmailService");
 const {gerarTokenEmail} = require("../utils/validators");
 const {runQuery} = require("../utils/queryHelper");
+const path = require("path");
+const fs = require("fs");
 
 class UserController {
     constructor() {
@@ -87,7 +89,15 @@ class UserController {
 
         // Gera token de reset e envia por e-mail
         try {
-            const {emailToken} = await this.userService.redefinirSenha(email);
+            const rows = await this.userService.getUserByEmail(email);
+
+            if(!rows) return res.status(400).json({success: false, message: "Usuário não encontrado!"})
+
+            const user = rows;
+
+            if(!user.email_verified) return res.status(400).json({success: false, message: "Usuário não Verificado!"})
+
+            const { emailToken } = await this.userService.redefinirSenha(user.userId, email);
             await this.emailService.enviarRedefinicaoEmail(email, emailToken);
             return res.status(200).json({success: true, message: "Redefinicão de senha enviada! Verifique seu Email"});
         } catch (error) {
@@ -229,6 +239,52 @@ class UserController {
             return res.status(500).json({success: false, message: error.message});
         }
     }
+
+    // Criar/atualizar imagem de perfil
+    async uploadProfileImage(req, res) {
+        const userId = req.usuario.id;
+        if (!req.file) return res.status(400).json({ success: false, message: 'Nenhum arquivo enviado.' });
+
+        const filename = req.file.filename;
+        const relativePath = `profiles/${filename}`; // caminho que será usado via /api/profile
+
+        try {
+            await this.userService.updateProfileImg(relativePath, userId);
+            res.status(200).json({
+                success: true,
+                message: 'Imagem salva com sucesso.',
+                path: `/api/profile/${filename}` // retorno útil para frontend
+            });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ success: false, message: 'Erro ao salvar imagem.' });
+        }
+    }
+
+    // Deletar imagem de perfil
+    async deleteProfileImage(req, res) {
+        const userId = req.usuario.id;
+
+        try {
+            const { rows } = await this.userService.getProfileImg(userId);
+            const imagePath = rows[0]?.image_path;
+
+            if (!imagePath) return res.status(404).json({success: false, message: 'Imagem não encontrada.'});
+
+            const filePath = path.join(__dirname, '..', 'uploads', 'profiles', path.basename(imagePath));
+
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+
+            await this.userService.updateProfileImg(null, userId);
+
+            res.status(200).json({success: true, message: 'Imagem deletada com sucesso.' });
+        } catch (err) {
+            console.error('Erro ao deletar Imagem:', err);
+            res.status(500).json({success: false, message: 'Erro ao deletar Imagem.'});
+        }
+    };
 
 }
 
