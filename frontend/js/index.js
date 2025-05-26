@@ -38,10 +38,24 @@ const validarSenhas = () => {
     const senha = senhaInput.value;
     const confirmarSenha = confirmarInput.value;
 
-    if (senha.length < 8) {
-        mensagemCadastro.innerHTML = "A senha deve ter pelo menos 8 caracteres!";
+    const comprimentoValido = senha.length >= 8;
+    const temMaiuscula = /[A-Z]/.test(senha);
+    const temNumero = /\d/.test(senha);
+    const temEspecial = /[!@#$%^&*()_+{}\[\]:;<>,.?~\\/-]/.test(senha);
+
+    // Atualizar visual da listinha
+    document.getElementById("req-comprimento").classList.toggle("ok", comprimentoValido);
+    document.getElementById("req-maiuscula").classList.toggle("ok", temMaiuscula);
+    document.getElementById("req-numero").classList.toggle("ok", temNumero);
+    document.getElementById("req-especial").classList.toggle("ok", temEspecial);
+
+    const senhaValida = comprimentoValido && temMaiuscula && temNumero && temEspecial;
+
+    if (!senhaValida) {
+        mensagemCadastro.innerHTML = "A senha não atende aos requisitos!";
         buttonCriar.disabled = true;
         senhaInput.classList.add("invalid");
+        senhaInput.classList.remove("valid");
         return;
     }
 
