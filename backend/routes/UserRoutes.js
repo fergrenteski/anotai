@@ -4,7 +4,6 @@ const UserController = require("../controllers/UserController");
 const verificarToken = require("../middlewares/authMiddleware")
 const path = require("path");
 const multer = require("multer");
-const UserControler = require("../controllers/UserController");
 const router = express.Router();
 
 const uploadPath = path.join(__dirname, '..', 'uploads', 'profiles');
@@ -38,9 +37,8 @@ const upload = multer({ storage, fileFilter });
  * @param res - Objeto de resposta HTTP.
  */
 // Rota com ID para permitir uso no multer e controller
-router.put('/profile-image', verificarToken, upload.single('image'), (req, res) => UserControler.uploadProfileImage(req, res));
-
-router.delete('/profile-image', verificarToken, (req, res) => UserControler.deleteProfileImage(req,res));
+router.get('/profile', verificarToken, (req, res) => UserController.getProfile(req,res));
+router.put('/profile', verificarToken, upload.single('image'), (req, res) => UserController.updateProfile(req, res));
 
 // Rota de cadastro do usuário
 router.post("/cadastro", (req, res) => UserController.cadastro(req, res));
@@ -60,8 +58,6 @@ router.post("/confirmar-email", (req, res) => UserController.confirmarEmail(req,
 // Rota de alterar senha do usuário
 router.post("/alterar-senha", (req, res) => UserController.alterarSenha(req, res));
 router.post("/reconfirmar-email/:email", (req, res) => UserController.reconfirmarEmail(req, res));
-
-router.post("/perfil", verificarToken, (req, res) => UserController.atualizarPerfil(req, res));
 
 router.post("/alterar-senha", verificarToken, (req, res) => UserController.alterarSenhaAutenticado(req, res));
 

@@ -6,6 +6,7 @@ import {getBackButton} from "./utils/backButton.js";
 import {authFetch} from "./utils/authFetch.js";
 import {notificar} from "./utils/notification.js";
 import {confirmModal} from "./utils/confirmModal.js";
+import {getProfileImgElement} from "./utils/profileImg.js";
 
 let user = null;
 let appState = null; // Estado global da aplicação
@@ -34,7 +35,8 @@ async function loadProducts() {
         if (!user) {
             user = resposta.user;
             document.getElementById('userName').textContent = resposta.user.name;
-            document.getElementById('userInitials').textContent = resposta.user.name.split(' ').map(n => n[0]).join('');
+            const userImg = document.getElementById('userInitials');
+            userImg.appendChild(await getProfileImgElement());
         }
     }
     return resposta.data || [];
@@ -195,6 +197,10 @@ async function renderProdutos() {
             return `rgba(${r}, ${g}, ${b}, ${alpha})`;
         }
 
+        const productsDiv = document.createElement('div');
+        productsDiv.style.maxHeight = '50dvh';
+        productsDiv.style.overflow = 'auto';
+
         appState.products.forEach((product) => {
             const div = document.createElement("div");
             div.className = "item";
@@ -308,7 +314,7 @@ async function renderProdutos() {
                 }
             });
 
-            appElement.appendChild(div);
+            productsDiv.appendChild(div);
 
         });
         // Botão Criar
@@ -320,6 +326,8 @@ async function renderProdutos() {
             e.preventDefault();
             startApp("novoProduto")
         });
+
+        appElement.appendChild(productsDiv);
         appElement.appendChild(createButton);
     }
 }
@@ -340,72 +348,50 @@ function debounce(func, wait) {
 
 // Configuração da interface inicial
 function setupInsightsUI() {
-    let titulo = document.getElementById('insightsTitulo');
-    if (!titulo) {
-        titulo = document.createElement('h1');
-        titulo.id = 'insightsTitulo';
-        titulo.textContent = 'Insights da Lista';
-        titulo.style.textAlign = 'center';
-        appElement.appendChild(titulo);
-    }
 
-    let filtroDiv = document.getElementById('filtroDiv');
-    if (!filtroDiv) {
-        filtroDiv = document.createElement('div');
-        filtroDiv.id = 'filtroDiv';
-        filtroDiv.style.textAlign = 'center';
-        filtroDiv.style.margin = '10px';
-        appElement.appendChild(filtroDiv);
-    }
+    const filtroDiv = document.createElement('div');
+    filtroDiv.id = 'filtroDiv';
+    filtroDiv.style.textAlign = 'center';
+    filtroDiv.style.margin = '10px';
+    appElement.appendChild(filtroDiv);
 
-    let filtroInput = document.getElementById('filtroUsuarios');
-    if (!filtroInput) {
-        filtroInput = document.createElement('input');
-        filtroInput.type = 'text';
-        filtroInput.placeholder = 'Filtrar por nome...';
-        filtroInput.id = 'filtroUsuarios';
-        filtroInput.style.width = '50%';
-        filtroInput.style.marginBottom = '10px';
-        filtroDiv.appendChild(filtroInput);
+    const filtroInput = document.createElement('input');
+    filtroInput.type = 'text';
+    filtroInput.placeholder = 'Filtrar por nome...';
+    filtroInput.id = 'filtroUsuarios';
+    filtroInput.style.width = '50%';
+    filtroInput.style.marginBottom = '10px';
+    filtroDiv.appendChild(filtroInput);
 
-        const debounced = debounce( () => {
-            const filtroValor = filtroInput.value.toLowerCase();
-            atualizarGraficosELista(filtroValor);
-        }, 300);
-        filtroInput.addEventListener('input', debounced);
-    }
+    const debounced = debounce( () => {
+        const filtroValor = filtroInput.value.toLowerCase();
+        atualizarGraficosELista(filtroValor);
+    }, 300);
 
-    let chartContainer = document.getElementById('insightsChartContainer');
-    if (!chartContainer) {
-        chartContainer = document.createElement('div');
-        chartContainer.id = 'insightsChartContainer';
-        chartContainer.style.display = 'flex';
-        chartContainer.style.justifyContent = 'space-between';
-        chartContainer.style.width = '100%';
-        chartContainer.style.height = 'auto';
-        chartContainer.style.paddingTop = '20px';
-        appElement.appendChild(chartContainer);
-    }
+    filtroInput.addEventListener('input', debounced);
 
-    let chartContainerChild = document.getElementById('insightsChartContainerChild');
-    if (!chartContainerChild) {
-        chartContainerChild = document.createElement('div');
-        chartContainerChild.id = 'insightsChartContainerChild';
-        chartContainerChild.style.display = 'flex';
-        chartContainerChild.style.justifyContent = 'space-between';
-        chartContainerChild.style.width = '100%';
-        chartContainerChild.style.height = 'auto';
-        chartContainerChild.style.paddingTop = '20px';
-        appElement.appendChild(chartContainerChild);
-    }
+    const chartContainer = document.createElement('div');
+    chartContainer.id = 'insightsChartContainer';
+    chartContainer.style.display = 'flex';
+    chartContainer.style.justifyContent = 'space-between';
+    chartContainer.style.width = '100%';
+    chartContainer.style.height = 'auto';
+    chartContainer.style.paddingTop = '20px';
+    appElement.appendChild(chartContainer);
 
-    let listaContainer = document.getElementById('listaUsuariosContainer');
-    if (!listaContainer) {
-        listaContainer = document.createElement('div');
-        listaContainer.id = 'listaUsuariosContainer';
-        listaContainer.style.marginTop = '20px';
-        appElement.appendChild(listaContainer);
-    }
+    const chartContainerChild = document.createElement('div');
+    chartContainerChild.id = 'insightsChartContainerChild';
+    chartContainerChild.style.display = 'flex';
+    chartContainerChild.style.justifyContent = 'space-between';
+    chartContainerChild.style.width = '100%';
+    chartContainerChild.style.height = 'auto';
+    chartContainerChild.style.paddingTop = '20px';
+    appElement.appendChild(chartContainerChild);
+
+    const listaContainer = document.createElement('div');
+    listaContainer.id = 'listaUsuariosContainer';
+    listaContainer.style.marginTop = '20px';
+    appElement.appendChild(listaContainer);
 }
 
 // Atualiza dados e gráficos com base no filtro
@@ -691,6 +677,8 @@ function atualizarGraficos(categorias, categoriasBrutas, usuariosFiltrados, gast
 function atualizarListaUsuarios(usuarios) {
     const listaContainer = document.getElementById('listaUsuariosContainer');
     listaContainer.innerHTML = '';
+    listaContainer.style.maxHeight = '300px';
+    listaContainer.style.overflowY = 'auto';
 
     usuarios.forEach(user => {
         const container = document.createElement('div');
@@ -732,13 +720,22 @@ function atualizarListaUsuarios(usuarios) {
 
 // Função principal
 async function renderInsights() {
-    if (!insights || !insights.totalByCategory?.length) {
-        appElement.innerHTML = '<p>Nenhum dado disponível para esta lista.</p>';
-        return;
-    }
 
-    setupInsightsUI();
-    atualizarGraficosELista();
+    const titulo = document.createElement('h1');
+    titulo.id = 'insightsTitulo';
+    titulo.textContent = 'Insights da Lista';
+    titulo.style.textAlign = 'center';
+    appElement.appendChild(titulo);
+
+    if (!insights || !insights.totalByCategory?.length) {
+        const subtitulo = document.createElement('p');
+        subtitulo.textContent = 'Não existem produtos comprados para serem exibidos no gráfico dessa lista';
+        subtitulo.style.textAlign = 'center';
+        appElement.appendChild(subtitulo);
+    } else {
+        setupInsightsUI();
+        await atualizarGraficosELista();
+    }
 }
 
 

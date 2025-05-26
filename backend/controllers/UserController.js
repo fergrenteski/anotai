@@ -218,74 +218,74 @@ class UserController {
         }
     }
 
-    /**
-     * Atualiza o perfil do usuário.
-     * @param {Object} req - Requisição HTTP.
-     * @param {Object} res - Resposta HTTP.
-     */
-    async atualizarPerfil(req, res) {
-        const userId = req.usuario.id; // Pegamos do token
-        const {nome, bio, profile_img_url} = req.body;
-
-        if (!nome || !bio || !profile_img_url) {
-            return res.status(400).json({success: false, message: "Todos os campos são obrigatórios!"});
-        }
+    // Obter a foto de perfil do usuário
+    async getProfile(req, res) {
+        const userId = req.usuario.id;
 
         try {
-            await this.userService.atualizarPerfil(userId, nome, bio, profile_img_url);
-            return res.status(200).json({success: true, message: "Perfil atualizado com sucesso!"});
+            const { rows } = await this.userService.getProfile(userId);
+            const user = rows[0];
+            const imagePath = user?.image_path;
+
+            // Existência de arquivo
+            let filePath = null;
+            if (imagePath) {
+                filePath = path.join(__dirname, '..', 'uploads', imagePath);
+            }
+
+            // Converter arquivo
+            let fileBuffer = null;
+            let ext = null;
+
+            if(filePath) {
+                // Lê o arquivo e converte para base64
+                fileBuffer = fs.readFileSync(filePath);
+                ext = path.extname(imagePath).toLowerCase().replace('.', '') || 'jpeg'; // ex: jpg, png
+            }
+
+            const data = {
+                userId: user.user_id,
+                name: user.name,
+                bio: user.bio,
+                image: fileBuffer ? `data:image/${ext};base64,${fileBuffer.toString('base64')}` : null
+            }
+
+            res.status(200).json({
+                success: true,
+                message: 'Imagem em base64',
+                data: data
+            });
         } catch (error) {
-            console.error("Erro ao atualizar perfil:", error);
-            return res.status(500).json({success: false, message: error.message});
+            console.error("Erro ao buscar imagem:", error);
+            res.status(500).json({ success: false, message: 'Erro ao buscar imagem.' });
         }
     }
 
     // Criar/atualizar imagem de perfil
-    async uploadProfileImage(req, res) {
+    async updateProfile(req, res) {
         const userId = req.usuario.id;
-        if (!req.file) return res.status(400).json({ success: false, message: 'Nenhum arquivo enviado.' });
+        const { name, bio } = req.body;
 
-        const filename = req.file.filename;
-        const relativePath = `profiles/${filename}`; // caminho que será usado via /api/profile
+        const haveImg = req.file;
+
+        let relativePath = null;
+
+        if (haveImg) {
+            const filename = req.file.filename;
+            relativePath = `profiles/${filename}`; // caminho que será usado via /api/profile
+        }
 
         try {
-            await this.userService.updateProfileImg(relativePath, userId);
+            await this.userService.updateProfile(userId, name, bio, relativePath);
             res.status(200).json({
                 success: true,
-                message: 'Imagem salva com sucesso.',
-                path: `/api/profile/${filename}` // retorno útil para frontend
+                message: 'Perfil Salvo com sucesso.'
             });
         } catch (err) {
             console.error(err);
-            res.status(500).json({ success: false, message: 'Erro ao salvar imagem.' });
+            res.status(500).json({ success: false, message: 'Erro ao salvar Perfil.' });
         }
     }
-
-    // Deletar imagem de perfil
-    async deleteProfileImage(req, res) {
-        const userId = req.usuario.id;
-
-        try {
-            const { rows } = await this.userService.getProfileImg(userId);
-            const imagePath = rows[0]?.image_path;
-
-            if (!imagePath) return res.status(404).json({success: false, message: 'Imagem não encontrada.'});
-
-            const filePath = path.join(__dirname, '..', 'uploads', 'profiles', path.basename(imagePath));
-
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-            }
-
-            await this.userService.updateProfileImg(null, userId);
-
-            res.status(200).json({success: true, message: 'Imagem deletada com sucesso.' });
-        } catch (err) {
-            console.error('Erro ao deletar Imagem:', err);
-            res.status(500).json({success: false, message: 'Erro ao deletar Imagem.'});
-        }
-    };
-
 }
 
 // Exporta o UserController

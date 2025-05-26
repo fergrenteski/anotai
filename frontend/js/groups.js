@@ -3,7 +3,7 @@ import {confirmModal} from "./utils/confirmModal.js";
 import {notificar} from "./utils/notification.js";
 import {getBackButton} from "./utils/backButton.js";
 import {createInput} from "./utils/createInput.js";
-
+import {getProfileImgElement} from "./utils/profileImg.js";
 // Variáveis
 let user = null;
 let appState = null;
@@ -30,7 +30,8 @@ async function loadGroups() {
         if (!user) {
             user = resposta.user;
             document.getElementById('userName').textContent = resposta.user.name;
-            document.getElementById('userInitials').textContent = resposta.user.name.split(' ').map(n => n[0]).join('');
+            const userImg = document.getElementById('userInitials');
+            userImg.appendChild(await getProfileImgElement());
         }
     }
     return resposta.data || [];
@@ -454,6 +455,7 @@ async function renderGerenciarGrupo() {
 
                 const memberInfo = document.createElement('div');
                 memberInfo.style.display = 'flex';
+                memberInfo.style.justifyContent = 'center';
                 memberInfo.style.alignItems = 'center';
 
                 const memberName = document.createElement('span');
@@ -462,7 +464,16 @@ async function renderGerenciarGrupo() {
                     statusText = ' (Administrador)';
                 }
                 memberName.textContent = membro.user_name + statusText;
+
                 memberInfo.appendChild(memberName);
+
+                const memberEmail = document.createElement('span');
+                memberEmail.textContent = membro.user_email;
+                memberEmail.style.fontSize = '12px';
+                memberEmail.style.marginLeft = '8px';
+                memberEmail.style.opacity = '0.6';
+
+                memberInfo.appendChild(memberEmail);
 
                 if (isAdminUser) {
                     // Indicador de verificação

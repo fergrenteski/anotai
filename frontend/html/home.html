@@ -16,31 +16,16 @@
     </nav>
     <div class="user-area" id="userArea">
         <span id="logout">SAIR</span>
-        <div class="user-icon" id="userInitials">AB</div>
+        <div class="user-icon" id="userInitials"></div>
         <span id="userName">Usuário</span>
     </div>
 </div>
 <div class="container-breadcrumb">
     <div id="breadcrumb"></div>
 </div>
-<div class="container">
-    <h1>Minhas Listas</h1>
-
-    <div class="actions">
-        <button class="btn" id="btnNovaLista">Nova Lista</button>
-        <button class="btn" id="btnConvites">Convites</button>
-        <button class="btn" id="btnConfig">Configurações</button>
-    </div>
-
-    <div class="lists-container" id="listsContainer">
-        <div class="empty-message" id="emptyMessage">
-            Você ainda não possui nenhuma lista. Crie uma nova lista para começar!
-        </div>
-        <!-- As listas serão inseridas aqui via JavaScript -->
-    </div>
-</div>
+<div class="container" id="app"></div>
 <script type="module" src="../js/utils/navigation.js"></script>
 <script type="module" src="../js/utils/breadcrumb.js"></script>
-<script src="../js/home.js"></script>
+<script type="module" src="../js/home.js"></script>
 </body>
 </html>

@@ -44,24 +44,6 @@ h1 {
     background-color: #5e52d3;
 }
 
-.lists-container {
-    margin-top: 20px;
-}
-
-.list-item {
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.list-item:hover {
-    background-color: #f9f9f9;
-}
-
-.empty-message {
-    text-align: center;
-    color: #888;
-    padding: 20px;
+ul {
+    list-style: none;
 }

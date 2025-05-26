@@ -3,6 +3,7 @@ import {notificar} from "./utils/notification.js";
 import {confirmModal} from "./utils/confirmModal.js";
 import {createInput} from "./utils/createInput.js";
 import {getBackButton} from "./utils/backButton.js";
+import {getProfileImgElement} from "./utils/profileImg.js";
 
 const params = new URLSearchParams(window.location.search);
 
@@ -28,7 +29,8 @@ async function loadLists() {
         if (!user) {
             user = resposta.user;
             document.getElementById('userName').textContent = resposta.user.name;
-            document.getElementById('userInitials').textContent = resposta.user.name.split(' ').map(n => n[0]).join('');
+            const userImg = document.getElementById('userInitials');
+            userImg.appendChild(await getProfileImgElement());
         }
     }
     return resposta.data || [];
