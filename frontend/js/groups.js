@@ -399,7 +399,7 @@ async function renderGerenciarGrupo() {
         data = await authFetch(`http://localhost:3000/api/groups/${groupId}`);
         grupo = data.data;
         user = data.user;
-        isAdminUser = user.userId === grupo.user_admin_id;
+        isAdminUser = user.id === grupo.user_admin_id;
     } else {
         isAdminUser = true;
     }
@@ -549,7 +549,7 @@ async function renderGerenciarGrupo() {
             divMembers.style.justifyContent = 'center';
             divMembers.style.alignItems = 'center';
             // Adicionar novo membro
-            const newMemberInput = createInput('email', 'new-member', 'E-mail do novo membro', '', true)
+            const newMemberInput = createInput('email', 'new-member', 'E-mail do novo membro', '', false)
             newMemberInput.style.marginBlock = '0px'
             divMembers.appendChild(newMemberInput);
 

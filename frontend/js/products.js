@@ -193,8 +193,8 @@ async function renderProdutos() {
             const div = document.createElement("div");
             div.className = "item";
 
-            const compradoPorMim = product.purchased_by === user.userId;
-            const adicionadoPorMim = product.added_by === user.userId;
+            const compradoPorMim = product.purchased_by === user.id;
+            const adicionadoPorMim = product.added_by === user.id;
             const comprado = !!product.purchased_by;
 
             if (comprado) div.classList.add("comprado");
