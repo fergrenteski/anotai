@@ -137,8 +137,6 @@ docker-compose up -d
 - `src/config/database.js` *(ou onde estiver na configuração de banco de dados)*
 - `docker-compose.yml` *(se estiver com dados sensíveis ou credenciais)*
 
-Adicione essas entradas no seu `.gitignore` se ainda não estiverem listadas.
-
 ---
 
 ## 🔧 Personalização
