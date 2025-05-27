@@ -1,27 +1,19 @@
 import {authFetch} from "./utils/authFetch.js";
-import {getProfileImgElement} from "./utils/profileImg.js";
+import {loadUserProfile} from "./utils/loadUserProfile.js";
 // Variáveis
-let user = null;
 let appState = null;
+let user = localStorage.getItem("user");
 
 async function initializeAppState(currentView, user) {
     await verificarLogin();
     appState = {
         currentView: currentView,
-        user: user
     };
 }
 
 async function verificarLogin() {
-    const resposta = await authFetch("http://localhost:3000/api/user/verificar-token");
-    if (resposta) {
-        if (!user) {
-            user = resposta.user;
-            document.getElementById('userName').textContent = resposta.user.name;
-            const userImg = document.getElementById('userInitials');
-            userImg.appendChild(await getProfileImgElement());
-        }
-    }
+    await authFetch("http://localhost:3000/api/user/verificar-token");
+
 }
 
 // Elemento raiz da aplicação
@@ -72,3 +64,5 @@ async function startApp(currentView = "home") {
 document.addEventListener('DOMContentLoaded', async () => {
     await startApp(); // Chama o start
 });
+
+await loadUserProfile();

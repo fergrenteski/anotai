@@ -179,10 +179,20 @@ class UserService {
         await runQuery("update_user_profile", [name, bio, image_path, userId]);
     }
 
+    /**
+     * Busca o Perfil de usuário
+     * @param userId Identificado de Usuário
+     * @returns {Promise<{rows: *[]}>} Objeto Usuário
+     */
     async getProfile(userId) {
         return await runQuery("select_user_profile", [userId]);
     }
 
+    /**
+     * Atualiza o Perfil de usuário
+     * @param token Identificador de Usuário.
+     * @returns {Promise<void>}
+     */
     async deletarTokenResetPass(token) {
         await runQuery("delete_token_reset_pass_by_token", [token]);
     }

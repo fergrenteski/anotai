@@ -3,12 +3,12 @@ import {notificar} from "./utils/notification.js";
 import {confirmModal} from "./utils/confirmModal.js";
 import {createInput} from "./utils/createInput.js";
 import {getBackButton} from "./utils/backButton.js";
-import {getProfileImgElement} from "./utils/profileImg.js";
+import {loadUserProfile} from "./utils/loadUserProfile.js";
 
 const params = new URLSearchParams(window.location.search);
 
 // Variáveis
-let user = null;
+let user = JSON.parse(localStorage.getItem('user'));
 let groupIdParam = null;
 let appState = null;
 let categories = null;
@@ -25,14 +25,6 @@ async function loadListsCategories() {
 async function loadLists() {
     // Busca lista de listas da API
     const resposta = await authFetch(`http://localhost:3000/api/groups/${groupIdParam}/lists`);
-    if (resposta) {
-        if (!user) {
-            user = resposta.user;
-            document.getElementById('userName').textContent = resposta.user.name;
-            const userImg = document.getElementById('userInitials');
-            userImg.appendChild(await getProfileImgElement());
-        }
-    }
     return resposta.data || [];
 }
 
@@ -135,7 +127,7 @@ function renderListaListas() {
 
         // Mostrar cada lista
         appState.listas.forEach(lista => {
-            let isAdminUser = lista.created_by === user.id;
+            let isAdminUser = lista.created_by === user.userId;
             const listItem = document.createElement('div');
             listItem.className = 'list-item';
 
@@ -181,14 +173,30 @@ function renderListaListas() {
             actionButtons.appendChild(editBtn);
 
             if(isAdminUser) {
+
+                const icon = document.createElement('i');
+                icon.style.color = '#e12424';
+                icon.className = 'fa-solid fa-trash';
+
                 const deleteBtn = document.createElement('button');
-                deleteBtn.innerHTML = '<i class="fa-solid fa-trash" style="color:#e12424;"></i>';
+                deleteBtn.appendChild(icon);
+
                 deleteBtn.className = 'delete-btn';
                 deleteBtn.title = 'Excluir Lista';
                 deleteBtn.addEventListener('click', async (e) => {
                     e.stopPropagation();
                     e.preventDefault()
                     await deleteList(lista);
+                });
+
+                // Adiciona o shake
+                deleteBtn.addEventListener('mouseover', () => {
+                    icon.classList.add('fa-beat-fade');
+                });
+
+                // Remove o Shake
+                deleteBtn.addEventListener('mouseleave', () => {
+                    icon.classList.remove('fa-beat-fade');
                 });
 
                 actionButtons.appendChild(deleteBtn);
@@ -259,7 +267,7 @@ async function renderGerenciarLista() {
             .then(resposta => {
                 if(resposta) {
                     lista = resposta.data;
-                    isAdminUser = user.id === lista.created_by;
+                    isAdminUser = user.userId === lista.created_by;
                 }
             }).catch(() => {
                 // Nada aqui. Silencia completamente.
@@ -397,5 +405,6 @@ async function startApp(currentView = "listaListas",
 document.addEventListener('DOMContentLoaded', async () => {
     groupIdParam = params.get("groupid");
     categories = await loadListsCategories();
+    await loadUserProfile();
     await startApp(); // Chama o start
 });

@@ -171,6 +171,7 @@ class UserController {
         }
     }
 
+    // Função para reconfirmar email de usuário
     async reconfirmarEmail(req, res) {
         const email = req.params.email;
         // Email Inexistente
@@ -197,28 +198,7 @@ class UserController {
         }
     }
 
-    async alterarSenhaAutenticado(req, res) {
-        const userId = req.usuario.id;
-        const {senhaAtual, novaSenha, confirmarNovaSenha} = req.body;
-
-        if (!senhaAtual || !novaSenha || !confirmarNovaSenha) {
-            return res.status(400).json({success: false, message: "Todos os campos são obrigatórios!"});
-        }
-
-        if (novaSenha !== confirmarNovaSenha) {
-            return res.status(400).json({success: false, message: "As novas senhas não coincidem!"});
-        }
-
-        try {
-            await this.userService.alterarSenhaAutenticado(userId, senhaAtual, novaSenha);
-            return res.status(200).json({success: true, message: "Senha alterada com sucesso!"});
-        } catch (error) {
-            console.error("Erro ao alterar senha:", error);
-            return res.status(500).json({success: false, message: error.message});
-        }
-    }
-
-    // Obter a foto de perfil do usuário
+    // Obter perfil do usuário
     async getProfile(req, res) {
         const userId = req.usuario.id;
 
@@ -243,6 +223,7 @@ class UserController {
                 ext = path.extname(imagePath).toLowerCase().replace('.', '') || 'jpeg'; // ex: jpg, png
             }
 
+            // Constrói Objeto de retorno
             const data = {
                 userId: user.user_id,
                 name: user.name,
@@ -250,10 +231,7 @@ class UserController {
                 image: fileBuffer ? `data:image/${ext};base64,${fileBuffer.toString('base64')}` : null
             }
 
-            res.status(200).json({
-                success: true,
-                message: 'Imagem em base64',
-                data: data
+            res.status(200).json({ success: true, message: 'Imagem em base64', data: data
             });
         } catch (error) {
             console.error("Erro ao buscar imagem:", error);
@@ -261,7 +239,7 @@ class UserController {
         }
     }
 
-    // Criar/atualizar imagem de perfil
+    // atualizar imagem de perfil
     async updateProfile(req, res) {
         const userId = req.usuario.id;
         const { name, bio } = req.body;
@@ -270,6 +248,7 @@ class UserController {
 
         let relativePath = null;
 
+        // Usuário possui imagem?
         if (haveImg) {
             const filename = req.file.filename;
             relativePath = `profiles/${filename}`; // caminho que será usado via /api/profile
@@ -277,10 +256,7 @@ class UserController {
 
         try {
             await this.userService.updateProfile(userId, name, bio, relativePath);
-            res.status(200).json({
-                success: true,
-                message: 'Perfil Salvo com sucesso.'
-            });
+            res.status(200).json({ success: true, message: 'Perfil Salvo com sucesso.'});
         } catch (err) {
             console.error(err);
             res.status(500).json({ success: false, message: 'Erro ao salvar Perfil.' });

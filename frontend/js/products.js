@@ -1,14 +1,10 @@
-// =========================
-// VARIÁVEIS GLOBAIS
-// =========================
-
 import {getBackButton} from "./utils/backButton.js";
 import {authFetch} from "./utils/authFetch.js";
 import {notificar} from "./utils/notification.js";
 import {confirmModal} from "./utils/confirmModal.js";
-import {getProfileImgElement} from "./utils/profileImg.js";
+import {loadUserProfile} from "./utils/loadUserProfile.js";
 
-let user = null;
+let user = JSON.parse(localStorage.getItem('user'));
 let appState = null; // Estado global da aplicação
 let groupIdParam = null;
 let listIdParam = null;
@@ -31,14 +27,6 @@ async function loadProductCategories() {
  */
 async function loadProducts() {
     const resposta = await authFetch(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products`);
-    if (resposta) {
-        if (!user) {
-            user = resposta.user;
-            document.getElementById('userName').textContent = resposta.user.name;
-            const userImg = document.getElementById('userInitials');
-            userImg.appendChild(await getProfileImgElement());
-        }
-    }
     return resposta.data || [];
 }
 
@@ -205,8 +193,8 @@ async function renderProdutos() {
             const div = document.createElement("div");
             div.className = "item";
 
-            const compradoPorMim = product.purchased_by === user.id;
-            const adicionadoPorMim = product.added_by === user.id;
+            const compradoPorMim = product.purchased_by === user.userId;
+            const adicionadoPorMim = product.added_by === user.userId;
             const comprado = !!product.purchased_by;
 
             if (comprado) div.classList.add("comprado");
@@ -249,6 +237,19 @@ async function renderProdutos() {
                 e.preventDefault();
                 await deleteProduct(product);
             });
+
+            // Adiciona o shake
+            buttonDelete.addEventListener('mouseover', () => {
+                const faIcon = buttonDelete.querySelector("i");
+                faIcon.classList.add('fa-beat-fade');
+            });
+
+            // Remove o Shake
+            buttonDelete.addEventListener('mouseleave', () => {
+                const faIcon = buttonDelete.querySelector("i");
+                faIcon.classList.remove('fa-beat-fade');
+            });
+
             if (comprado) {
                 // Estilo de "comprado"
                 icon.className = "fa-solid fa-rotate-left";
@@ -261,6 +262,17 @@ async function renderProdutos() {
                     e.preventDefault();
                     await updateProductState(product, false);
                 })
+                // Adiciona o shake
+                buttonBuy.addEventListener('mouseover', () => {
+                    icon.classList.add('fa-spin');
+                    icon.classList.add('fa-spin-reverse');
+                });
+
+                // Remove o Shake
+                buttonBuy.addEventListener('mouseleave', () => {
+                    icon.classList.remove('fa-spin');
+                    icon.classList.remove('fa-spin-reverse');
+                });
             } else {
                 // Estilo de "não comprado"
                 icon.className = "fa-solid fa-check";
@@ -278,41 +290,18 @@ async function renderProdutos() {
                 buttonBuy.addEventListener("click", async (e) => {
                     e.stopPropagation();
                     e.preventDefault();
-                    startApp("comprarProduto", "meus-produtos",  product);
+                    await startApp("comprarProduto", "meus-produtos",  product);
                 })
+                // Adiciona o shake
+                buttonBuy.addEventListener('mouseover', () => {
+                    icon.classList.add('fa-bounce');
+                });
 
+                // Remove o Shake
+                buttonBuy.addEventListener('mouseleave', () => {
+                    icon.classList.remove('fa-bounce');
+                });
             }
-
-            buttonBuy.addEventListener("click",  (e) => {
-                e.stopPropagation();
-                const meta = div.querySelector(".comprador");
-
-                if (div.classList.contains("comprado")) {
-                    // Desfazer compra
-                    div.classList.remove("comprado");
-                    product.purchased_by = null;
-
-                    meta.textContent = `Adicionado por: ${product.added_name}`;
-                    icon.className = "fa-solid fa-check";
-                    icon.style.color = "#4CAF50";
-                    buttonBuy.style.backgroundColor = hexToRgba("#4CAF50", 0.2);
-                    buttonBuy.classList.remove("btn-amarelo");
-                    buttonBuy.classList.add("btn-verde");
-                } else {
-                    // Marcar como comprado
-                    const comprador = product.purchased_name;
-                    product.purchased_by = comprador;
-                    product.purchased_name = comprador;
-
-                    div.classList.add("comprado");
-                    meta.textContent = `Comprado por: ${comprador}`;
-                    icon.className = "fa-solid fa-rotate-left";
-                    icon.style.color = "#b68713";
-                    buttonBuy.style.backgroundColor = hexToRgba("#b68713", 0.2);
-                    buttonBuy.classList.remove("btn-verde");
-                    buttonBuy.classList.add("btn-amarelo");
-                }
-            });
 
             productsDiv.appendChild(div);
 
@@ -1229,6 +1218,7 @@ async function updateProductState(product, buy) {
 // Inicialização ao carregar o DOM
 document.addEventListener('DOMContentLoaded', async () => {
     await loadURLParams();
+    await loadUserProfile();
     categories = await loadProductCategories();
     await startApp();
 });

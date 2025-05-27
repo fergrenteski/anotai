@@ -127,10 +127,31 @@ async function renderProfile() {
         previewImage(e);
     })
 
+    const buttonDiv = document.createElement('div');
+    buttonDiv.style.display = 'flex';
+    buttonDiv.style.gap = '10px';
+
+
+    const faIcon = document.createElement('i');
+    faIcon.classList.add('fa-solid');
+    faIcon.classList.add('fa-trash');
+    faIcon.classList.add('fa-xl');
+    faIcon.style.color = '#e12424';
+    // Adiciona o shake
+    faIcon.addEventListener('mouseover', () => {
+        faIcon.classList.add('fa-bounce');
+    });
+
+    // Remove o Shake
+    faIcon.addEventListener('mouseleave', () => {
+        faIcon.classList.remove('fa-bounce');
+    });
+
+    // Cria botão de delete
     const deleteButton = document.createElement('button');
     deleteButton.className = 'delete-btn';
     deleteButton.id = 'delete-button';
-    deleteButton.textContent = 'Deletar';
+    deleteButton.appendChild(faIcon);
     deleteButton.addEventListener('click', async (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -139,8 +160,9 @@ async function renderProfile() {
 
     labelUpload.appendChild(fileInput);
     pictureDiv.appendChild(img);
-    pictureDiv.appendChild(labelUpload);
-    pictureDiv.appendChild(deleteButton);
+    buttonDiv.appendChild(labelUpload);
+    buttonDiv.appendChild(deleteButton);
+    pictureDiv.appendChild(buttonDiv);
 
     // Campos de texto
     const fieldsDiv = document.createElement('form');
@@ -235,7 +257,7 @@ async function PersistProfile() {
                     method: "PUT",
                     body: formData
                 }).then(data => {
-                    localStorage.removeItem('profileImg', img.src);
+                    localStorage.removeItem('user');
                     notificar(data.message);
                 });
                 await startApp( "geral", "profile")

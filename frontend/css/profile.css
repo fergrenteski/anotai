@@ -104,3 +104,10 @@ input, select {
   width: 100%;
   height: 100%;
 }
+
+.delete-btn {
+  border: none;
+  padding: 2px 12px;
+  cursor: pointer;
+  background-color: transparent;
+}

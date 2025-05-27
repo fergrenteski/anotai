@@ -36,6 +36,10 @@
     {
       "src": "/sql/*",
       "use": "@vercel/static"
+    },
+    {
+      "src": "/sql/profiles/*",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
