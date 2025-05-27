@@ -303,6 +303,7 @@ async function renderGerenciarLista() {
     const typeSelect = document.createElement('select');
     typeSelect.id = 'list-type';
     typeSelect.disabled = !isAdminUser;
+    typeSelect.required = true;
 
     const defaultOption = document.createElement('option');
     defaultOption.value = "";
