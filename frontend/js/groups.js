@@ -411,7 +411,8 @@ async function renderGerenciarGrupo() {
     appElement.appendChild(description);
 
     // Formulário
-    const form = document.createElement('div');
+    const form = document.createElement('form');
+    form.method = 'POST';
 
     // Campo: Nome do grupo
     const nameInput = createInput('text', 'group-name', 'Nome do Grupo', grupo.group_name, true, !isAdminUser)
@@ -577,7 +578,7 @@ async function renderGerenciarGrupo() {
         saveBtn.textContent = 'Salvar Grupo';
         saveBtn.style.width = '100%';
         saveBtn.classList.add('save-btn');
-        saveBtn.addEventListener('click', async (e) => {
+        form.addEventListener('submit', async (e) => {
             e.stopPropagation();
             e.preventDefault();
             await persistGroup(isEditing, grupo);
