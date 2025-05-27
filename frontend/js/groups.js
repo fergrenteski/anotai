@@ -89,7 +89,6 @@ function renderApp() {
             renderGerenciarGrupo();
             break;
         default:
-            renderTabs();
             renderListaGrupos();
     }
 }
