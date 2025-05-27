@@ -71,10 +71,11 @@ function renderApp() {
     // Limpa o conteúdo atual
     appElement.innerHTML = '';
 
+    renderTabs();
+
     // Renderiza a view atual
     switch (appState.currentView) {
         case "listaGrupos":
-            renderTabs();
             if (appState.activeTab === "meus-grupos") {
                 renderListaGrupos();
             } else {
@@ -88,7 +89,6 @@ function renderApp() {
             renderGerenciarGrupo();
             break;
         default:
-            renderTabs();
             renderListaGrupos();
     }
 }
