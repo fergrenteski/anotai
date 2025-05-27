@@ -1,4 +1,3 @@
-import {modal} from "./modal.js";
 import {notificar} from "./notification.js";
 
 function abrirPerfil() {
@@ -6,7 +5,7 @@ function abrirPerfil() {
 }
 
 function abrirListas() {
-    modal("Listas de usuário será implementada em breve!");
+    notificar("Listas de usuário será implementada em breve!");
 }
 
 function abrirHome() {
@@ -22,7 +21,15 @@ function logout() {
 
 
 // Eventos de clique em elementos fixos da interface
-document.getElementById('userName').addEventListener('click', abrirPerfil);
-document.getElementById('logo').addEventListener('click', abrirHome);
+document.getElementById("logo").addEventListener('click', abrirHome);
 document.getElementById('list-link').addEventListener('click', abrirListas);
-document.getElementById('logout').addEventListener('click', logout);
+document.getElementById('logout').addEventListener('click', (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    logout();
+});
+document.getElementById('userArea').addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    abrirPerfil();
+});

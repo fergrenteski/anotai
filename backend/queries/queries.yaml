@@ -208,9 +208,8 @@ queries:
     WHERE group_id = $4;
 
   # Marca um grupo como expirado
-  expire_group: >
-    UPDATE groups
-    SET expired_at = CURRENT_TIMESTAMP 
+  delete_group: >
+    DELETE FROM groups
     WHERE group_id = $1
 
   # Associa um usuário a um grupo
@@ -372,5 +371,8 @@ queries:
 
   update_user_profile: >
     UPDATE users
-    SET name = $1, bio = $2, profile_img_url = $3, updated_at = CURRENT_TIMESTAMP
+    SET name = $1, bio = $2, image_path = $3, updated_at = CURRENT_TIMESTAMP
     WHERE user_id = $4;
+
+  select_user_profile: >
+    SELECT user_id, name, bio, image_path FROM users WHERE user_id = $1;

@@ -3,6 +3,8 @@ const UserService = require("../services/UserService");
 const EmailService = require("../services/EmailService");
 const {gerarTokenEmail} = require("../utils/validators");
 const {runQuery} = require("../utils/queryHelper");
+const path = require("path");
+const fs = require("fs");
 
 class UserController {
     constructor() {
@@ -87,7 +89,15 @@ class UserController {
 
         // Gera token de reset e envia por e-mail
         try {
-            const {emailToken} = await this.userService.redefinirSenha(email);
+            const rows = await this.userService.getUserByEmail(email);
+
+            if(!rows) return res.status(400).json({success: false, message: "Usuário não encontrado!"})
+
+            const user = rows;
+
+            if(!user.email_verified) return res.status(400).json({success: false, message: "Usuário não Verificado!"})
+
+            const { emailToken } = await this.userService.redefinirSenha(user.userId, email);
             await this.emailService.enviarRedefinicaoEmail(email, emailToken);
             return res.status(200).json({success: true, message: "Redefinicão de senha enviada! Verifique seu Email"});
         } catch (error) {
@@ -161,6 +171,7 @@ class UserController {
         }
     }
 
+    // Função para reconfirmar email de usuário
     async reconfirmarEmail(req, res) {
         const email = req.params.email;
         // Email Inexistente
@@ -187,49 +198,70 @@ class UserController {
         }
     }
 
-    async alterarSenhaAutenticado(req, res) {
+    // Obter perfil do usuário
+    async getProfile(req, res) {
         const userId = req.usuario.id;
-        const {senhaAtual, novaSenha, confirmarNovaSenha} = req.body;
-
-        if (!senhaAtual || !novaSenha || !confirmarNovaSenha) {
-            return res.status(400).json({success: false, message: "Todos os campos são obrigatórios!"});
-        }
-
-        if (novaSenha !== confirmarNovaSenha) {
-            return res.status(400).json({success: false, message: "As novas senhas não coincidem!"});
-        }
 
         try {
-            await this.userService.alterarSenhaAutenticado(userId, senhaAtual, novaSenha);
-            return res.status(200).json({success: true, message: "Senha alterada com sucesso!"});
+            const { rows } = await this.userService.getProfile(userId);
+            const user = rows[0];
+            const imagePath = user?.image_path;
+
+            // Existência de arquivo
+            let filePath = null;
+            if (imagePath) {
+                filePath = path.join(__dirname, '..', 'uploads', imagePath);
+            }
+
+            // Converter arquivo
+            let fileBuffer = null;
+            let ext = null;
+
+            if(filePath) {
+                // Lê o arquivo e converte para base64
+                fileBuffer = fs.readFileSync(filePath);
+                ext = path.extname(imagePath).toLowerCase().replace('.', '') || 'jpeg'; // ex: jpg, png
+            }
+
+            // Constrói Objeto de retorno
+            const data = {
+                userId: user.user_id,
+                name: user.name,
+                bio: user.bio,
+                image: fileBuffer ? `data:image/${ext};base64,${fileBuffer.toString('base64')}` : null
+            }
+
+            res.status(200).json({ success: true, message: 'Imagem em base64', data: data
+            });
         } catch (error) {
-            console.error("Erro ao alterar senha:", error);
-            return res.status(500).json({success: false, message: error.message});
+            console.error("Erro ao buscar imagem:", error);
+            res.status(500).json({ success: false, message: 'Erro ao buscar imagem.' });
         }
     }
 
-    /**
-     * Atualiza o perfil do usuário.
-     * @param {Object} req - Requisição HTTP.
-     * @param {Object} res - Resposta HTTP.
-     */
-    async atualizarPerfil(req, res) {
-        const userId = req.usuario.id; // Pegamos do token
-        const {nome, bio, profile_img_url} = req.body;
+    // atualizar imagem de perfil
+    async updateProfile(req, res) {
+        const userId = req.usuario.id;
+        const { name, bio } = req.body;
 
-        if (!nome || !bio || !profile_img_url) {
-            return res.status(400).json({success: false, message: "Todos os campos são obrigatórios!"});
+        const haveImg = req.file;
+
+        let relativePath = null;
+
+        // Usuário possui imagem?
+        if (haveImg) {
+            const filename = req.file.filename;
+            relativePath = `profiles/${filename}`; // caminho que será usado via /api/profile
         }
 
         try {
-            await this.userService.atualizarPerfil(userId, nome, bio, profile_img_url);
-            return res.status(200).json({success: true, message: "Perfil atualizado com sucesso!"});
-        } catch (error) {
-            console.error("Erro ao atualizar perfil:", error);
-            return res.status(500).json({success: false, message: error.message});
+            await this.userService.updateProfile(userId, name, bio, relativePath);
+            res.status(200).json({ success: true, message: 'Perfil Salvo com sucesso.'});
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ success: false, message: 'Erro ao salvar Perfil.' });
         }
     }
-
 }
 
 // Exporta o UserController

@@ -9,9 +9,11 @@ import {modal} from "./modal.js";
 export function authFetch(url, options = {}) {
     const token = sessionStorage.getItem('token') || '';
 
+    const isFormData = options.body instanceof FormData;
+
     const defaultHeaders = {
-        'Content-Type': 'application/json',
-        ...(token && { 'Authorization': `Bearer ${token}` })
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+        ...(!isFormData && { 'Content-Type': 'application/json' })
     };
 
     const config = {

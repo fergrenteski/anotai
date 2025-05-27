@@ -2,6 +2,7 @@
 .header {
     background-color: #7367f0;
     color: white;
+    height: 50px;
     padding: 15px;
     display: flex;
     justify-content: space-between;
@@ -23,10 +24,10 @@
     cursor: pointer;
 }
 
-.user-icon {
+.user-icon img {
     width: 35px;
     height: 35px;
-    background-color: #fff;
+    border: 1px solid #ffffff;
     border-radius: 50%;
     margin-right: 10px;
     display: flex;
@@ -34,6 +35,7 @@
     justify-content: center;
     color: #7367f0;
     font-weight: bold;
+    object-fit: cover;
 }
 
 #logout {

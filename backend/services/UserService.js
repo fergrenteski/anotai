@@ -75,25 +75,19 @@ class UserService {
 
     /**
      * Gera um token de redefinição de senha e o associa ao usuário.
+     * @param {Number} userId - Identificador do usuário.
      * @param {string} email - E-mail do usuário.
      * @returns {Promise<Object>} - Retorna um objeto indicando o sucesso ou falha da solicitação de redefinição de senha.
      */
-    async redefinirSenha(email) {
-        const {rows} = await runQuery("select_user_by_email", [email]);
-
-        if (rows.length === 0) {
-            throw new Error("E-mail não encontrado.");
-        }
-
-        const userId = rows[0].user_id;
-        const {emailToken, expiresAt} = gerarTokenEmail();
+    async redefinirSenha(userId, email) {
+        const { emailToken, expiresAt } = gerarTokenEmail();
 
         // Remove tokens antigos e insere um novo
         await runQuery("delete_user_reset_password_keys", [userId]);
         await runQuery("insert_user_reset_password_keys", [userId, email, emailToken, expiresAt]);
         await runQuery("insert_user_log_reset_password", [userId]);
 
-        return {emailToken};
+        return { emailToken };
     }
 
     /**
@@ -177,18 +171,28 @@ class UserService {
     /**
      * Atualiza os dados do perfil do usuário.
      * @param {number} userId - ID do usuário.
-     * @param {string} nome - Novo nome.
+     * @param {string} name - Novo nome.
      * @param {string} bio - Nova bio.
-     * @param {string} profile_img_url - URL da nova imagem de perfil.
+     * @param {string} image_path - URL da nova imagem de perfil.
      */
-    async atualizarPerfil(userId, nome, bio, profile_img_url) {
-        const {rowCount} = await runQuery("update_user_profile", [nome, bio, profile_img_url, userId]);
-
-        if (rowCount === 0) {
-            throw new Error("Usuário não encontrado ou nenhuma alteração feita.");
-        }
+    async updateProfile(userId, name, bio, image_path) {
+        await runQuery("update_user_profile", [name, bio, image_path, userId]);
     }
 
+    /**
+     * Busca o Perfil de usuário
+     * @param userId Identificado de Usuário
+     * @returns {Promise<{rows: *[]}>} Objeto Usuário
+     */
+    async getProfile(userId) {
+        return await runQuery("select_user_profile", [userId]);
+    }
+
+    /**
+     * Atualiza o Perfil de usuário
+     * @param token Identificador de Usuário.
+     * @returns {Promise<void>}
+     */
     async deletarTokenResetPass(token) {
         await runQuery("delete_token_reset_pass_by_token", [token]);
     }

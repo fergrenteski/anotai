@@ -3,9 +3,11 @@ import {confirmModal} from "./utils/confirmModal.js";
 import {notificar} from "./utils/notification.js";
 import {getBackButton} from "./utils/backButton.js";
 import {createInput} from "./utils/createInput.js";
+import {loadUserProfile} from "./utils/loadUserProfile.js";
+
 
 // Variáveis
-let user = null;
+let user = JSON.parse(localStorage.getItem('user'));
 let appState = null;
 let categories = null;
 
@@ -26,13 +28,6 @@ async function loadGroupsCategories() {
 async function loadGroups() {
     // Busca lista de grupos da API
     const resposta = await authFetch('http://localhost:3000/api/groups');
-    if (resposta) {
-        if (!user) {
-            user = resposta.user;
-            document.getElementById('userName').textContent = resposta.user.name;
-            document.getElementById('userInitials').textContent = resposta.user.name.split(' ').map(n => n[0]).join('');
-        }
-    }
     return resposta.data || [];
 }
 
@@ -224,8 +219,12 @@ function renderListaGrupos() {
             actionButtons.appendChild(editBtn);
 
             if (isAdminUser) {
+                const icon = document.createElement('i');
+                icon.style.color = '#e12424';
+                icon.className = 'fa-solid fa-trash';
+
                 const deleteBtn = document.createElement('button');
-                deleteBtn.innerHTML = '<i class="fa-solid fa-trash" style="color:#e12424;"></i>';
+                deleteBtn.appendChild(icon);
                 deleteBtn.className = 'delete-btn';
                 deleteBtn.classList.add('action-btn');
                 deleteBtn.addEventListener('click', async (e) => {
@@ -234,6 +233,17 @@ function renderListaGrupos() {
                     await deleteGroup(grupo);
 
                 });
+
+                // Adiciona o shake
+                deleteBtn.addEventListener('mouseover', () => {
+                    icon.classList.add('fa-beat-fade');
+                });
+
+                // Remove o Shake
+                deleteBtn.addEventListener('mouseleave', () => {
+                    icon.classList.remove('fa-beat-fade');
+                });
+
                 actionButtons.appendChild(deleteBtn);
             }
 
@@ -383,7 +393,7 @@ async function renderGerenciarGrupo() {
         data = await authFetch(`http://localhost:3000/api/groups/${groupId}`);
         grupo = data.data;
         user = data.user;
-        isAdminUser = user.id === grupo.user_admin_id;
+        isAdminUser = user.userId === grupo.user_admin_id;
     } else {
         isAdminUser = true;
     }
@@ -454,6 +464,7 @@ async function renderGerenciarGrupo() {
 
                 const memberInfo = document.createElement('div');
                 memberInfo.style.display = 'flex';
+                memberInfo.style.justifyContent = 'center';
                 memberInfo.style.alignItems = 'center';
 
                 const memberName = document.createElement('span');
@@ -462,7 +473,16 @@ async function renderGerenciarGrupo() {
                     statusText = ' (Administrador)';
                 }
                 memberName.textContent = membro.user_name + statusText;
+
                 memberInfo.appendChild(memberName);
+
+                const memberEmail = document.createElement('span');
+                memberEmail.textContent = membro.user_email;
+                memberEmail.style.fontSize = '12px';
+                memberEmail.style.marginLeft = '8px';
+                memberEmail.style.opacity = '0.6';
+
+                memberInfo.appendChild(memberEmail);
 
                 if (isAdminUser) {
                     // Indicador de verificação
@@ -690,5 +710,6 @@ async function startApp(currentView = "listaGrupos", activeTab = "meus-grupos", 
 
 document.addEventListener('DOMContentLoaded', async () => {
     categories = await loadGroupsCategories();
+    await loadUserProfile();
     await startApp(); // Chama o start
 });

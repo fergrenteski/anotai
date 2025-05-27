@@ -68,7 +68,7 @@ class GroupService {
     async delete(groupId) {
 
         // Executa a consulta SQL expire_group com o parâmetro groupId
-        return runQuery("expire_group", [groupId]);
+        return runQuery("delete_group", [groupId]);
     }
 }
 // Exporta a classe GroupService
