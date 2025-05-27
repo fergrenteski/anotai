@@ -101,7 +101,8 @@ function renderTabs() {
     const meusGruposTab = document.createElement('div');
     meusGruposTab.className = `tab ${appState.activeTab === 'meus-grupos' ? 'active' : ''}`;
     meusGruposTab.textContent = 'Meus Grupos';
-    meusGruposTab.addEventListener('click', () => {
+    meusGruposTab.addEventListener('click', (e) => {
+        e.preventDefault()
         startApp("listaGrupos", 'meus-grupos');
     });
     tabsContainer.appendChild(meusGruposTab);
@@ -109,7 +110,8 @@ function renderTabs() {
     const convitesTab = document.createElement('div');
     convitesTab.className = `tab ${appState.activeTab === 'convites' ? 'active' : ''}`;
     convitesTab.textContent = `Convites (${appState.convites.length})`;
-    convitesTab.addEventListener('click', () => {
+    convitesTab.addEventListener('click', (e) => {
+        e.preventDefault()
         startApp("listaGrupos", 'convites');
     });
     tabsContainer.appendChild(convitesTab);
@@ -148,7 +150,8 @@ function renderListaGrupos() {
         createButton.textContent = 'Criar Grupo';
         createButton.style.width = '100%';
         createButton.classList.add('save-btn');
-        createButton.addEventListener('click', () => {
+        createButton.addEventListener('click', (e) => {
+            e.preventDefault()
             startApp("novoGrupo");
         });
         emptyState.appendChild(createButton);
@@ -214,6 +217,7 @@ function renderListaGrupos() {
 
             editBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
+                e.preventDefault()
                 startApp("editarGrupo", null, grupo.group_id);
             });
             actionButtons.appendChild(editBtn);
@@ -251,6 +255,7 @@ function renderListaGrupos() {
 
             // Evento de click para Redirecionar a listas do grupo.
             if (grupo.user_verified) groupItem.addEventListener('click', (e) => {
+                e.preventDefault()
                 e.stopPropagation();
                 window.location.href = `lists.html?groupid=${grupo.group_id}`;
             })
@@ -264,7 +269,8 @@ function renderListaGrupos() {
         createNewButton.textContent = 'Criar Novo Grupo';
         createNewButton.style.width = '100%';
         createNewButton.classList.add('save-btn');
-        createNewButton.addEventListener('click', () => {
+        createNewButton.addEventListener('click', (e) => {
+            e.preventDefault()
             startApp("novoGrupo");
         });
         groupsContainer.appendChild(createNewButton);
@@ -411,7 +417,8 @@ async function renderGerenciarGrupo() {
     appElement.appendChild(description);
 
     // Formulário
-    const form = document.createElement('div');
+    const form = document.createElement('form');
+    form.method = 'POST';
 
     // Campo: Nome do grupo
     const nameInput = createInput('text', 'group-name', 'Nome do Grupo', grupo.group_name, true, !isAdminUser)
@@ -565,7 +572,9 @@ async function renderGerenciarGrupo() {
 
     const backBtn = getBackButton();
 
-    backBtn.addEventListener('click', () => {
+    backBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         startApp("listaGrupos", "meus-grupos");
     });
 
@@ -577,7 +586,7 @@ async function renderGerenciarGrupo() {
         saveBtn.textContent = 'Salvar Grupo';
         saveBtn.style.width = '100%';
         saveBtn.classList.add('save-btn');
-        saveBtn.addEventListener('click', async (e) => {
+        form.addEventListener('submit', async (e) => {
             e.stopPropagation();
             e.preventDefault();
             await persistGroup(isEditing, grupo);
