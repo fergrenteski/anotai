@@ -569,6 +569,7 @@ async function renderGerenciarGrupo() {
 
     const crudBtns = document.createElement('div');
     crudBtns.classList.add('crud-div');
+    crudBtns.style.display = 'flex';
 
     const backBtn = getBackButton();
 
@@ -592,6 +593,29 @@ async function renderGerenciarGrupo() {
             await persistGroup(isEditing, grupo);
         });
         crudBtns.appendChild(saveBtn);
+    }
+
+    if (isAdminUser) {
+        const sairBtn = document.createElement('button');
+        sairBtn.textContent = 'Sair';
+        sairBtn.style.width = '25%';
+        sairBtn.style.backgroundColor = '#e12424';
+        sairBtn.classList.add('save-btn');
+        sairBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            await confirmModal('Tem certeza que deseja sair do grupo?').then(async resposta => {
+                if (resposta){
+                    console.log('sair');
+
+                    await authFetch()
+                }
+            });
+
+
+        });
+        crudBtns.appendChild(sairBtn);
     }
 
     form.appendChild(crudBtns);
