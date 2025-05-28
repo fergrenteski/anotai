@@ -192,6 +192,22 @@ async function renderProdutos() {
         const emptyText = document.createElement('p');
         emptyText.textContent = 'Adicione produtos na lista de compras para que os outros vejam.';
         emptyState.appendChild(emptyText);
+    // Cálculo do preço total da lista
+    const precoTotal = appState.products
+    .filter(product => product.purchased_by) // Só produtos comprados
+    .reduce((total, product) => {
+        return total + (parseFloat(product.price || 0) * parseInt(product.quantity || 0));
+    }, 0);
+
+    // Elemento para mostrar o total
+    const totalDiv = document.createElement('div');
+    totalDiv.className = 'total-container';
+    totalDiv.innerHTML = `
+    <div class="title">💰 Total da Lista</div>
+    <div class="value">R$ ${precoTotal.toFixed(2)}</div>
+`;
+
+appElement.appendChild(totalDiv);
 
         const createButton = document.createElement('button');
         createButton.textContent = 'Adicionar Produto';
