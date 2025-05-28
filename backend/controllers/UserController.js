@@ -97,7 +97,7 @@ class UserController {
 
             if(!user.email_verified) return res.status(400).json({success: false, message: "Usuário não Verificado!"})
 
-            const { emailToken } = await this.userService.redefinirSenha(user.userId, email);
+            const { emailToken } = await this.userService.redefinirSenha(user.user_id, email);
             await this.emailService.enviarRedefinicaoEmail(email, emailToken);
             return res.status(200).json({success: true, message: "Redefinicão de senha enviada! Verifique seu Email"});
         } catch (error) {
