@@ -14,6 +14,7 @@ function abrirHome() {
 
 function logout() {
     sessionStorage.removeItem("token");
+    localStorage.removeItem("user");
     notificar("Saindo...").then(() => {
         window.location.href = 'index.html';
     });

@@ -33,7 +33,7 @@ router.delete("/:groupId", verificarToken, verificarAcessoGrupo, (req, res) => G
 // Rotas de Membros de grupo
 router.get("/:groupId/members", verificarToken, verificarAcessoGrupo, (req, res) => MemberController.getAll(req, res));
 router.post("/:groupId/members", verificarToken, verificarAcessoGrupo, (req, res) => MemberController.create(req, res));
-router.delete("/:groupId/members/:memberId", verificarToken, verificarAcessoGrupo, (req, res) => MemberController.delete(req, res));
+router.delete("/:groupId/members/:memberId/:sair", verificarToken, verificarAcessoGrupo, (req, res) => MemberController.delete(req, res));
 router.post("/:groupId/members/:memberId/invite/:invite/accept/:accept", verificarToken, (req, res) => MemberController.invite(req, res));
 
 // Rotas de Lista de compras

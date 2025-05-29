@@ -568,6 +568,7 @@ async function renderGerenciarGrupo() {
 
     const crudBtns = document.createElement('div');
     crudBtns.classList.add('crud-div');
+    crudBtns.style.display = 'flex';
 
     const backBtn = getBackButton();
 
@@ -591,6 +592,20 @@ async function renderGerenciarGrupo() {
             await persistGroup(isEditing, grupo);
         });
         crudBtns.appendChild(saveBtn);
+    }
+
+    if (!isAdminUser && isEditing) {
+        const sairBtn = document.createElement('button');
+        sairBtn.textContent = 'Sair';
+        sairBtn.style.width = '25%';
+        sairBtn.style.backgroundColor = '#e12424';
+        sairBtn.classList.add('save-btn');
+        sairBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            await leaveGroup(grupo);
+        });
+        crudBtns.appendChild(sairBtn);
     }
 
     form.appendChild(crudBtns);
@@ -691,7 +706,7 @@ async function addMember(newMemberInput, grupo) {
 async function removeMember(membro, grupo) {
     confirmModal(`Tem certeza que deseja remover: "${membro.user_name}"?`).then(async resposta => {
         if (resposta) {
-            await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}/members/${membro.user_id}`,
+            await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}/members/${membro.user_id}/remover`,
                 {method: "DELETE"})
                 .then(data => {
                    notificar(data.message);
@@ -701,6 +716,20 @@ async function removeMember(membro, grupo) {
             await startApp("editarGrupo", 'meus-grupos', grupo.group_id);
         }
     })
+}
+
+async function leaveGroup(grupo) {
+    await confirmModal('Tem certeza que deseja sair do grupo?').then(async resposta => {
+        if (resposta){
+            await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}/members/${user.userId}/sair`,
+                {method: 'DELETE'}).then(data => {
+                notificar(data.message);
+            }).catch(() => {
+                // Nada aqui. Silencia completamente.
+            });
+            await startApp("listaGrupos", "meus-grupos");
+        }
+    });
 }
 
 /**
