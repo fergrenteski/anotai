@@ -85,25 +85,15 @@ class MemberController {
     async delete(req, res) {
         const groupId = req.params.groupId;
         const memberId = req.params.memberId;
-        const sair = req.params.sair;
-
-        if (sair){
-            try{
-                await this.memberService.delete(parseInt(memberId), parseInt(groupId));
-                return res.status(200).json({success: true, message: "Sucesso ao Sair do grupo!"});
-            }catch{
-                console.error("Erro ao sair do grupo: ", error);
-                return res.status(500).json({ success: false, message: error.message });
-            }
-        }
+        const sair = req.params.sair === 'sair';
 
         try {
             await this.memberService.delete(parseInt(memberId), parseInt(groupId));
-            await this.memberService.deleteInvite(parseInt(memberId), parseInt(groupId));
-            return res.status(200).json({ success: true, message: "Membro removido com sucesso" });
+            if(!sair) await this.memberService.deleteInvite(parseInt(memberId), parseInt(groupId));
+            return res.status(200).json({ success: true, message: sair ? "Você saiu do grupo" : "Membro removido com sucesso" });
         } catch (error) {
             console.error("Erro ao remover usuário: ", error);
-            return res.status(500).json({ success: false, message: error.message });
+            return res.status(500).json({ success: false, message: sair ? "Erro ao sair do grupo" : "Erro ao remover membro" });
         }
     }
 

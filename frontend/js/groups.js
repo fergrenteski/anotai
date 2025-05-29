@@ -398,8 +398,7 @@ async function renderGerenciarGrupo() {
     if (isEditing) {
         data = await authFetch(`http://localhost:3000/api/groups/${groupId}`);
         grupo = data.data;
-        user = data.user;
-        isAdminUser = user.id === grupo.user_admin_id;
+        isAdminUser = user.userId === grupo.user_admin_id;
     } else {
         isAdminUser = true;
     }
@@ -595,7 +594,7 @@ async function renderGerenciarGrupo() {
         crudBtns.appendChild(saveBtn);
     }
 
-    if (isAdminUser) {
+    if (!isAdminUser) {
         const sairBtn = document.createElement('button');
         sairBtn.textContent = 'Sair';
         sairBtn.style.width = '25%';
@@ -604,22 +603,7 @@ async function renderGerenciarGrupo() {
         sairBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             e.stopPropagation();
-
-            await confirmModal('Tem certeza que deseja sair do grupo?').then(async resposta => {
-                if (resposta){
-                    console.log('sair');
-
-                    await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}/members/${user_id}/sair`,
-                        {method: 'DELETE'}).then(data => {
-                        notificar(data.message);
-                    }).catch(() => {
-                        // Nada aqui. Silencia completamente.
-                    });
-                    await startApp();
-                }
-            });
-
-
+            await leaveGroup(grupo);
         });
         crudBtns.appendChild(sairBtn);
     }
@@ -722,7 +706,7 @@ async function addMember(newMemberInput, grupo) {
 async function removeMember(membro, grupo) {
     confirmModal(`Tem certeza que deseja remover: "${membro.user_name}"?`).then(async resposta => {
         if (resposta) {
-            await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}/members/${membro.user_id}`,
+            await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}/members/${membro.user_id}/remover`,
                 {method: "DELETE"})
                 .then(data => {
                    notificar(data.message);
@@ -732,6 +716,20 @@ async function removeMember(membro, grupo) {
             await startApp("editarGrupo", null, grupo.group_id);
         }
     })
+}
+
+async function leaveGroup(grupo) {
+    await confirmModal('Tem certeza que deseja sair do grupo?').then(async resposta => {
+        if (resposta){
+            await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}/members/${user.userId}/sair`,
+                {method: 'DELETE'}).then(data => {
+                notificar(data.message);
+            }).catch(() => {
+                // Nada aqui. Silencia completamente.
+            });
+            await startApp("listaGrupos", "meus-grupos");
+        }
+    });
 }
 
 /**
