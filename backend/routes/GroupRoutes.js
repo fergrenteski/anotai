@@ -18,9 +18,10 @@ Entendimento geral das rotas do grupos:
 * @param res - Objeto de resposta HTTP.
 */
 
-// Rotas de Categorias de Grupo
-router.get("/categories", verificarToken, (req, res) => CategoryController.getAll(req, res));
-router.get("/products/categories", (req, res) => CategoryController.getAllProducts(req, res));
+// Rotas de Categorias
+router.get("/categories", verificarToken, (req, res) => CategoryController.getGroupsCategories(req, res));
+router.get("/lists/categories", verificarToken, (req, res) => CategoryController.getListsCategories(req, res));
+router.get("/products/categories", verificarToken, (req, res) => CategoryController.getProductsCategories(req, res));
 
 // Rotas de Grupo
 router.get("/", verificarToken, (req, res) => GroupController.getAll(req, res));
@@ -33,7 +34,7 @@ router.delete("/:groupId", verificarToken, verificarAcessoGrupo, (req, res) => G
 router.get("/:groupId/members", verificarToken, verificarAcessoGrupo, (req, res) => MemberController.getAll(req, res));
 router.post("/:groupId/members", verificarToken, verificarAcessoGrupo, (req, res) => MemberController.create(req, res));
 router.delete("/:groupId/members/:memberId", verificarToken, verificarAcessoGrupo, (req, res) => MemberController.delete(req, res));
-router.post("/:groupId/members/:memberId/invite/:invite/accept/:accept", (req, res) => MemberController.invite(req, res));
+router.post("/:groupId/members/:memberId/invite/:invite/accept/:accept", verificarToken, (req, res) => MemberController.invite(req, res));
 
 // Rotas de Lista de compras
 router.get("/:groupId/lists", verificarToken, verificarAcessoGrupo, (req, res) => ListController.getAll(req, res));
@@ -50,6 +51,7 @@ router.get("/:groupId/lists/:listId/insights", (req, res) => ProductController.g
 router.get("/:groupId/lists/:listId/products",  verificarToken, verificarAcessoGrupo, (req, res) => ProductController.getAll(req, res));
 router.post("/:groupId/lists/:listId/products", verificarToken, verificarAcessoGrupo, (req, res) => ProductController.create(req, res));
 router.get("/:groupId/lists/:listId/products/:productId", verificarToken, verificarAcessoGrupo, (req, res) => ProductController.getById(req, res));
+router.put("/:groupId/lists/:listId/products/:productId/:option",verificarToken, verificarAcessoGrupo, (req, res) => ProductController.updateBuy(req, res));
 router.put("/:groupId/lists/:listId/products/:productId", verificarToken, verificarAcessoGrupo, (req, res) => ProductController.update(req, res));
 router.delete("/:groupId/lists/:listId/products/:productId", verificarToken, verificarAcessoGrupo, (req, res) => ProductController.delete(req, res));
 

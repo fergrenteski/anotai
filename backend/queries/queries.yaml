@@ -39,6 +39,11 @@ queries:
           AND expires_at > CURRENT_TIMESTAMP
         LIMIT 1;
 
+  # Exclui token de verificação de senha após uso
+  delete_token_reset_pass_by_token: >
+    DELETE FROM user_reset_password_keys
+    WHERE token = $1;
+
   # Atualiza senha do usuário pelo e-mail e retorna o ID do usuário
   update_password_by_email: >
     UPDATE users
@@ -133,6 +138,11 @@ queries:
     DELETE FROM user_group_invite_keys
     WHERE token = $1
 
+  # Deleta todos os tokens de usuário de um grupo
+  delete_invite_token_by_user_id: >
+    DELETE FROM user_group_invite_keys
+    WHERE user_id = $1 AND group_id = $2;
+
  # Recupera todos os grupos associados a um usuário
   select_groups_by_user_id: >
     SELECT 
@@ -160,27 +170,28 @@ queries:
     WHERE group_id = $1
     LIMIT 1;
 
-  # Recupera todas as listas de um grupo pelo ID do grupo
-  select_list_by_group_id: >
-    SELECT 
-      *
-      FROM vw_lists
-    WHERE group_id = $1;
-
   # Recupera todas as categorias disponíveis de grupos
   select_groups_categories: >
     SELECT 
       groups_category_id as id,
       name
-    FROM groups_category
+    FROM groups_category;
 
+  # Recupera todas as categorias disponíveis de Lista
+  select_lists_categories: >
+    SELECT
+      lists_category_id as id,
+      name
+    FROM lists_category;
+
+  # Recupera todas as categorias disponíveis de Produtos
   select_products_categories: >
     SELECT
       products_category_id as id,
       name
     FROM products_category 
 
-  # Cria um novo grupo e retorna o ID criado
+  # Cria um novo grupo.
   insert_group: >
     INSERT INTO groups (name, description, category_id, user_admin_id) 
     VALUES ($1, $2, $3, $4) 
@@ -197,15 +208,21 @@ queries:
     WHERE group_id = $4;
 
   # Marca um grupo como expirado
-  expire_group: >
-    UPDATE groups
-    SET expired_at = CURRENT_TIMESTAMP 
+  delete_group: >
+    DELETE FROM groups
     WHERE group_id = $1
 
   # Associa um usuário a um grupo
   insert_user_groups: >
     INSERT INTO group_users (user_id, group_id, verified)
     VALUES ($1, $2, $3)
+
+  # busca associação um usuário a um grupo
+  select_user_groups: >
+    SELECT *
+    FROM group_users
+    WHERE user_id = $1
+    AND group_id = $2;
 
   # Remove a associação de um usuário a um grupo por ID grupo
   expire_user_groups: >
@@ -249,27 +266,33 @@ queries:
   update_products_by_id: >
     UPDATE products
     SET
-      name = $1, description = $2, category_id  = $3, price = $4,
-      quantity = $5, updated_at = CURRENT_TIMESTAMP
+      name = $1, description = $2, category_id  = $3,
+      quantity = $4, updated_at = CURRENT_TIMESTAMP
     WHERE
-      product_id   = $6
-    RETURNING * ;
+      product_id   = $5;
 
   # Atualizar (painel quem comprou)
   update_products_purchased: >
     UPDATE products
-    SET purchased_by = $1
-    WHERE product_id = $2;
+    SET
+    purchased_by = $1,
+    price = $2
+    WHERE product_id = $3;
 
   # Deletar
   delete_products_by_id: >
     DELETE FROM products
     WHERE product_id = $1;
 
-  #Buscar produtos
+  #Buscar produtos por id list
   select_products_by_id: >
     SELECT * FROM vw_products
     WHERE list_id = $1;
+
+  #Buscar produtos por seu id
+  select_products_by_id_products: >
+    SELECT * FROM vw_products
+    WHERE product_id = $1;
 
   # Buscar Total de categorias por ID da lista
   select_total_categories_by_list_id: >
@@ -314,22 +337,26 @@ queries:
         FROM vw_products
         WHERE purchased_by = $1
         AND list_id = $2;
+
+  #  Buscar todas as listas pelo usuario
+  select_list_by_id: >
+    SELECT * FROM vw_lists WHERE list_id = $1;
     
   #  Buscar todas as listas pelo grupo
-  select_lists_by_group_id: >
+  select_list_by_group_id: >
    SELECT * FROM vw_lists WHERE group_id = $1;
 
   #  Buscar todas as listas pelo usuario
-  select_lists_by_user_id: >
+  select_list_by_user_id: >
    SELECT * FROM vw_lists WHERE created_by = $1;
 
   # Atualizar uma lista
   update_list_by_id: >
    UPDATE lists
-    SET name =  $2, 
+    SET name = $2, 
         description = $3,
         category_id = $4,
-        updated_at = CURRENT_TIMESTAMP,
+        updated_at = CURRENT_TIMESTAMP
     WHERE list_id = $1
     RETURNING *;
   
@@ -341,3 +368,11 @@ queries:
   #Deletar uma lista
   delete_list_by_id: >
    DELETE FROM lists WHERE list_id = $1;
+
+  update_user_profile: >
+    UPDATE users
+    SET name = $1, bio = $2, image_path = $3, updated_at = CURRENT_TIMESTAMP
+    WHERE user_id = $4;
+
+  select_user_profile: >
+    SELECT user_id, name, bio, image_path FROM users WHERE user_id = $1;

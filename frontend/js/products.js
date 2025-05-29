@@ -1,74 +1,48 @@
-// =========================
-// VARIÁVEIS GLOBAIS
-// =========================
+import {getBackButton} from "./utils/backButton.js";
+import {authFetch} from "./utils/authFetch.js";
+import {notificar} from "./utils/notification.js";
+import {confirmModal} from "./utils/confirmModal.js";
+import {loadUserProfile} from "./utils/loadUserProfile.js";
 
-let user = {};
+let user = JSON.parse(localStorage.getItem('user'));
 let appState = null; // Estado global da aplicação
-const appElement = document.getElementById('app'); // Elemento raiz da aplicação
 let groupIdParam = null;
 let listIdParam = null;
-
-// =========================
-// FUNÇÃO COM TOKEN
-// =========================
+let categories = null;
+let insights = null;
+const appElement = document.getElementById('app'); // Elemento raiz da aplicação
 
 /**
- * Faz uma requisição fetch com token JWT da sessão.
+ * Função que retorna todas as categorias de Produtos
+ * @returns {Promise<*>}
  */
-async function fetchComToken(url, options = {}) {
-    const token = sessionStorage.getItem('token');
-
-    if (!options.headers) options.headers = {};
-    if (token) {
-        options.headers['Authorization'] = `Bearer ${token}`;
-        options.headers['Content-Type'] = "application/json";
-    }
-
-    const response = await fetch(url, options);
-
-    return await response.json();
-}
-
-// =========================
-// CARREGAMENTO DE DADOS
-// =========================
-
 async function loadProductCategories() {
     // Busca categorias de product da API
-    const data = await fetchComToken('http://localhost:3000/api/groups/products/categories');
-    return data.data;
+    const resposta = await authFetch('http://localhost:3000/api/groups/products/categories');
+    return resposta.data;
 }
 
 /**
  * Carrega a lista de produtos da API.
  */
 async function loadProducts() {
-    const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products`);
-
-    user = data.user;
-    // Define Iniciais de Perfil
-    document.getElementById('userName').textContent = user.name;
-    // Define as iniciais do usuário para o ícone
-    document.getElementById('userInitials').textContent = user.name.split(' ').map(n => n[0]).join('');
-
-    return data.data.rows;
-
+    const resposta = await authFetch(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products`);
+    return resposta.data || [];
 }
 
-// =========================
-// ESTADO E INICIALIZAÇÃO
-// =========================
+async function loadInsights() {
+    return await authFetch(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/insights`);
+}
 
 /**
  * Inicializa o estado global da aplicação.
  */
-async function initializeAppState(currentView, activeTab, products, insights, productId, user, mostrarProdutosVazios) {
+async function initializeAppState(currentView, activeTab, products, product, user, mostrarProdutosVazios) {
     appState = {
         currentView,
         activeTab,
         products,
-        insights,
-        productId,
+        product,
         user,
         mostrarProdutosVazios
     };
@@ -80,15 +54,14 @@ async function initializeAppState(currentView, activeTab, products, insights, pr
 async function startApp(
     currentView = "listaProdutos",
     activeTab = "meus-produtos",
-    insights = [],
-    products = [],
-    productId = null,
+    product = {},
     user = {},
     mostrarProdutosVazios = false
 ) {
-    await loadURLParams();
-    products = await loadProducts();
-    await initializeAppState(currentView, activeTab, products, insights, productId, user, mostrarProdutosVazios);
+    await clearCharts();
+    insights = await loadInsights();
+    let products = await loadProducts();
+    await initializeAppState(currentView, activeTab, products, product, user, mostrarProdutosVazios);
     renderApp();
 }
 
@@ -179,8 +152,6 @@ async function renderProdutos() {
     clearDiv.style.clear = 'both';
     appElement.appendChild(clearDiv);
 
-    appState.products = await loadProducts();
-
     if (!appState.products || appState.products.length === 0 || appState.mostrarProdutosVazios) {
         const emptyState = document.createElement('div');
         emptyState.style.textAlign = 'center';
@@ -212,6 +183,7 @@ appElement.appendChild(totalDiv);
         const createButton = document.createElement('button');
         createButton.textContent = 'Adicionar Produto';
         createButton.style.width = '100%';
+        createButton.classList.add('save-btn');
         createButton.addEventListener('click', async (e) => {
             e.preventDefault();
             startApp("novoProduto")
@@ -228,6 +200,10 @@ appElement.appendChild(totalDiv);
             const b = parseInt(hexClean.slice(4, 6), 16);
             return `rgba(${r}, ${g}, ${b}, ${alpha})`;
         }
+
+        const productsDiv = document.createElement('div');
+        productsDiv.style.maxHeight = '50dvh';
+        productsDiv.style.overflow = 'auto';
 
         appState.products.forEach((product) => {
             const div = document.createElement("div");
@@ -252,6 +228,7 @@ appElement.appendChild(totalDiv);
                     <span class="item-meta comprador">${comprado ? `Comprado por: ${product.purchased_name}` : `Adicionado por: ${product.added_name}`}</span>
                   </div>
                 </div>
+                ${comprado ? `<strong class="item-meta" style="margin-right: 12px">R$ ${(parseFloat(product.price) * parseInt(product.quantity)).toFixed(2)}</strong>` : ''}
                 <div class="actions">
                   <button class="comprar"><i class="fa-solid"></i></button>
                   <button class="excluir" style="background-color: ${hexToRgba("#e12424", 0.2)}"><i class="fa-solid fa-trash" style="color:#e12424;"></i></button>
@@ -273,21 +250,20 @@ appElement.appendChild(totalDiv);
 
             buttonDelete.addEventListener('click', async(e) => {
                 e.stopPropagation();
+                e.preventDefault();
+                await deleteProduct(product);
+            });
 
-                const  confirm = window.confirm(`Deseja excluir o produto: "${product.product_name}"?`);
-                if (!confirm) return;
+            // Adiciona o shake
+            buttonDelete.addEventListener('mouseover', () => {
+                const faIcon = buttonDelete.querySelector("i");
+                faIcon.classList.add('fa-beat-fade');
+            });
 
-                await fetchComToken(
-                    `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${product.product_id}`,
-                    {
-                        method: 'DELETE',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                    }
-                )
-
-                startApp();
+            // Remove o Shake
+            buttonDelete.addEventListener('mouseleave', () => {
+                const faIcon = buttonDelete.querySelector("i");
+                faIcon.classList.remove('fa-beat-fade');
             });
 
             if (comprado) {
@@ -299,12 +275,20 @@ appElement.appendChild(totalDiv);
                 if(!compradoPorMim && !adicionadoPorMim) buttonBuy.style.display = "none";
                 buttonBuy.addEventListener('click', async (e) => {
                     e.stopPropagation();
-                    if(confirm("Reverter Compra")) {
-                        startApp("meusProdutos");
-
-                        // TODO: REVERTER
-                    }
+                    e.preventDefault();
+                    await updateProductState(product, false);
                 })
+                // Adiciona o shake
+                buttonBuy.addEventListener('mouseover', () => {
+                    icon.classList.add('fa-spin');
+                    icon.classList.add('fa-spin-reverse');
+                });
+
+                // Remove o Shake
+                buttonBuy.addEventListener('mouseleave', () => {
+                    icon.classList.remove('fa-spin');
+                    icon.classList.remove('fa-spin-reverse');
+                });
             } else {
                 // Estilo de "não comprado"
                 icon.className = "fa-solid fa-check";
@@ -313,60 +297,42 @@ appElement.appendChild(totalDiv);
                 buttonBuy.classList.add("btn-verde");
                 if(adicionadoPorMim) {
                     div.classList.add("clicavel");
-                    div.addEventListener("click", (e) => {
+                    div.addEventListener("click", async (e) => {
                         e.stopPropagation();
-                        startApp("editarProduto", null, null,null, product.product_id)
+                        e.preventDefault();
+                        await startApp("editarProduto", "meus-produtos", product)
                     });
                 }
                 buttonBuy.addEventListener("click", async (e) => {
                     e.stopPropagation();
-                    startApp("comprarProduto", "meus-produtos", null,null, product.product_id);
+                    e.preventDefault();
+                    await startApp("comprarProduto", "meus-produtos",  product);
                 })
+                // Adiciona o shake
+                buttonBuy.addEventListener('mouseover', () => {
+                    icon.classList.add('fa-bounce');
+                });
 
+                // Remove o Shake
+                buttonBuy.addEventListener('mouseleave', () => {
+                    icon.classList.remove('fa-bounce');
+                });
             }
 
-            buttonBuy.addEventListener("click",  (e) => {
-                e.stopPropagation();
-                const meta = div.querySelector(".comprador");
-
-                if (div.classList.contains("comprado")) {
-                    // Desfazer compra
-                    div.classList.remove("comprado");
-                    product.purchased_by = null;
-
-                    meta.textContent = `Adicionado por: ${product.added_name}`;
-                    icon.className = "fa-solid fa-check";
-                    icon.style.color = "#4CAF50";
-                    buttonBuy.style.backgroundColor = hexToRgba("#4CAF50", 0.2);
-                    buttonBuy.classList.remove("btn-amarelo");
-                    buttonBuy.classList.add("btn-verde");
-                } else {
-                    // Marcar como comprado
-                    const comprador = product.purchased_name;
-                    product.purchased_by = comprador;
-                    product.purchased_name = comprador;
-
-                    div.classList.add("comprado");
-                    meta.textContent = `Comprado por: ${comprador}`;
-                    icon.className = "fa-solid fa-rotate-left";
-                    icon.style.color = "#b68713";
-                    buttonBuy.style.backgroundColor = hexToRgba("#b68713", 0.2);
-                    buttonBuy.classList.remove("btn-verde");
-                    buttonBuy.classList.add("btn-amarelo");
-                }
-            });
-
-            appElement.appendChild(div);
+            productsDiv.appendChild(div);
 
         });
         // Botão Criar
         const createButton = document.createElement('button');
         createButton.textContent = 'Adicionar Produto';
         createButton.style.width = '100%';
+        createButton.classList.add('save-btn');
         createButton.addEventListener('click', async (e) => {
             e.preventDefault();
             startApp("novoProduto")
         });
+
+        appElement.appendChild(productsDiv);
         appElement.appendChild(createButton);
     }
 }
@@ -374,19 +340,76 @@ appElement.appendChild(totalDiv);
 /**
  * Renderiza a tela de insights com gráficos.
  */
-let pieChart, barChart, stackedChart; // Variáveis para armazenar as instâncias dos gráficos
+let pieChart, barChart, stackedChart;
 
-async function renderInsights(filtro = '') {
-    const data = await fetchComToken("http://localhost:3000/api/groups/1/lists/1/insights");
+// Debounce helper
+function debounce(func, wait) {
+    let timeout;
+    return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+}
 
-    const categoriasBrutas = data.totalByCategory.map(c => ({
+// Configuração da interface inicial
+function setupInsightsUI() {
+
+    const filtroDiv = document.createElement('div');
+    filtroDiv.id = 'filtroDiv';
+    filtroDiv.style.textAlign = 'center';
+    filtroDiv.style.margin = '10px';
+    appElement.appendChild(filtroDiv);
+
+    const filtroInput = document.createElement('input');
+    filtroInput.type = 'text';
+    filtroInput.placeholder = 'Filtrar por nome...';
+    filtroInput.id = 'filtroUsuarios';
+    filtroInput.style.width = '50%';
+    filtroInput.style.marginBottom = '10px';
+    filtroDiv.appendChild(filtroInput);
+
+    const debounced = debounce( () => {
+        const filtroValor = filtroInput.value.toLowerCase();
+        atualizarGraficosELista(filtroValor);
+    }, 300);
+
+    filtroInput.addEventListener('input', debounced);
+
+    const chartContainer = document.createElement('div');
+    chartContainer.id = 'insightsChartContainer';
+    chartContainer.style.display = 'flex';
+    chartContainer.style.justifyContent = 'space-between';
+    chartContainer.style.width = '100%';
+    chartContainer.style.height = 'auto';
+    chartContainer.style.paddingTop = '20px';
+    appElement.appendChild(chartContainer);
+
+    const chartContainerChild = document.createElement('div');
+    chartContainerChild.id = 'insightsChartContainerChild';
+    chartContainerChild.style.display = 'flex';
+    chartContainerChild.style.justifyContent = 'space-between';
+    chartContainerChild.style.width = '100%';
+    chartContainerChild.style.height = 'auto';
+    chartContainerChild.style.paddingTop = '20px';
+    appElement.appendChild(chartContainerChild);
+
+    const listaContainer = document.createElement('div');
+    listaContainer.id = 'listaUsuariosContainer';
+    listaContainer.style.marginTop = '20px';
+    appElement.appendChild(listaContainer);
+}
+
+// Atualiza dados e gráficos com base no filtro
+async function atualizarGraficosELista(filtro = '') {
+
+    const categoriasBrutas = insights.totalByCategory.map(c => ({
         nome: c.name,
         valor: parseFloat(c.total)
     }));
 
     const usuarioInfoMap = {};
 
-    data.totalSpendingByUser.forEach(user => {
+    insights.totalSpendingByUser.forEach(user => {
         usuarioInfoMap[user.name] = {
             id: user.userId,
             email: user.userEmail,
@@ -395,11 +418,11 @@ async function renderInsights(filtro = '') {
     });
 
     const gastosPorUsuario = {};
-    data.categorySpendingByUser.forEach(user => {
+    insights.categorySpendingByUser.forEach(user => {
         gastosPorUsuario[user.name] = {};
-        for (const [categoryId, categoryData] of Object.entries(user.categories)) {
+        Object.values(user.categories).forEach(categoryData => {
             gastosPorUsuario[user.name][categoryData.name] = categoryData.amount;
-        }
+        });
     });
 
     const usuariosFiltrados = Object.keys(gastosPorUsuario).filter(nome => nome.toLowerCase().includes(filtro.toLowerCase()));
@@ -417,6 +440,7 @@ async function renderInsights(filtro = '') {
         .slice(0, 3);
 
     const categorias = topCategorias.map(cat => cat.nome);
+
     const valoresCategorias = topCategorias.map(cat => cat.valor);
 
     const valoresPessoasFiltradas = usuariosFiltrados.map(usuario => {
@@ -425,11 +449,7 @@ async function renderInsights(filtro = '') {
     const totalGastoFiltrado = valoresPessoasFiltradas.reduce((a, b) => a + b, 0);
 
     const datasetsEmpilhado = categorias.map((categoria, index) => {
-        const cores = [
-            'rgba(255, 99, 132, 0.6)',
-            'rgba(54, 162, 235, 0.6)',
-            'rgba(255, 206, 86, 0.6)'
-        ];
+        const cores = ['rgba(255,99,132,0.6)', 'rgba(54,162,235,0.6)', 'rgba(255,206,86,0.6)'];
         return {
             label: categoria,
             data: usuariosFiltrados.map(usuario => gastosPorUsuario[usuario][categoria] || 0),
@@ -437,49 +457,15 @@ async function renderInsights(filtro = '') {
         };
     });
 
-    // Elementos base
-    let titulo = document.getElementById('insightsTitulo');
-    if (!titulo) {
-        titulo = document.createElement('h1');
-        titulo.id = 'insightsTitulo';
-        titulo.textContent = 'Insights da Lista';
-        titulo.style.textAlign = 'center';
-        appElement.appendChild(titulo);
-    }
+    await atualizarGraficos(categorias, categoriasBrutas, usuariosFiltrados, gastosPorUsuario, valoresCategorias, totalGastoFiltrado, valoresPessoasFiltradas, datasetsEmpilhado);
+    await atualizarListaUsuarios(usuarioInfoListFiltrada);
+}
 
-    let filtroDiv = document.getElementById('filtroDiv');
-    if (!filtroDiv) {
-        filtroDiv = document.createElement('div');
-        filtroDiv.style.width = '100%';
-        filtroDiv.id = 'filtroDiv';
-        filtroDiv.style.textAlign = 'center';
-        appElement.appendChild(filtroDiv);
-    }
+// Atualização de gráficos
+function atualizarGraficos(categorias, categoriasBrutas, usuariosFiltrados, gastosPorUsuario, valoresCategorias, totalGastoFiltrado, valoresPessoasFiltradas, datasetsEmpilhado) {
 
-    // Adiciona o input de filtro
-    let filtroInput = document.getElementById('filtroUsuarios');
-    if (!filtroInput) {
-        filtroInput = document.createElement('input');
-        filtroInput.type = 'text';
-        filtroInput.placeholder = 'Filtrar por nome...';
-        filtroInput.id = 'filtroUsuarios';
-        filtroInput.style.marginBottom = '10px';
-        filtroInput.style.width = '50%';
-        filtroDiv.appendChild(filtroInput);
-    }
-
+    let chartContainerChild = document.getElementById('insightsChartContainerChild');
     let chartContainer = document.getElementById('insightsChartContainer');
-    if (!chartContainer) {
-        chartContainer = document.createElement('div');
-        chartContainer.id = 'insightsChartContainer';
-        chartContainer.style.display = 'flex';
-        chartContainer.style.justifyContent = 'space-between';
-        chartContainer.style.width = '100%';
-        chartContainer.style.height = 'auto';
-        chartContainer.style.paddingTop = '20px';
-        appElement.appendChild(chartContainer);
-    }
-
     // ---------- Gráfico de Pizza ----------
     let pieWrapper = document.getElementById('insightsPieWrapper');
     if (!pieWrapper) {
@@ -517,9 +503,18 @@ async function renderInsights(filtro = '') {
         pieWrapper.appendChild(pieDetail);
     }
 
-    const indexMaior = valoresCategorias.indexOf(Math.max(...valoresCategorias));
-    pieDetail.textContent = `Maior gasto: ${categorias[indexMaior]} (R$ ${valoresCategorias[indexMaior].toFixed(2)})`;
+    if (valoresCategorias.length > 0) {
+        const maxValor = Math.max(...valoresCategorias);
+        const indexMaior = valoresCategorias.indexOf(maxValor);
 
+        if (indexMaior !== -1 && categorias[indexMaior] !== undefined) {
+            pieDetail.textContent = `Maior gasto: ${categorias[indexMaior]} (R$ ${valoresCategorias[indexMaior].toFixed(2)})`;
+        } else {
+            pieDetail.textContent = "Não foi possível determinar o maior gasto.";
+        }
+    } else {
+        pieDetail.textContent = "Não há dados de categorias.";
+    }
 
     // ---------- Gráfico de Barras ----------
     let barWrapper = document.getElementById('insightsBarWrapper');
@@ -557,7 +552,6 @@ async function renderInsights(filtro = '') {
     }
     barDetail.textContent = `Total gasto: R$ ${totalGastoFiltrado.toFixed(2)}`;
 
-
     // ---------- Gráfico de Barras Empilhadas ----------
     let stackedWrapper = document.getElementById('insightsStackedWrapper');
     if (!stackedWrapper) {
@@ -568,7 +562,7 @@ async function renderInsights(filtro = '') {
         stackedWrapper.style.display = 'flex';
         stackedWrapper.style.flexDirection = 'column';
         stackedWrapper.style.alignItems = 'center';
-        appElement.appendChild(stackedWrapper);
+        chartContainerChild.appendChild(stackedWrapper);
     }
 
     let stackedTitle = document.getElementById('insightsStackedTitle');
@@ -587,7 +581,6 @@ async function renderInsights(filtro = '') {
         stackedCanvas.style.height = '300px';
         stackedWrapper.appendChild(stackedCanvas);
     }
-
 
 
     // Renderização dos gráficos com Chart.js
@@ -673,8 +666,8 @@ async function renderInsights(filtro = '') {
                     }
                 },
                 scales: {
-                    x: { stacked: true },
-                    y: { stacked: true }
+                    x: {stacked: true},
+                    y: {stacked: true}
                 }
             }
         });
@@ -683,102 +676,80 @@ async function renderInsights(filtro = '') {
         stackedChart.data.datasets = datasetsEmpilhado;
         stackedChart.update();
     }
-
-
-
-    // ---------- Lista de usuários ----------
-    let listaUsuariosDiv = document.getElementById('listaUsuariosDiv');
-    if (!listaUsuariosDiv) {
-        listaUsuariosDiv = document.createElement('div');
-        listaUsuariosDiv.id = 'listaUsuariosDiv';
-        listaUsuariosDiv.style.marginTop = '40px';
-        listaUsuariosDiv.style.width = '100%';
-        appElement.appendChild(listaUsuariosDiv);
-    }
-
-
-    let tituloLista = document.getElementById('listaUsuariosTitulo');
-    if (!tituloLista) {
-        tituloLista = document.createElement('h2');
-        tituloLista.id = 'listaUsuariosTitulo';
-        tituloLista.textContent = 'Usuários';
-        tituloLista.style.marginBottom = '10px';
-        listaUsuariosDiv.appendChild(tituloLista);
-    }
-
-
-    let listaContainer = document.getElementById('listaUsuariosContainer');
-    if (!listaContainer) {
-        listaContainer = document.createElement('div');
-        listaContainer.id = 'listaUsuariosContainer';
-        listaUsuariosDiv.appendChild(listaContainer);
-    }
-
-
-    function renderListaUsuarios(usuariosParaRenderizar) {
-        listaContainer.innerHTML = '';
-
-        usuariosParaRenderizar.forEach(user => {
-            const container = document.createElement('div');
-            container.style.display = 'flex';
-            container.style.justifyContent = 'space-between';
-            container.style.alignItems = 'center';
-            container.style.border = '1px solid #ccc';
-            container.style.padding = '10px';
-            container.style.marginBottom = '10px';
-            container.style.borderRadius = '8px';
-
-            const info = document.createElement('div');
-            const nomeEl = document.createElement('strong');
-            nomeEl.textContent = user.nome;
-            const emailEl = document.createElement('p');
-            emailEl.textContent = `${user.nome.toLowerCase()}@email.com`;
-            emailEl.style.fontSize = '0.9em';
-            emailEl.style.margin = '2px 0 0 0';
-            info.appendChild(nomeEl);
-            info.appendChild(emailEl);
-
-            const botaoContainer = document.createElement('div');
-            botaoContainer.style.display = 'flex';
-            botaoContainer.style.alignItems = 'center';
-
-            const botao = document.createElement('button');
-            botao.textContent = 'Visualizar';
-            botao.addEventListener('click', async () => {
-                startApp("visualizarProdutosUsuario", null, null, null, null, user);
-            });
-
-            const valor = document.createElement('span');
-            valor.textContent = `R$ ${user.total.toFixed(2)}`;
-            valor.style.color = 'red';
-            valor.style.marginRight = '10px';
-            botaoContainer.appendChild(valor);
-            botaoContainer.appendChild(botao);
-
-            container.appendChild(info);
-            container.appendChild(botaoContainer);
-            listaContainer.appendChild(container);
-        });
-    }
-
-    // Chame a função para renderizar a lista inicial
-    renderListaUsuarios(usuarioInfoListFiltrada);
-
-    // Adiciona o evento de input ao filtro
-    filtroInput.addEventListener('input', () => {
-        const filtroValor = filtroInput.value.toLowerCase();
-        renderInsights(filtroValor);
-    });
-
-
 }
+
+// Atualização da lista de usuários
+function atualizarListaUsuarios(usuarios) {
+    const listaContainer = document.getElementById('listaUsuariosContainer');
+    listaContainer.innerHTML = '';
+    listaContainer.style.maxHeight = '300px';
+    listaContainer.style.overflowY = 'auto';
+
+    usuarios.forEach(user => {
+        const container = document.createElement('div');
+        container.style.display = 'flex';
+        container.style.justifyContent = 'space-between';
+        container.style.border = '1px solid #ccc';
+        container.style.padding = '10px';
+        container.style.borderRadius = '8px';
+        container.style.marginBottom = '10px';
+
+        const info = document.createElement('div');
+        const nome = document.createElement('strong');
+        nome.textContent = user.nome;
+        const email = document.createElement('p');
+        email.textContent = user.email || `${user.nome.toLowerCase()}@email.com`;
+
+        info.appendChild(nome);
+        info.appendChild(email);
+
+        const botaoContainer = document.createElement('div');
+        const botao = document.createElement('button');
+        botao.classList.add('save-btn');
+        botao.textContent = 'Visualizar';
+        botao.onclick = () => startApp("visualizarProdutosUsuario", "insights", null, user);
+
+        const valor = document.createElement('span');
+        valor.textContent = `R$ ${user.total.toFixed(2)}`;
+        valor.style.color = 'red';
+        valor.style.marginRight = '10px';
+
+        botaoContainer.appendChild(valor);
+        botaoContainer.appendChild(botao);
+
+        container.appendChild(info);
+        container.appendChild(botaoContainer);
+        listaContainer.appendChild(container);
+    });
+}
+
+// Função principal
+async function renderInsights() {
+
+    const titulo = document.createElement('h1');
+    titulo.id = 'insightsTitulo';
+    titulo.textContent = 'Insights da Lista';
+    titulo.style.textAlign = 'center';
+    appElement.appendChild(titulo);
+
+    if (!insights || !insights.totalByCategory?.length) {
+        const subtitulo = document.createElement('p');
+        subtitulo.textContent = 'Não existem produtos comprados para serem exibidos no gráfico dessa lista';
+        subtitulo.style.textAlign = 'center';
+        appElement.appendChild(subtitulo);
+    } else {
+        setupInsightsUI();
+        await atualizarGraficosELista();
+    }
+}
+
 
 // Visualizar Produtos Usuarios
 async function renderVisualizarProdutosUsuario() {
 
-    const data = await fetchComToken(`http://localhost:3000/api/member/lists/1/users/${appState.user.id}/products`)
+    const resposta = await authFetch(`http://localhost:3000/api/member/lists/${listIdParam}/users/${appState.user.id}/products`)
 
-    const produtos = await data.data;
+    const produtos = await resposta.data;
 
     const titulo = document.createElement('h1');
     titulo.textContent = `Produtos comprados por ${appState.user.nome}`;
@@ -828,6 +799,8 @@ async function renderVisualizarProdutosUsuario() {
             const tdCategoria = document.createElement('td');
             tdCategoria.textContent = produto.category_name;
 
+            const tdValor = document.createElement('td');
+            tdValor.textContent = parseFloat(produto.price);
 
             const tdQtd = document.createElement('td');
             tdQtd.textContent = parseInt(produto.quantity);
@@ -849,9 +822,48 @@ async function renderVisualizarProdutosUsuario() {
             linha.appendChild(tdTotal);
             tbody.appendChild(linha);
         });
+
+        tabela.appendChild(tbody);
+
+        const totalProducts = document.createElement('p');
+        totalProducts.textContent = `Total: R$ ${parseFloat(total).toFixed(2)}`;
+        totalProducts.style.fontWeight = 'bold';
+        totalProducts.style.textAlign = 'right';
+        totalProducts.style.fontSize = '24px';
+        totalProducts.style.marginTop = '12px';
+        totalProducts.style.marginRight = '8px';
+
+        // Botão Voltar: igual ao groups (full width e margem inferior)
+        const buttonVoltar = getBackButton()
+        buttonVoltar.style.width = '100%';
+        buttonVoltar.style.marginBottom = '10px';
+        buttonVoltar.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            await startApp("listaProdutos", "insights");
+        });
+
+        appElement.appendChild(tabela);
+        appElement.appendChild(totalProducts);
+        appElement.appendChild(buttonVoltar);
     }
 }
 
+// Limpa os Gráficos
+function clearCharts() {
+    if (pieChart) {
+        pieChart.destroy();
+        pieChart = null;
+    }
+    if (barChart) {
+        barChart.destroy();
+        barChart = null;
+    }
+    if (stackedChart) {
+        stackedChart.destroy();
+        stackedChart = null;
+    }
+}
 
 /**
  * Renderiza a tela de gerenciamento de produto.
@@ -861,24 +873,25 @@ async function renderGerenciarProduto() {
 
     // Define se estamos no fluxo de criação
     const isEditing = appState.currentView === 'editarProduto';
-    let product = {id: "", name: "", description: "", quantity: "", price: "", category_name: ""};
+    let product = {id: "", product_name: "", description: "", quantity: "", price: "", category_name: ""};
 
     if(isEditing) {
-        const data = await fetchComToken(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.productId}`);
+        const data = await authFetch(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${appState.product.product_id}`)
         product = data.data.rows[0];
     }
 
     // Título centralizado
     const titulo = document.createElement('h1');
     titulo.textContent = isEditing
-        ? 'Criar Produto'
-        : 'Editar Produto';
+        ? 'Editar Produto'
+        : 'Criar Produto';
     titulo.style.textAlign = 'center';
 
     // Form
-    const form = document.createElement('div');
+    const form = document.createElement('form');
     form.id = 'form-gerenciar-produto';
     form.style.marginTop = '20px';
+    form.method = 'POST';
     form.appendChild(titulo);
 
     // --- Nome (sempre existe, mas só editável ao criar)
@@ -890,7 +903,7 @@ async function renderGerenciarProduto() {
     inputNome.type = 'text';
     inputNome.id = 'inputName';
     inputNome.name = 'nome';
-    inputNome.value = product.name;
+    inputNome.value = product.product_name;
     inputNome.placeholder = 'Digite o nome do produto';
     inputNome.required = true;
     form.appendChild(inputNome);
@@ -928,12 +941,10 @@ async function renderGerenciarProduto() {
     defaultOpt.selected = !product.category_name;
     selectCate.appendChild(defaultOpt);
 
-    // Carrega as categorias e monta as opções
-    const categories = await loadProductCategories();
     categories.forEach(cat => {
         const opt = document.createElement('option');
         opt.value = cat.id;
-        opt.textContent = cat.name.charAt(0).toUpperCase() + cat.name.slice(1);
+        opt.textContent = cat.name;
         selectCate.appendChild(opt);
     });
 
@@ -947,95 +958,283 @@ async function renderGerenciarProduto() {
     inputQuantidade.type = 'number';
     inputQuantidade.id = 'inputQuan';
     inputQuantidade.name = 'quantidade';
-    inputQuantidade.min = 0;
+    inputQuantidade.min = 1;
+    inputQuantidade.value = isEditing? product.quantity : 1;
     inputQuantidade.required = true;
     form.appendChild(inputQuantidade);
 
-    if (isEditing) {
 
-        // Preço
-        const labelPreco = document.createElement('label');
-        labelPreco.textContent = 'Preço:';
-        form.appendChild(labelPreco);
+    const crudBtns = document.createElement('div');
+    crudBtns.classList.add('crud-div');
 
-        const inputPreco = document.createElement('input');
-        inputPreco.type = 'number';
-        inputPreco.step = '0.01';
-        inputPreco.id = 'inputPrice';
-        inputPreco.name = 'preco';
-        inputPreco.min = 0;
-        inputPreco.required = true;
-        form.appendChild(inputPreco);
-    }
+    // Botão Voltar: igual ao groups (full width e margem inferior)
+    const buttonVoltar = getBackButton()
+    buttonVoltar.style.width = '100%';
+    buttonVoltar.classList.add('return.btn');
+    buttonVoltar.addEventListener('click', (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        startApp();
+    });
+
+    crudBtns.appendChild(buttonVoltar);
 
     // Botão salvar/criar: full width
     const buttonSalvar = document.createElement('button');
-    buttonSalvar.textContent = isEditing ? 'Criar' : 'Salvar';
-    buttonSalvar.style.display = 'block';
+    buttonSalvar.textContent = isEditing ? 'Salvar' : 'Criar';
+    buttonSalvar.classList.add('save-btn');
     buttonSalvar.style.width = '100%';
-    buttonSalvar.addEventListener('click', async (e) => {
+    form.addEventListener('submit', async (e) => {
+        e.stopPropagation();
         e.preventDefault();
-        const objeto = {
-            id: null,
-            name: document.getElementById('inputName').value,
-            description: document.getElementById('inputDesc').value,
-            categoryId: document.getElementById('inputCategory').value,
-            quantity: document.getElementById('inputQuan').value,
-            listId: listIdParam
-        }
-
-        const url = !isEditing
-            ? `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products`
-            : `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/:productId`;
-        const method = !isEditing
-            ? 'POST'
-            : 'PUT';
-        const data = await fetchComToken(url, {
-            method: method,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(objeto)
-        })
-
-        alert(data.message);
-
-        if(data.success) {
-            setTimeout(startApp, 1000);
-        }
+        await persistProduct(isEditing, product);
     })
 
-    form.appendChild(buttonSalvar);
-
-    // Botão Voltar: igual ao groups (full width e margem inferior)
-    const buttonVoltar = document.createElement('button');
-    buttonVoltar.type = 'button';
-    buttonVoltar.textContent = 'Voltar';
-    buttonVoltar.style.display = 'block';
-    buttonVoltar.style.width = '100%';
-    buttonVoltar.style.marginBottom = '10px';
-    buttonVoltar.addEventListener('click', () => {
-        startApp();
-    });
-    form.appendChild(buttonVoltar);
-
+    crudBtns.appendChild(buttonSalvar);
+    // Botoes
+    form.appendChild(crudBtns);
+    // Formulário
     appElement.appendChild(form);
 }
 
 async function renderComprarProduto() {
+    const product = appState.product;
 
-    // Título centralizado
+    const div = document.createElement('div');
+    div.style.display = 'flex';
+    div.style.justifyContent = 'center';
+    div.style.flexDirection = 'column';
+
+    // Título
     const titulo = document.createElement('h1');
-    titulo.textContent = 'Verificação de compra'
+    titulo.textContent = 'Verificação de compra';
     titulo.style.textAlign = 'center';
+    div.appendChild(titulo);
 
-    appElement.appendChild(titulo);
+    // Seção de produto, quantidade e categoria
+    const infoLinha = document.createElement('div');
+    infoLinha.style.display = 'flex';
+    infoLinha.style.flexDirection = 'column';
+    infoLinha.style.alignItems = 'center';
+    infoLinha.style.justifyContent = 'center';
+    infoLinha.style.margin = '20px 0';
+
+// Nome do produto em destaque
+    const nomeProduto = document.createElement('h2');
+    nomeProduto.innerHTML = `<i class="fas fa-box-open"></i> <strong>${product.product_name}</strong>`;
+    nomeProduto.style.marginBottom = '5px';
+    infoLinha.appendChild(nomeProduto);
+
+// Quantidade
+    const quantidade = document.createElement('div');
+    quantidade.innerHTML = `<i class="fas fa-sort-numeric-up"></i> Quantidade: <strong>${product.quantity}</strong>`;
+    quantidade.style.marginBottom = '5px';
+    infoLinha.appendChild(quantidade);
+
+// Categoria com ícone e cor
+    const categoria = document.createElement('div');
+    categoria.style.display = 'flex';
+    categoria.style.alignItems = 'center';
+    categoria.style.gap = '8px';
+
+    const iconeCategoria = document.createElement('i');
+    iconeCategoria.className = `fas ${product.category_icon}`;
+    iconeCategoria.style.color = product.category_color;
+    iconeCategoria.style.fontSize = '20px';
+
+    const nomeCategoria = document.createElement('span');
+    nomeCategoria.textContent = product.category_name;
+    nomeCategoria.style.fontWeight = 'bold';
+
+    categoria.appendChild(iconeCategoria);
+    categoria.appendChild(nomeCategoria);
+    infoLinha.appendChild(categoria);
+
+    // Adiciona tudo ao app
+    div.appendChild(infoLinha);
+
+
+    // Info de quem adicionou
+    const infoUser = document.createElement('div');
+    infoUser.style.display = 'flex';
+    infoUser.style.flexDirection = 'column';
+    infoUser.style.alignItems = 'center';
+    infoUser.style.marginBottom = '20px';
+
+    const userName = document.createElement('div');
+    userName.innerHTML = `<i class="fas fa-user"></i> Adicionado por: <strong>${product.added_name}</strong>`;
+    const userEmail = document.createElement('div');
+    userEmail.innerHTML = `<i class="fas fa-envelope"></i> ${product.added_email}`;
+    userEmail.style.fontSize = '0.9em';
+
+    infoUser.appendChild(userName);
+    infoUser.appendChild(userEmail);
+    div.appendChild(infoUser);
+
+    // Formulário
+    const form = document.createElement('form');
+    form.id = 'form-compra-produto';
+    form.style.marginTop = '20px';
+    form.style.width = '50%';
+    form.style.alignSelf = 'center';
+
+    const labelBuyPrice = document.createElement('label');
+    labelBuyPrice.textContent = 'Preço unitário:';
+    form.appendChild(labelBuyPrice);
+
+    const inputBuyPrice = document.createElement('input');
+    inputBuyPrice.type = 'number';
+    inputBuyPrice.id = 'inputBuyPrice';
+    inputBuyPrice.name = 'price';
+    inputBuyPrice.placeholder = 'Digite o preço do produto';
+    inputBuyPrice.required = true;
+    inputBuyPrice.step = '0.01';
+    inputBuyPrice.min = '0';
+    inputBuyPrice.style.display = 'block';
+    inputBuyPrice.style.width = '100%';
+    inputBuyPrice.style.margin = '5px 0 10px';
+    form.appendChild(inputBuyPrice);
+
+    // Total
+    const totalWrapper = document.createElement('div');
+    totalWrapper.style.display = 'flex';
+    totalWrapper.style.justifyContent = 'space-between';
+    totalWrapper.style.alignItems = 'center';
+    totalWrapper.style.margin = '10px 0 20px';
+
+    const totalLabel = document.createElement('span');
+    totalLabel.innerHTML = `<i class="fas fa-calculator"></i> Total:`;
+
+    const totalValue = document.createElement('strong');
+    totalValue.textContent = 'R$ 0,00';
+
+    totalWrapper.appendChild(totalLabel);
+    totalWrapper.appendChild(totalValue);
+    form.appendChild(totalWrapper);
+
+    inputBuyPrice.addEventListener('input', () => {
+        const unit = parseFloat(inputBuyPrice.value) || 0;
+        const total = unit * product.quantity;
+        totalValue.textContent = `R$ ${total.toFixed(2)}`;
+    });
+
+    // Botoes
+    const crudBtns = document.createElement('div');
+    crudBtns.classList.add('crud-div');
+
+    const buttonVoltar = getBackButton();
+    buttonVoltar.style.width = '100%';
+    buttonVoltar.addEventListener('click', () => startApp());
+    crudBtns.appendChild(buttonVoltar);
+
+    const buttonConfirmarBuy = document.createElement('button');
+    buttonConfirmarBuy.type = 'submit';
+    buttonConfirmarBuy.classList.add('save-btn');
+    buttonConfirmarBuy.textContent = 'Confirmar compra';
+    buttonConfirmarBuy.style.width = '100%';
+
+    buttonConfirmarBuy.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        await updateProductState(product, true);
+    });
+    crudBtns.appendChild(buttonConfirmarBuy);
+
+    div.appendChild(form);
+    appElement.appendChild(div);
+    appElement.appendChild(crudBtns);
 }
-// =========================
-// EVENTOS DOM
-// =========================
+
+/**
+ * Função para persistir Produtos
+ * @param isEditing Boolean indicador de edição
+ * @param product Produto a ser persistido
+ * @returns {Promise<void>} Promise
+ */
+async function persistProduct(isEditing, product) {
+    confirmModal(`Tem certeza que deseja ${isEditing ? 'Editar' : 'Criar'} o Produto ${product.product_name}`)
+        .then(async resposta => {
+            if (resposta) {
+                const objeto = {
+                    id: null,
+                    name: document.getElementById('inputName').value,
+                    description: document.getElementById('inputDesc').value,
+                    categoryId: document.getElementById('inputCategory').value,
+                    quantity: document.getElementById('inputQuan').value,
+                    listId: listIdParam
+                }
+
+                const url = !isEditing
+                    ? `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products`
+                    : `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${product.product_id}`;
+                const method = !isEditing
+                    ? 'POST'
+                    : 'PUT';
+
+                await authFetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(objeto)
+                }).then(data => {
+                    notificar(data.message);
+                }).catch(() => {
+                    // Nada aqui. Silencia completamente.
+                })
+                await startApp();
+            }
+        });
+}
+
+/**
+ * Função para Deletar um produto
+ * @param product Produto a ser deletado.
+ * @returns {Promise<void>}
+ */
+async function deleteProduct(product) {
+    confirmModal(`Deseja excluir o produto: "${product.product_name}"?`)
+        .then(async (resposta) => {
+            if (resposta) {
+                await authFetch(
+                    `http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${product.product_id}`,
+                    {method: 'DELETE'}
+                ).then(data => {
+                    notificar(data.message)
+                }).catch(() => {
+                    // Nada aqui. Silencia completamente.
+                })
+                startApp();
+            }
+        })
+}
+
+async function updateProductState(product, buy) {
+    let price = null
+    if(buy) price = document.getElementById('inputBuyPrice').value;
+
+    const body = buy ? { price: price } : {};
+
+    confirmModal(`Tem certeza que deseja ${buy ? 'Realizar' : 'Desfazer'} a compra do Produto ${product.product_name}`)
+        .then(async reposta => {
+            if(reposta) {
+                await authFetch(`http://localhost:3000/api/groups/${groupIdParam}/lists/${listIdParam}/products/${product.product_id}/${buy ? 'buy' : 'sell'}`,
+                    { method: 'PUT',
+                        body: JSON.stringify(body)
+                    }).then(data => {
+                    notificar(data.message);
+                }).catch(() => {
+                    // Nada aqui. Silencia completamente.
+                })
+            await startApp();
+            }
+        })
+}
 
 // Inicialização ao carregar o DOM
 document.addEventListener('DOMContentLoaded', async () => {
+    await loadURLParams();
+    await loadUserProfile();
+    categories = await loadProductCategories();
     await startApp();
 });

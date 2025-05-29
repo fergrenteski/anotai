@@ -34,9 +34,10 @@ CREATE TABLE users
     user_id        SERIAL PRIMARY KEY,
     name           VARCHAR(100)        NOT NULL,
     email          VARCHAR(100) UNIQUE NOT NULL,
+    bio            TEXT,
     email_verified BOOLEAN             NOT NULL DEFAULT FALSE,
     password_hash  VARCHAR(255)        NOT NULL,
-    profile_img    BYTEA,
+    image_path     TEXT,
     created_at     TIMESTAMP                    DEFAULT CURRENT_TIMESTAMP,
     updated_at     TIMESTAMP                    DEFAULT CURRENT_TIMESTAMP,
     expired_at     TIMESTAMP
@@ -226,7 +227,7 @@ CREATE TABLE products
     name         VARCHAR(100) NOT NULL,
     description  TEXT,
     category_id  INT          NOT NULL,
-    price        NUMERIC      NOT NULL DEFAULT 0,
+    price        NUMERIC      DEFAULT 0,
     quantity     INT          NOT NULL DEFAULT 1,
     purchased_by INT                   DEFAULT NULL,
     added_by     INT          NOT NULL,
@@ -249,7 +250,7 @@ SELECT g.group_id,
        g.user_admin_id,
        u.name  as user_admin_name,
        u.email,
-       u.profile_img,
+       u.image_path,
        g.created_at,
        g.updated_at,
        g.expired_at
@@ -275,7 +276,7 @@ SELECT p.product_id,
        up.name  AS purchased_name,
        up.email AS purchased_email,
        p.list_id,
-       u.profile_img,
+       u.image_path,
        p.created_at,
        p.updated_at
 FROM products p
@@ -288,7 +289,7 @@ SELECT gu.user_id,
        u.name                                                   AS user_name,
        u.email                                                  AS user_email,
        gu.verified                                              AS user_verified,
-       u.profile_img,
+       u.image_path,
        g.group_id,
        g.name,
        g.description,
@@ -305,17 +306,17 @@ SELECT l.list_id,
        l.name as list_name,
        l.description,
        l.created_by,
+       u.name AS created_name,
        l.group_id,
-       g.name as group_name,
+       g.group_name,
        l.category_id,
-       pc.name as category_name,
+       lc.name as category_name,
        l.created_at
 FROM lists l
-         LEFT JOIN groups g ON g.group_id = l.group_id
-         LEFT JOIN groups_category gc ON gc.groups_category_id = g.category_id
-         LEFT JOIN products_category pc ON pc.products_category_id = l.category_id
-WHERE g.expired_at IS NULL
-  AND l.expired_at IS NULL;
+         LEFT JOIN vw_groups g ON g.group_id = l.group_id
+         LEFT JOIN lists_category lc on l.category_id = lc.lists_category_id
+         LEFT JOIN users u on l.created_by = u.user_id
+WHERE l.expired_at IS NULL;
 
 -- View de Total gasto por usuário (ANT-67)
 CREATE OR REPLACE VIEW vw_total_gasto_por_usuario_lista AS
@@ -337,6 +338,7 @@ SELECT p.list_id,
        SUM(p.price * p.quantity) AS total_categoria
 FROM products p
          JOIN products_category c ON p.category_id = c.products_category_id
+WHERE p.purchased_by IS NOT NULL
 GROUP BY p.list_id, p.category_id, c.name;
 
 -- View Gasto por categoria por usuário.

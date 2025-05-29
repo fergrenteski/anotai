@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Produtos</title>
+    <link rel="stylesheet" href="../css/header.css">
+    <link rel="stylesheet" href="../css/crud.css">
     <link rel="stylesheet" href="../css/products.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
@@ -16,14 +18,18 @@
     </nav>
     <div class="user-area" id="userArea">
         <span id="logout">SAIR</span>
-        <div class="user-icon" id="userInitials">AB</div>
+        <div class="user-icon" id="userInitials"></div>
         <span id="userName">Usuário</span>
     </div>
 </div>
+<div class="container-breadcrumb">
+    <div id="breadcrumb"></div>
+</div>
 <div class="container" id="app"></div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="../js/navegacao.js"></script>
-<script src="../js/products.js"></script>
+<script type="module" src="../js/utils/navigation.js"></script>
+<script type="module" src="../js/utils/breadcrumb.js"></script>
+<script type="module" src="../js/products.js"></script>
 
 </body>
 </html>
