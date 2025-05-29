@@ -594,7 +594,7 @@ async function renderGerenciarGrupo() {
         crudBtns.appendChild(saveBtn);
     }
 
-    if (!isAdminUser) {
+    if (!isAdminUser && isEditing) {
         const sairBtn = document.createElement('button');
         sairBtn.textContent = 'Sair';
         sairBtn.style.width = '25%';
