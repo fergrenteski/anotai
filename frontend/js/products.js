@@ -163,22 +163,7 @@ async function renderProdutos() {
         const emptyText = document.createElement('p');
         emptyText.textContent = 'Adicione produtos na lista de compras para que os outros vejam.';
         emptyState.appendChild(emptyText);
-    // Cálculo do preço total da lista
-    const precoTotal = appState.products
-    .filter(product => product.purchased_by) // Só produtos comprados
-    .reduce((total, product) => {
-        return total + (parseFloat(product.price || 0) * parseInt(product.quantity || 0));
-    }, 0);
 
-    // Elemento para mostrar o total
-    const totalDiv = document.createElement('div');
-    totalDiv.className = 'total-container';
-    totalDiv.innerHTML = `
-    <div class="title">💰 Total da Lista</div>
-    <div class="value">R$ ${precoTotal.toFixed(2)}</div>
-`;
-
-appElement.appendChild(totalDiv);
 
         const createButton = document.createElement('button');
         createButton.textContent = 'Adicionar Produto';
@@ -205,13 +190,18 @@ appElement.appendChild(totalDiv);
         productsDiv.style.maxHeight = '50dvh';
         productsDiv.style.overflow = 'auto';
 
+
+        let totalOfLista = 0;
+
         appState.products.forEach((product) => {
             const div = document.createElement("div");
             div.className = "item";
 
-            const compradoPorMim = product.purchased_by === user.id;
-            const adicionadoPorMim = product.added_by === user.id;
+            const compradoPorMim = product.purchased_by === user.userId;
+            const adicionadoPorMim = product.added_by === user.userId;
             const comprado = !!product.purchased_by;
+
+            if (comprado) totalOfLista += parseFloat(product.price);
 
             if (comprado) div.classList.add("comprado");
 
@@ -333,6 +323,19 @@ appElement.appendChild(totalDiv);
         });
 
         appElement.appendChild(productsDiv);
+
+        if(totalOfLista && totalOfLista > 0) {
+            // Elemento para mostrar o total
+            const totalDiv = document.createElement('div');
+
+            totalDiv.className = 'total-container';
+            totalDiv.innerHTML = `
+            <div class="title">💰 Total da Lista</div>
+            <div class="value">R$ ${totalOfLista.toFixed(2)}</div>
+        `;
+
+        appElement.appendChild(totalDiv);
+        }
         appElement.appendChild(createButton);
     }
 }
