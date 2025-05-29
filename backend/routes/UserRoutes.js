@@ -56,10 +56,10 @@ router.post("/redefinir-senha", (req, res) => UserController.redefinirSenha(req,
 router.post("/confirmar-email", (req, res) => UserController.confirmarEmail(req, res));
 
 // Rota de alterar senha do usuário
-router.post("/alterar-senha", (req, res) => UserController.alterarSenha(req, res));
+router.post("/alterar-senha",verificarToken, (req, res) => UserController.alterarSenha(req, res));
 router.post("/reconfirmar-email/:email", (req, res) => UserController.reconfirmarEmail(req, res));
 
-router.post("/alterar-senha", verificarToken, (req, res) => UserController.alterarSenhaAutenticado(req, res));
+router.put("/users/change-password", verificarToken, (req, res) => UserController.alterarSenhaAutenticado(req, res));
 
 // Exporta classe  router
 module.exports = router;

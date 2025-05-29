@@ -214,9 +214,111 @@ async function renderProfile() {
 }
 
 async function renderAlterarsenha() {
-    notificar('Alterar senha ainda não implementado');
-    startApp('geral', 'profile');
+    appElement.innerHTML = '';       // Limpa a tela
+renderTabs();                    // Adiciona as abas (Meus Perfil / Alterar Senha)
+
+const formContainer = document.createElement('div'); 
+
+    formContainer.className = 'profile-form';
+
+    // Título centralizado (mesmo padrão de "Perfil")
+const h1 = document.createElement('h2');
+h1.textContent = 'Alteração de Senha';
+h1.style.textAlign = 'center';
+h1.style.marginBottom = '20px';
+appElement.appendChild(h1);
+
+
+    const form = document.createElement('form');
+    form.className = 'profile-fields';
+
+    // Campos
+    const currentLabel = document.createElement('label');
+    currentLabel.textContent = 'Senha Atual';
+    const currentInput = document.createElement('input');
+    currentInput.type = 'password';
+    currentInput.required = true;
+
+    const newLabel = document.createElement('label');
+    newLabel.textContent = 'Nova Senha';
+    const newInput = document.createElement('input');
+    newInput.type = 'password';
+    newInput.required = true;
+
+    const confirmLabel = document.createElement('label');
+    confirmLabel.textContent = 'Confirmar Nova Senha';
+    const confirmInput = document.createElement('input');
+    confirmInput.type = 'password';
+    confirmInput.required = true;
+
+    // Requisitos visuais
+    const requisitos = document.createElement('div');
+    requisitos.style.fontSize = '14px';
+    requisitos.innerHTML = `
+        <p id="length" style="color:red">❌ Pelo menos 8 caracteres</p>
+        <p id="uppercase" style="color:red">❌ Pelo menos 1 letra maiúscula</p>
+        <p id="number" style="color:red">❌ Pelo menos 1 número</p>
+        <p id="special" style="color:red">❌ Pelo menos 1 caractere especial</p>
+    `;
+
+    newInput.addEventListener('input', () => {
+        const senha = newInput.value;
+        document.getElementById('length').style.color = senha.length >= 8 ? 'green' : 'red';
+        document.getElementById('length').textContent = senha.length >= 8 ? '✔ Pelo menos 8 caracteres' : '❌ Pelo menos 8 caracteres';
+        document.getElementById('uppercase').style.color = /[A-Z]/.test(senha) ? 'green' : 'red';
+        document.getElementById('uppercase').textContent = /[A-Z]/.test(senha) ? '✔ Pelo menos 1 letra maiúscula' : '❌ Pelo menos 1 letra maiúscula';
+        document.getElementById('number').style.color = /[0-9]/.test(senha) ? 'green' : 'red';
+        document.getElementById('number').textContent = /[0-9]/.test(senha) ? '✔ Pelo menos 1 número' : '❌ Pelo menos 1 número';
+        document.getElementById('special').style.color = /[!@#$%^&*(),.?":{}|<>]/.test(senha) ? 'green' : 'red';
+        document.getElementById('special').textContent = /[!@#$%^&*(),.?":{}|<>]/.test(senha) ? '✔ Pelo menos 1 caractere especial' : '❌ Pelo menos 1 caractere especial';
+    });
+
+    // Botão
+    const submitBtn = document.createElement('button');
+    submitBtn.textContent = 'Salvar Nova Senha';
+    submitBtn.className = 'save-btn';
+    submitBtn.style.width = '100%';
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+
+        if (newInput.value !== confirmInput.value) {
+            notificar('As senhas não coincidem');
+            return;
+        }
+
+        const senha = newInput.value;
+        if (
+            senha.length < 8 ||
+            !/[A-Z]/.test(senha) ||
+            !/[0-9]/.test(senha) ||
+            !/[!@#$%^&*(),.?":{}|<>]/.test(senha)
+        ) {
+            notificar('A nova senha não atende aos requisitos!');
+            return;
+        }
+
+        const body = {
+            senhaAtual: currentInput.value,
+            novaSenha: newInput.value,
+        };
+
+        await authFetch('http://localhost:3000/api/user/alterar-senha', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(body),
+        }).then(data => {
+            notificar(data.message || 'Senha alterada com sucesso!');
+            startApp('geral', 'profile');
+        });
+    };
+
+    form.append(currentLabel, currentInput, newLabel, newInput, confirmLabel, confirmInput, requisitos, submitBtn);
+
+    formContainer.appendChild(form);
+    appElement.appendChild(formContainer);
 }
+
 async function deleteProfileImage() {
     const img = document.getElementById('profileImage');
     await confirmModal("Tem certeza que deseja remover a imagem de perfil?")
