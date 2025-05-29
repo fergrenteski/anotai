@@ -319,6 +319,7 @@ async function renderProdutos() {
         createButton.classList.add('save-btn');
         createButton.addEventListener('click', async (e) => {
             e.preventDefault();
+            e.stopPropagation();
             startApp("novoProduto")
         });
 
@@ -1022,19 +1023,19 @@ async function renderComprarProduto() {
     infoLinha.style.justifyContent = 'center';
     infoLinha.style.margin = '20px 0';
 
-// Nome do produto em destaque
+    // Nome do produto em destaque
     const nomeProduto = document.createElement('h2');
     nomeProduto.innerHTML = `<i class="fas fa-box-open"></i> <strong>${product.product_name}</strong>`;
     nomeProduto.style.marginBottom = '5px';
     infoLinha.appendChild(nomeProduto);
 
-// Quantidade
+    // Quantidade
     const quantidade = document.createElement('div');
     quantidade.innerHTML = `<i class="fas fa-sort-numeric-up"></i> Quantidade: <strong>${product.quantity}</strong>`;
     quantidade.style.marginBottom = '5px';
     infoLinha.appendChild(quantidade);
 
-// Categoria com ícone e cor
+    // Categoria com ícone e cor
     const categoria = document.createElement('div');
     categoria.style.display = 'flex';
     categoria.style.alignItems = 'center';
@@ -1115,7 +1116,9 @@ async function renderComprarProduto() {
     totalWrapper.appendChild(totalValue);
     form.appendChild(totalWrapper);
 
-    inputBuyPrice.addEventListener('input', () => {
+    inputBuyPrice.addEventListener('input', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         const unit = parseFloat(inputBuyPrice.value) || 0;
         const total = unit * product.quantity;
         totalValue.textContent = `R$ ${total.toFixed(2)}`;
@@ -1127,7 +1130,11 @@ async function renderComprarProduto() {
 
     const buttonVoltar = getBackButton();
     buttonVoltar.style.width = '100%';
-    buttonVoltar.addEventListener('click', () => startApp());
+    buttonVoltar.addEventListener('click', (e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        startApp()
+    });
     crudBtns.appendChild(buttonVoltar);
 
     const buttonConfirmarBuy = document.createElement('button');
