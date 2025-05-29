@@ -127,7 +127,7 @@ function renderListaListas() {
 
         // Mostrar cada lista
         appState.listas.forEach(lista => {
-            let isAdminUser = lista.created_by === user.id;
+            let isAdminUser = lista.created_by === user.userId;
             const listItem = document.createElement('div');
             listItem.className = 'list-item';
 
@@ -267,7 +267,7 @@ async function renderGerenciarLista() {
             .then(resposta => {
                 if(resposta) {
                     lista = resposta.data;
-                    isAdminUser = user.id === lista.created_by;
+                    isAdminUser = user.userId === lista.created_by;
                 }
             }).catch(() => {
                 // Nada aqui. Silencia completamente.

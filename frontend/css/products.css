@@ -179,3 +179,22 @@ button {
         gap: 5px;
     }
 }
+.total-container {
+    text-align: center;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    gap: 10px;
+    justify-content: right;
+    align-items: center;
+}
+
+.total-container .title {
+    color: #4CAF50;
+}
+
+.total-container .value {
+    color: #333;
+}

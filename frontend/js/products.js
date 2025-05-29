@@ -164,6 +164,7 @@ async function renderProdutos() {
         emptyText.textContent = 'Adicione produtos na lista de compras para que os outros vejam.';
         emptyState.appendChild(emptyText);
 
+
         const createButton = document.createElement('button');
         createButton.textContent = 'Adicionar Produto';
         createButton.style.width = '100%';
@@ -189,13 +190,18 @@ async function renderProdutos() {
         productsDiv.style.maxHeight = '50dvh';
         productsDiv.style.overflow = 'auto';
 
+
+        let totalOfLista = 0;
+
         appState.products.forEach((product) => {
             const div = document.createElement("div");
             div.className = "item";
 
-            const compradoPorMim = product.purchased_by === user.id;
-            const adicionadoPorMim = product.added_by === user.id;
+            const compradoPorMim = product.purchased_by === user.userId;
+            const adicionadoPorMim = product.added_by === user.userId;
             const comprado = !!product.purchased_by;
+
+            if (comprado) totalOfLista += parseFloat(product.price);
 
             if (comprado) div.classList.add("comprado");
 
@@ -317,6 +323,19 @@ async function renderProdutos() {
         });
 
         appElement.appendChild(productsDiv);
+
+        if(totalOfLista && totalOfLista > 0) {
+            // Elemento para mostrar o total
+            const totalDiv = document.createElement('div');
+
+            totalDiv.className = 'total-container';
+            totalDiv.innerHTML = `
+            <div class="title">💰 Total da Lista</div>
+            <div class="value">R$ ${totalOfLista.toFixed(2)}</div>
+        `;
+
+        appElement.appendChild(totalDiv);
+        }
         appElement.appendChild(createButton);
     }
 }

@@ -218,7 +218,7 @@ function renderListaGrupos() {
             editBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 e.preventDefault()
-                startApp("editarGrupo", null, grupo.group_id);
+                startApp("editarGrupo", 'meus-grupos', grupo.group_id);
             });
             actionButtons.appendChild(editBtn);
 
@@ -398,8 +398,7 @@ async function renderGerenciarGrupo() {
     if (isEditing) {
         data = await authFetch(`http://localhost:3000/api/groups/${groupId}`);
         grupo = data.data;
-        user = data.user;
-        isAdminUser = user.id === grupo.user_admin_id;
+        isAdminUser = user.userId === grupo.user_admin_id;
     } else {
         isAdminUser = true;
     }
@@ -680,7 +679,7 @@ async function addMember(newMemberInput, grupo) {
     // Limpar campo
     newMemberInput.value = '';
 
-    await startApp("editarGrupo", null, grupo.group_id);
+    await startApp("editarGrupo", 'meus-grupos', grupo.group_id);
 }
 
 /**
@@ -699,7 +698,7 @@ async function removeMember(membro, grupo) {
                 }).catch(() => {
                     // Nada aqui. Silencia completamente.
                 });
-            await startApp("editarGrupo", null, grupo.group_id);
+            await startApp("editarGrupo", 'meus-grupos', grupo.group_id);
         }
     })
 }
