@@ -609,7 +609,13 @@ async function renderGerenciarGrupo() {
                 if (resposta){
                     console.log('sair');
 
-                    await authFetch()
+                    await authFetch(`http://localhost:3000/api/groups/${grupo.group_id}/members/${user_id}/sair`,
+                        {method: 'DELETE'}).then(data => {
+                        notificar(data.message);
+                    }).catch(() => {
+                        // Nada aqui. Silencia completamente.
+                    });
+                    await startApp();
                 }
             });
 
