@@ -1087,7 +1087,7 @@ async function renderComprarProduto() {
     totalWrapper.style.margin = '10px 0 20px';
 
     const totalLabel = document.createElement('span');
-    totalLabel.innerHTML = `<i class="fas fa-calculator"></i> Total:`;
+    totalLabel.innerHTML = `24 Total:`;
 
     const totalValue = document.createElement('strong');
     totalValue.textContent = 'R$ 0,00';

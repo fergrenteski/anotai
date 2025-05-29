@@ -594,10 +594,10 @@ async function renderGerenciarGrupo() {
         crudBtns.appendChild(saveBtn);
     }
 
-    if (!isAdminUser && isEditing) {
+    if (isAdminUser && isEditing) {
         const sairBtn = document.createElement('button');
-        sairBtn.textContent = 'Sair';
-        sairBtn.style.width = '25%';
+        sairBtn.className = 'fa-solid fa-arrow-right-from-bracket';
+        sairBtn.style.width = '13%';
         sairBtn.style.backgroundColor = '#e12424';
         sairBtn.classList.add('save-btn');
         sairBtn.addEventListener('click', async (e) => {
@@ -605,9 +605,14 @@ async function renderGerenciarGrupo() {
             e.stopPropagation();
             await leaveGroup(grupo);
         });
+        sairBtn.addEventListener('mouseover', () => {
+            sairBtn.classList.add('fa-fade');
+        })
+        sairBtn.addEventListener('mouseleave', () => {
+            sairBtn.classList.remove('fa-fade');
+        })
         crudBtns.appendChild(sairBtn);
     }
-
     form.appendChild(crudBtns);
 
     appElement.appendChild(form);
