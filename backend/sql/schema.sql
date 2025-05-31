@@ -42,6 +42,8 @@ CREATE TABLE users
     updated_at     TIMESTAMP                    DEFAULT CURRENT_TIMESTAMP,
     expired_at     TIMESTAMP
 );
+insert into users (user_id, name, email, bio, email_verified, password_hash, image_path, created_at, updated_at, expired_at)
+values  (1, 'admin', 'admin@gmail.com', null, true, '$2a$10$qsHt.rPpn35fyWUc6WTi5eqZaRg1KL1Q5S9jl4E2eOhIAy719Ihli', null, '2025-05-31 23:01:47.596437', '2025-05-31 23:01:47.596437', null);
 
 CREATE TABLE request_logs
 (
