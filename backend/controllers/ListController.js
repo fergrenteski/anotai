@@ -64,7 +64,7 @@ class ListController {
         try {
 
             // Obtém o ID do grupo da URL
-            const listId = req.params.listid;
+            const listId = req.params.listId;
 
             const { name, description, categoryId } = req.body;
 
