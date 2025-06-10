@@ -21,7 +21,7 @@ class ListService {
         return runQuery("insert_list", [name, description, categoryId, createdBy, groupId]);
     }
 
-    async update(listId, name, description, categoryId) {
+    async update(name, description, categoryId, listId) {
         return runQuery("update_list_by_id", [listId, name, description, categoryId]);
     }
 }
