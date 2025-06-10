@@ -201,7 +201,7 @@ async function renderProdutos() {
             const adicionadoPorMim = product.added_by === user.userId;
             const comprado = !!product.purchased_by;
 
-            if (comprado) totalOfLista += parseFloat(product.price);
+            if (comprado) totalOfLista += parseFloat(product.price) * parseInt(product.quantity);
 
             if (comprado) div.classList.add("comprado");
 
