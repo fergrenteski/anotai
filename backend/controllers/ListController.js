@@ -77,6 +77,21 @@ class ListController {
             return res.status(500).json({success: false, message: "Erro na edicão de Listas"});
         }
     }
+
+    async delete(req, res) {
+        try {
+
+            // Obtém o ID do grupo da URL
+            const listId = req.params.listId;
+
+            await this.listService.delete(listId);
+            return res.status(200).json({ success: true, message: "Lista Excluida com sucesso!"});
+
+        } catch (error) {
+            console.error("Erro na edicão de Listas:", error);
+            return res.status(500).json({success: false, message: "Erro na Excluida de Listas"});
+        }
+    }
 }
 //exporta o ListController
 module.exports = new ListController();
