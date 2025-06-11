@@ -24,6 +24,10 @@ class ListService {
     async update(name, description, categoryId, listId) {
         return runQuery("update_list_by_id", [listId, name, description, categoryId]);
     }
+
+    async delete(listId) {
+        return runQuery("delete_list_by_id", [listId]);
+    }
 }
 // Exporta a classe ListService
 module.exports = ListService;
