@@ -1,7 +1,7 @@
 import {authFetch} from "./authFetch.js";
 
 export async function loadUserProfile() {
-    let localUser = localStorage.getItem("user");
+    let localUser = sessionStorage.getItem("user");
 
     // Verifica se possui localUser
     if (!localUser) {
@@ -9,10 +9,10 @@ export async function loadUserProfile() {
             // Busca e popula informações no Local Storage
             const resposta = await authFetch("http://localhost:3000/api/user/profile");
             resposta.data.image = resposta.data.image || 'https://www.svgrepo.com/show/452030/avatar-default.svg';
-            localStorage.setItem('user', JSON.stringify(resposta.data));
+            sessionStorage.setItem('user', JSON.stringify(resposta.data));
             localUser = resposta.data;
         } catch {
-            localStorage.removeItem('user');
+            sessionStorage.removeItem('user');
             return;
         }
     } else {

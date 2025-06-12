@@ -1,8 +1,9 @@
 import {authFetch} from "./utils/authFetch.js";
 import {loadUserProfile} from "./utils/loadUserProfile.js";
+import {initNotifications} from "./utils/notificationsWS.js";
 // Variáveis
 let appState = null;
-let user = localStorage.getItem("user");
+let user = JSON.parse(sessionStorage.getItem('user'));
 
 async function initializeAppState(currentView, user) {
     await verificarLogin();
@@ -66,3 +67,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 await loadUserProfile();
+if (user && user.userId) {
+    initNotifications(user.userId, authFetch);
+}

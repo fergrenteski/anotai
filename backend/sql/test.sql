@@ -1,15 +1,15 @@
 INSERT INTO users (name, email, email_verified, password_hash)
 VALUES
-    ('Ana Silva', 'ana@example.com', TRUE, 'hash1'),
-    ('Bruno Costa', 'bruno@example.com', TRUE, 'hash2'),
-    ('Carla Oliveira', 'carla@example.com', TRUE, 'hash3'),
-    ('Daniel Souza', 'daniel@example.com', TRUE, 'hash4'),
-    ('Eduarda Lima', 'eduarda@example.com', TRUE, 'hash5'),
-    ('Felipe Rocha', 'felipe@example.com', TRUE, 'hash6'),
-    ('Gabriela Martins', 'gabriela@example.com', TRUE, 'hash7'),
-    ('Henrique Alves', 'henrique@example.com', TRUE, 'hash8'),
-    ('Isabela Ferreira', 'isabela@example.com', TRUE, 'hash9'),
-    ('João Mendes', 'joao@example.com', TRUE, 'hash10');
+    ('Ana Silva', 'ana@example.com', TRUE, '$2a$10$qsHt.rPpn35fyWUc6WTi5eqZaRg1KL1Q5S9jl4E2eOhIAy719Ihli'),
+    ('Bruno Costa', 'bruno@example.com', TRUE, '$2a$10$qsHt.rPpn35fyWUc6WTi5eqZaRg1KL1Q5S9jl4E2eOhIAy719Ihli'),
+    ('Carla Oliveira', 'carla@example.com', TRUE, '$2a$10$qsHt.rPpn35fyWUc6WTi5eqZaRg1KL1Q5S9jl4E2eOhIAy719Ihli'),
+    ('Daniel Souza', 'daniel@example.com', TRUE, '$2a$10$qsHt.rPpn35fyWUc6WTi5eqZaRg1KL1Q5S9jl4E2eOhIAy719Ihli'),
+    ('Eduarda Lima', 'eduarda@example.com', TRUE, '$2a$10$qsHt.rPpn35fyWUc6WTi5eqZaRg1KL1Q5S9jl4E2eOhIAy719Ihli'),
+    ('Felipe Rocha', 'felipe@example.com', TRUE, '$2a$10$qsHt.rPpn35fyWUc6WTi5eqZaRg1KL1Q5S9jl4E2eOhIAy719Ihli'),
+    ('Gabriela Martins', 'gabriela@example.com', TRUE, '$2a$10$qsHt.rPpn35fyWUc6WTi5eqZaRg1KL1Q5S9jl4E2eOhIAy719Ihli'),
+    ('Henrique Alves', 'henrique@example.com', TRUE, '$2a$10$qsHt.rPpn35fyWUc6WTi5eqZaRg1KL1Q5S9jl4E2eOhIAy719Ihli'),
+    ('Isabela Ferreira', 'isabela@example.com', TRUE, '$2a$10$qsHt.rPpn35fyWUc6WTi5eqZaRg1KL1Q5S9jl4E2eOhIAy719Ihli'),
+    ('João Mendes', 'joao@example.com', TRUE, '$2a$10$qsHt.rPpn35fyWUc6WTi5eqZaRg1KL1Q5S9jl4E2eOhIAy719Ihli');
 
 
 -- Criar grupo

@@ -4,11 +4,12 @@ import {confirmModal} from "./utils/confirmModal.js";
 import {createInput} from "./utils/createInput.js";
 import {getBackButton} from "./utils/backButton.js";
 import {loadUserProfile} from "./utils/loadUserProfile.js";
+import {initNotifications} from "./utils/notificationsWS.js";
 
 const params = new URLSearchParams(window.location.search);
 
 // Variáveis
-let user = JSON.parse(localStorage.getItem('user'));
+let user = JSON.parse(sessionStorage.getItem('user'));
 let groupIdParam = null;
 let appState = null;
 let categories = null;
@@ -407,5 +408,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     groupIdParam = params.get("groupid");
     categories = await loadListsCategories();
     await loadUserProfile();
+    if (user && user.userId) {
+        initNotifications(user.userId, authFetch);
+    }
     await startApp(); // Chama o start
 });

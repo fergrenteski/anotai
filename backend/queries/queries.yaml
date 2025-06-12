@@ -371,8 +371,8 @@ queries:
 
   update_user_profile: >
     UPDATE users
-    SET name = $1, bio = $2, image_path = $3, updated_at = CURRENT_TIMESTAMP
+    SET name = $1, bio = $2, image_path = $3, updated_at = CURRENT_TIMESTAMP, genero = $5
     WHERE user_id = $4;
 
   select_user_profile: >
-    SELECT user_id, name, bio, image_path FROM users WHERE user_id = $1;
+    SELECT user_id, name, bio, genero, image_path FROM users WHERE user_id = $1;
