@@ -8,6 +8,7 @@ const path = require('path');
 const userRoutes = require("./routes/UserRoutes");
 const groupRoutes = require("./routes/GroupRoutes");
 const memberRoutes = require("./routes/MemberRoutes");
+const notificationRoutes = require("./routes/NotificationRoutes");
 const requestLoggerMiddleware = require("./middlewares/requestLoggerMiddleware");
 const {setupWebSocket} = require("./webSocket");
 
@@ -21,6 +22,7 @@ app.use(requestLoggerMiddleware);
 app.use("/api/user", userRoutes);
 app.use("/api/groups", groupRoutes);
 app.use("/api/member", memberRoutes);
+app.use("/api/notification", notificationRoutes);
 app.use('/api/profile', express.static(path.join(__dirname, 'uploads', 'profiles')));
 
 const server = http.createServer(app);
