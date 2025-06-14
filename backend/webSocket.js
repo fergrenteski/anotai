@@ -1,8 +1,10 @@
 const WebSocket = require("ws");
 const { Client } = require("pg");
-const dbConfig = require("./database/config"); // ajuste para o caminho do seu config de conexão
+const dbConfig = require("./database/config");
+const NotificationService = require("./services/NotificationService"); // ajuste para o caminho do seu config de conexão
 
 const clients = new Map();
+const notificationService = new NotificationService();
 
 async function setupWebSocket(server) {
     const wss = new WebSocket.Server({ server });
@@ -35,7 +37,7 @@ async function setupWebSocket(server) {
         }
     });
 
-    wss.on("connection", (ws, req) => {
+    wss.on("connection", async (ws, req) => {
         const params = new URLSearchParams(req.url.split("?")[1]);
         const userId = params.get("userId");
 
@@ -46,6 +48,14 @@ async function setupWebSocket(server) {
 
         clients.set(userId, ws);
         console.log(`✅ Usuário conectado via WS: ${userId}`);
+
+        const { rows } = await notificationService.getAll(userId);
+
+        if(rows && rows.length > 0) {
+            ws.send(JSON.stringify({
+                rows
+            }));
+        }
 
         ws.on("close", () => {
             clients.delete(userId);

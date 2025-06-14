@@ -1,15 +1,7 @@
-// notifications.js
-export let notifications = [];
-let socket = null;
-let user = null;
-
-export function initNotifications(userId, authFetch) {
+export function initNotifications(userId) {
     if (!userId) return;
 
-    let count = 0;
-
-    socket = new WebSocket(`ws://localhost:3000?userId=${userId}`);
-
+    const socket = new WebSocket(`ws://localhost:3000?userId=${userId}`);
 
     socket.onopen = () => {
         console.log("🔌 WebSocket conectado");
@@ -17,15 +9,18 @@ export function initNotifications(userId, authFetch) {
 
     socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
-
         if (data) {
-            showNotificationToast(data.message, data.type);
+            showNotificationBadge();
         }
     };
 
-    function showNotificationToast(message, typeName) {
+    function showNotificationBadge() {
         const badge = document.getElementById('badge');
+        if (!badge) return;
+
         badge.style.display = 'block';
+        badge.classList.add('badge-pulse');
+        setTimeout(() => badge.classList.remove('badge-pulse'), 500);
     }
 
     socket.onclose = () => {
@@ -35,5 +30,4 @@ export function initNotifications(userId, authFetch) {
     socket.onerror = (err) => {
         console.error("WebSocket error", err);
     };
-
 }

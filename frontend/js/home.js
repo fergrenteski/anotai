@@ -63,10 +63,9 @@ async function startApp(currentView = "home") {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    await loadUserProfile();
+    if (user && user.userId) {
+        initNotifications(user.userId);
+    }
     await startApp(); // Chama o start
 });
-
-await loadUserProfile();
-if (user && user.userId) {
-    initNotifications(user.userId, authFetch);
-}
