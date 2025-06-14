@@ -7,6 +7,7 @@ DROP VIEW IF EXISTS vw_lists;
 DROP VIEW IF EXISTS vw_user_groups;
 DROP VIEW IF EXISTS vw_products;
 DROP VIEW IF EXISTS vw_groups;
+DROP VIEW IF EXISTS vw_notifications;
 
 -- Trigger
 DROP TRIGGER IF EXISTS trg_notify_new_notification ON notifications;
@@ -429,3 +430,14 @@ CREATE TRIGGER trg_notify_new_notification
     AFTER INSERT ON notifications
     FOR EACH ROW
 EXECUTE FUNCTION notify_new_notification();
+
+CREATE OR REPLACE VIEW vw_notifications AS
+SELECT  n.id,
+        n.user_id,
+        n.type_id,
+        nt.name,
+        n.is_read,
+        n.message,
+        n.created_at
+FROM notifications n
+LEFT JOIN notification_types nt on nt.id = n.type_id;

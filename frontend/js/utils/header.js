@@ -62,11 +62,11 @@ function renderNotifications(notifications) {
 
         const message = document.createElement('div');
         message.className = 'notification-message';
-        message.textContent = notification.message;
+        message.textContent = notification.name;
 
         const type = document.createElement('div');
         type.className = 'notification-type';
-        type.textContent = notification.type;
+        type.textContent = notification.message;
 
         item.appendChild(message);
         item.appendChild(type);

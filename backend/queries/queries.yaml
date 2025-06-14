@@ -379,7 +379,7 @@ queries:
 
   # Buscar notificações
   select_notifications_by_user_id: >
-    SELECT * FROM notifications
+    SELECT * FROM vw_notifications
     WHERE user_id = $1;
 
   # Marcar todas as Notificações como lidas

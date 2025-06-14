@@ -134,24 +134,28 @@ nav a:hover {
     100% { transform: scale(1); }
 }
 
-.notification-list {
+.notification-list, .notification-popup {
+    /* NÃO aplicar transform, deixar estático */
     position: absolute;
     top: 40px;
-    right: -120px;
+    right: 0;
     width: 300px;
     background: rgba(255, 255, 255, 0.95);
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     z-index: 1000;
     padding: 0.5rem 0;
-    max-height: 300px;
-    overflow-y: auto;
     font-family: sans-serif;
+}
+.notification-items {
+    overflow: scroll;
+    max-height: 170px;
 }
 
 .notification-message {
+    font-weight: bold;
     flex: 1;
-    font-size: 0.95rem;
+    font-size: 0.8rem;
     color: #333;
 }
 
@@ -183,19 +187,6 @@ nav a:hover {
     font-size: 0.9rem;
 }
 
-.notification-popup {
-    position: absolute;
-    top: 60px;
-    right: 10px;
-    width: 300px;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    font-family: 'Arial', sans-serif;
-    z-index: 999;
-}
-
 .notification-header {
     display: flex;
     justify-content: space-between;
@@ -211,11 +202,6 @@ nav a:hover {
     border-radius: 50%;
     padding: 4px 8px;
     font-size: 0.8rem;
-}
-
-.notification-list {
-    max-height: 300px;
-    overflow-y: auto;
 }
 
 .notification-wrapper {
@@ -263,17 +249,14 @@ nav a:hover {
     padding: 1rem;
     border-bottom: 1px solid #ccc;
     transition: transform 0.2s ease;
+    touch-action: pan-y; /* para evitar conflito de scroll vertical */
 }
 
 .notification-item:hover {
     background: #f9f9f9;
 }
 
-.notification-item .title {
-    font-weight: bold;
-}
-
-.notification-item .type {
+.notification-type {
     font-size: 0.8rem;
     color: gray;
 }
