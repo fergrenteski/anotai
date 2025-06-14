@@ -80,7 +80,16 @@ function renderNotifications(notifications) {
         const maxSwipe = 90; // Limite máximo de arrasto
 
         const handleGestureEnd = () => {
+            const minSwipeThreshold = 30;
             const dx = currentX - startX;
+
+            if (Math.abs(dx) < minSwipeThreshold) {
+                item.style.transition = 'transform 0.2s ease-out';
+                item.style.transform = 'translateX(0)';
+                isDragging = false;
+                renderNotifications(notifications);
+                return;
+            }
 
             if (dx < -100) {
                 item.style.transition = 'transform 0.2s ease-out';
@@ -96,20 +105,22 @@ function renderNotifications(notifications) {
                 item.style.transition = 'transform 0.2s ease-out';
                 item.style.transform = 'translateX(40%)';
                 setTimeout(() => {
-                    notification.read = !notification.read; // Alterna leitura
+                    notification.read = !notification.read;
                     renderNotifications(notifications);
                 }, 200);
             } else {
                 item.style.transition = 'transform 0.2s ease-out';
                 item.style.transform = 'translateX(0)';
+                renderNotifications(notifications);
             }
-
             isDragging = false;
         };
 
         const setupSwipeEvents = (element, container) => {
             element.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return; // só botão esquerdo
                 startX = e.pageX;
+                currentX = startX;
                 isDragging = true;
                 e.preventDefault();
             });
@@ -117,13 +128,11 @@ function renderNotifications(notifications) {
             element.addEventListener('mousemove', (e) => {
                 if (!isDragging) return;
 
-                // Verifica se o mouse está dentro do container
                 const rect = container.getBoundingClientRect();
                 if (
                     e.clientX < rect.left || e.clientX > rect.right ||
                     e.clientY < rect.top || e.clientY > rect.bottom
                 ) {
-                    // Saiu do container, cancela drag
                     handleGestureEnd();
                     return;
                 }
@@ -135,24 +144,21 @@ function renderNotifications(notifications) {
             });
 
             element.addEventListener('mouseup', handleGestureEnd);
-
             element.addEventListener('mouseleave', () => {
-                if (isDragging) handleGestureEnd();
-            });
-
-            container.addEventListener('mouseleave', () => {
                 if (isDragging) handleGestureEnd();
             });
 
             // Touch events
             element.addEventListener('touchstart', (e) => {
+                if (e.touches.length !== 1) renderNotifications(notifications);
                 startX = e.touches[0].clientX;
+                currentX = startX;
                 isDragging = true;
                 e.preventDefault();
             });
 
             element.addEventListener('touchmove', (e) => {
-                if (!isDragging) return;
+                if (!isDragging) renderNotifications(notifications);
 
                 const rect = container.getBoundingClientRect();
                 const touch = e.touches[0];
@@ -161,7 +167,7 @@ function renderNotifications(notifications) {
                     touch.clientY < rect.top || touch.clientY > rect.bottom
                 ) {
                     handleGestureEnd();
-                    return;
+                    renderNotifications(notifications);
                 }
 
                 currentX = touch.clientX;
@@ -171,7 +177,6 @@ function renderNotifications(notifications) {
             });
 
             element.addEventListener('touchend', handleGestureEnd);
-
             element.addEventListener('touchcancel', () => {
                 if (isDragging) handleGestureEnd();
             });
@@ -190,14 +195,18 @@ function renderNotifications(notifications) {
 
         const markAllReadBtn = document.createElement('button');
         markAllReadBtn.textContent = 'Marcar todas como lidas';
-        markAllReadBtn.onclick = () => {
+        markAllReadBtn.onclick = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
             notifications.forEach(n => n.read = true);
             renderNotifications(notifications);
         };
 
         const deleteAllBtn = document.createElement('button');
         deleteAllBtn.textContent = 'Excluir todas';
-        deleteAllBtn.onclick = () => {
+        deleteAllBtn.onclick = (e) => {
+            e.stopPropagation();
+            e.preventDefault();
             notifications.length = 0;
             renderNotifications(notifications);
         };
