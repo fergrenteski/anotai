@@ -1,6 +1,10 @@
 import { authFetch } from "./authFetch.js";
+import {confirmModal} from "./confirmModal.js";
+import {notificar} from "./notification.js";
 
-function renderNotifications(notifications) {
+export async function renderNotifications() {
+
+    const notifications = await loadNotifications();
     const notificationList = document.getElementById('notificationList');
     notificationList.style.display = 'block';
 
@@ -49,16 +53,16 @@ function renderNotifications(notifications) {
 
         const readBackdrop = document.createElement('div');
         readBackdrop.className = 'read-backdrop';
-        readBackdrop.textContent = notification.read ? 'Não lida' : 'Lida';
-        readBackdrop.style.color = notification.read ? '#adaa12' : '#3889c5';
-        readBackdrop.style.background = notification.read ? '#ffffe6' : '#ddeeff';
+        readBackdrop.textContent = notification.is_read ? 'Não lida' : 'Lida';
+        readBackdrop.style.color = notification.is_read ? '#adaa12' : '#3889c5';
+        readBackdrop.style.background = notification.is_read ? '#ffffe6' : '#ddeeff';
 
         wrapper.appendChild(readBackdrop);
         wrapper.appendChild(deleteBackdrop);
 
         const item = document.createElement('div');
         item.className = 'notification-item';
-        if (!notification.read) item.classList.add('unread');
+        if (!notification.is_read) item.classList.add('unread');
 
         const message = document.createElement('div');
         message.className = 'notification-message';
@@ -87,31 +91,29 @@ function renderNotifications(notifications) {
                 item.style.transition = 'transform 0.2s ease-out';
                 item.style.transform = 'translateX(0)';
                 isDragging = false;
-                renderNotifications(notifications);
+                renderNotifications();
                 return;
             }
 
+            // Excluir notificação
             if (dx < -100) {
                 item.style.transition = 'transform 0.2s ease-out';
                 item.style.transform = 'translateX(-40%)';
-                setTimeout(() => {
-                    const index = notifications.indexOf(notification);
-                    if (index !== -1) {
-                        notifications.splice(index, 1);
-                        renderNotifications(notifications);
-                    }
+                setTimeout(async () => {
+                    await deleteNotification(notification.id);
                 }, 200);
+            // Ler/Desler Notificação
             } else if (dx > 100) {
                 item.style.transition = 'transform 0.2s ease-out';
                 item.style.transform = 'translateX(40%)';
-                setTimeout(() => {
-                    notification.read = !notification.read;
-                    renderNotifications(notifications);
+                setTimeout(async () => {
+                    await markReadUnreadNotification(notification.id);
                 }, 200);
+            // Voltar
             } else {
                 item.style.transition = 'transform 0.2s ease-out';
                 item.style.transform = 'translateX(0)';
-                renderNotifications(notifications);
+                renderNotifications();
             }
             isDragging = false;
         };
@@ -150,7 +152,7 @@ function renderNotifications(notifications) {
 
             // Touch events
             element.addEventListener('touchstart', (e) => {
-                if (e.touches.length !== 1) renderNotifications(notifications);
+                if (e.touches.length !== 1) renderNotifications();
                 startX = e.touches[0].clientX;
                 currentX = startX;
                 isDragging = true;
@@ -158,7 +160,7 @@ function renderNotifications(notifications) {
             });
 
             element.addEventListener('touchmove', (e) => {
-                if (!isDragging) renderNotifications(notifications);
+                if (!isDragging) renderNotifications();
 
                 const rect = container.getBoundingClientRect();
                 const touch = e.touches[0];
@@ -167,7 +169,7 @@ function renderNotifications(notifications) {
                     touch.clientY < rect.top || touch.clientY > rect.bottom
                 ) {
                     handleGestureEnd();
-                    renderNotifications(notifications);
+                    renderNotifications();
                 }
 
                 currentX = touch.clientX;
@@ -195,20 +197,18 @@ function renderNotifications(notifications) {
 
         const markAllReadBtn = document.createElement('button');
         markAllReadBtn.textContent = 'Marcar todas como lidas';
-        markAllReadBtn.onclick = (e) => {
+        markAllReadBtn.onclick = async (e) => {
             e.stopPropagation();
             e.preventDefault();
-            notifications.forEach(n => n.read = true);
-            renderNotifications(notifications);
+            await markAllReadNotifications();
         };
 
         const deleteAllBtn = document.createElement('button');
         deleteAllBtn.textContent = 'Excluir todas';
-        deleteAllBtn.onclick = (e) => {
+        deleteAllBtn.onclick = async (e) => {
             e.stopPropagation();
             e.preventDefault();
-            notifications.length = 0;
-            renderNotifications(notifications);
+            await deleteAllNotifications();
         };
 
         footer.appendChild(markAllReadBtn);
@@ -272,9 +272,7 @@ function createHeader() {
             notificationList.style.display = 'none';
         } else {
             try {
-                const data = await authFetch('http://localhost:3000/api/notification');
-                const notifications = data.data;
-                renderNotifications(notifications);
+                await renderNotifications();
             } catch (err) {
                 console.error('Erro ao buscar notificações', err);
             }
@@ -295,6 +293,64 @@ function createHeader() {
 
     header.appendChild(userArea);
     return header;
+}
+
+async function deleteNotification(id) {
+    await authFetch(`http://localhost:3000/api/notification/${id}`,
+    {method: 'DELETE'});
+    await renderNotifications();
+}
+
+async function markReadUnreadNotification(id) {
+    await authFetch(`http://localhost:3000/api/notification/${id}`,
+        {method: 'PUT'});
+    await renderNotifications();
+}
+
+async function deleteAllNotifications() {
+    confirmModal("Tem certeza que deseja excluir todas as notificações?").then(async (resposta) => {
+        if(resposta) {
+            await authFetch(`http://localhost:3000/api/notification/`,
+                {method: 'DELETE'}).then(data => {
+                notificar(data.message);
+            }).catch(() => {
+                // Nada aqui. Silencia completamente.
+            });
+            await renderNotifications();
+        }
+    })
+}
+
+async function markAllReadNotifications() {
+    confirmModal("Tem certeza que deseja marcar todas as notificações como lidas?").then(async (resposta) => {
+        if(resposta) {
+            await authFetch(`http://localhost:3000/api/notification/`,
+                {method: 'PUT'}).then(data => {
+                notificar(data.message);
+            }).catch(() => {
+                // Nada aqui. Silencia completamente.
+            });
+            await renderNotifications();
+        }
+    })
+}
+
+async function loadNotifications() {
+    const data = await authFetch('http://localhost:3000/api/notification');
+    const notifications = data.data;
+
+    const badge = document.getElementById('badge');
+    const unreadCount = notifications.filter(n => !n.is_read).length;
+
+    if (unreadCount > 0) {
+        badge.style.display = 'flex';
+        badge.textContent = unreadCount;
+    } else {
+        badge.style.display = 'none';
+        badge.textContent = 0;
+    }
+
+    return notifications;
 }
 
 const container = document.getElementById('header-container');

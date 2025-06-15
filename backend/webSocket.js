@@ -1,7 +1,7 @@
 const WebSocket = require("ws");
 const { Client } = require("pg");
 const dbConfig = require("./database/config");
-const NotificationService = require("./services/NotificationService"); // ajuste para o caminho do seu config de conexão
+const NotificationService = require("./services/NotificationService");// ajuste para o caminho do seu config de conexão
 
 const clients = new Map();
 const notificationService = new NotificationService();
@@ -51,9 +51,11 @@ async function setupWebSocket(server) {
 
         const { rows } = await notificationService.getAll(userId);
 
-        if(rows && rows.length > 0) {
+        const unreadRows = rows.filter(n => !n.is_read);
+
+        if (unreadRows.length > 0) {
             ws.send(JSON.stringify({
-                rows
+                rows: unreadRows
             }));
         }
 

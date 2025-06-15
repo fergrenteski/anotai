@@ -1,3 +1,5 @@
+import {renderNotifications} from "./header.js";
+
 export function initNotifications(userId) {
     if (!userId) return;
 
@@ -10,17 +12,35 @@ export function initNotifications(userId) {
     socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
         if (data) {
-            showNotificationBadge();
+            showNotificationBadge(data);
         }
     };
 
-    function showNotificationBadge() {
+    function showNotificationBadge(data) {
         const badge = document.getElementById('badge');
         if (!badge) return;
 
-        badge.style.display = 'block';
-        badge.classList.add('badge-pulse');
-        setTimeout(() => badge.classList.remove('badge-pulse'), 500);
+        let unreadCount = 0;
+
+        if (Array.isArray(data.rows)) {
+            unreadCount = data.rows.filter(n => !n.is_read).length;
+        } else if (data && typeof data === 'object' && data.hasOwnProperty('is_read')) {
+            if (!data.is_read) unreadCount = parseInt(badge.textContent) + 1;
+        }
+
+        if (unreadCount > 0) {
+            badge.textContent = unreadCount;
+            badge.style.display = 'flex';
+            badge.classList.add('badge-pulse');
+            setTimeout(() => badge.classList.remove('badge-pulse'), 500);
+        } else {
+            badge.style.display = 'none';
+        }
+
+        const notificationList = document.getElementById("notificationList");
+        if(notificationList.style.display === "block") {
+            renderNotifications()
+        }
     }
 
     socket.onclose = () => {
