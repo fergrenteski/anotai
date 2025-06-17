@@ -51,7 +51,7 @@ class GroupController {
     async create(req, res) {
 
         // Obtem dados da requisição
-        const { name, category, description } = req.body;
+        const { name, category, description, apelido } = req.body;
         const userId = req.usuario.id; // ID do autenticado
 
         // Validação  do peenchimento dos campos
@@ -60,7 +60,7 @@ class GroupController {
         try {
             
             // Cria o grupo
-            const { rows } = await this.groupService.create(name, category, description, userId);
+            const { rows } = await this.groupService.create(name, category, description, userId,apelido);
             
             // Obtem o Id do Grupo criado
             const groupId = rows[0].group_id
@@ -77,7 +77,7 @@ class GroupController {
     async update(req, res) {
 
         // Obtem dados da requisição
-        const { name, category, description } = req.body;
+        const { name, category, description, apelido } = req.body;
         const groupId = req.params.groupId;
 
         // Validação dos dados
@@ -86,7 +86,7 @@ class GroupController {
         try {
 
             // Atualiza os dados do grupo.
-            const data = await this.groupService.update(name, category, description, groupId);
+            const data = await this.groupService.update(name, category, description, groupId, apelido);
             return res.status(200).json({ success: true, data: data.rows, message: `Grupo: ${name} editado com sucesso.` });
 
         } catch (error) {

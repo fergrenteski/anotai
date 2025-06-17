@@ -38,10 +38,10 @@ class GroupService {
      * @returns {Promise<Object>} Retorna o resultado da inserção.
      */
 
-    async create(name, category, description, userId) {
+    async create(name, category, description, userId,apelido) {
 
         // Executa a consulta SQL insert_group com os parâmetros de criação
-        return runQuery("insert_group", [name, description, category, userId]);
+        return runQuery("insert_group", [name, description, category, userId, apelido]);
     }
 
     /**
@@ -53,10 +53,10 @@ class GroupService {
      * @returns {Promise<Object>} Retorna o resultado da atualização.
      */
 
-    async update(name, category, description, groupId) {
+    async update(name, category, description, groupId, apelido) {
 
         // Executa a consulta SQL update_group com os parâmetros de atualização
-        return runQuery("update_group", [name, description, category, groupId]);
+        return runQuery("update_group", [name, description, category, groupId, apelido]);
     }
 
     /**

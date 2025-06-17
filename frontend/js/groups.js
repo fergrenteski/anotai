@@ -426,6 +426,13 @@ async function renderGerenciarGrupo() {
     const descriptionInput = createInput('text', 'group-description', 'Descrição do Grupo', grupo.description, true, !isAdminUser);
     form.appendChild(descriptionInput);
 
+    const label = document.createElement('label');
+    label.textContent = 'Apelido: '
+    form.appendChild(label);
+
+    const apelidoInput = createInput('text', 'group-apelido', 'Apelido do grupo', grupo.apelido, false, !isAdminUser);
+    form.appendChild(apelidoInput);
+
     // Campo: Tipo do grupo
     const typeSelect = document.createElement('select');
     typeSelect.id = 'group-type';
@@ -630,6 +637,7 @@ async function persistGroup(isEditing, grupo) {
     const groupName = document.getElementById('group-name').value.trim();
     const groupDescription = document.getElementById('group-description').value.trim();
     const categoryId = document.getElementById('group-type').value;
+    const apelido = document.getElementById('group-apelido').value;
 
     const url = isEditing
         ? `http://localhost:3000/api/groups/${grupo.group_id}`
@@ -643,7 +651,8 @@ async function persistGroup(isEditing, grupo) {
                     body: JSON.stringify({
                         name: groupName,
                         category: categoryId,
-                        description: groupDescription
+                        description: groupDescription,
+                        apelido: apelido
                     }),
                 }).then(data => {
                    notificar(data.message);
