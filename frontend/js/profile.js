@@ -25,6 +25,7 @@ function renderApp() {
     appElement.innerHTML = '';
 
     renderTabs();
+    renderLogoutButon();
 
     // Renderiza a view atual
     switch (appState.currentView) {
@@ -62,6 +63,30 @@ function renderTabs() {
     tabsContainer.appendChild(convitesTab);
 
     appElement.appendChild(tabsContainer);
+}
+
+function renderLogoutButon() {
+    const div = document.getElementById('userArea');
+    const icon = document.getElementById('logout');
+    if(!icon) {
+        const icon = document.createElement('i');
+        icon.id = 'logout';
+        icon.className = 'fa-solid fa-right-from-bracket';
+        div.appendChild(icon);
+        icon.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            e.preventDefault()
+            confirmModal("Tem certeza que deseja sair?")
+                .then(async resposta => {
+                    if(resposta) {
+                        localStorage.removeItem('user');
+                        localStorage.removeItem('token');
+                        window.location.href = 'index.html';
+                    }
+                })
+        })
+    }
+
 }
 
 
@@ -180,6 +205,16 @@ async function renderProfile() {
     inputNome.value = user.name;
     inputNome.required = true;
 
+    const labelGenero = document.createElement('label');
+    labelGenero.htmlFor = 'bio-genero';
+    labelGenero.textContent = ' Alterar Gênero';
+
+    const inputGenero = document.createElement('input');
+    inputGenero.type = 'text';
+    inputGenero.placeholder = 'Digite seu gênero';
+    inputGenero.id = 'bio-genero';
+    inputGenero.value = user.genero || '';
+
     const labelBio = document.createElement('label');
     labelBio.htmlFor = 'bio-texto';
     labelBio.textContent = 'Bio';
@@ -203,7 +238,10 @@ async function renderProfile() {
     fieldsDiv.appendChild(labelNome);
     fieldsDiv.appendChild(inputNome);
     fieldsDiv.appendChild(labelBio);
+
     fieldsDiv.appendChild(inputBio);
+    fieldsDiv.appendChild(labelGenero);
+    fieldsDiv.appendChild(inputGenero);
     fieldsDiv.appendChild(buttonSalvar);
 
     // Montar tudo
@@ -233,6 +271,7 @@ async function PersistProfile() {
     const img = document.getElementById('profileImage').src;
     const name = document.getElementById('bio-nome').value;
     const bio = document.getElementById('bio-texto').value;
+    const genero = document.getElementById('bio-genero').value;
     const dataUrl =  imagemFoiRemovida ? null : img;
 
     // Se for imagem válida, converte
@@ -246,6 +285,7 @@ async function PersistProfile() {
     const formData = await new FormData();
     formData.append("name", name);
     formData.append("bio", bio);
+    formData.append("genero", genero);
     if (file) {
         formData.append("image", file);
     }
@@ -257,7 +297,7 @@ async function PersistProfile() {
                     method: "PUT",
                     body: formData
                 }).then(data => {
-                    localStorage.removeItem('user');
+                    sessionStorage.removeItem('user');
                     notificar(data.message);
                 });
                 await startApp( "geral", "profile")

@@ -175,8 +175,8 @@ class UserService {
      * @param {string} bio - Nova bio.
      * @param {string} image_path - URL da nova imagem de perfil.
      */
-    async updateProfile(userId, name, bio, image_path) {
-        await runQuery("update_user_profile", [name, bio, image_path, userId]);
+    async updateProfile(userId, name, bio, image_path, genero) {
+        await runQuery("update_user_profile", [name, bio, image_path, userId, genero]);
     }
 
     /**

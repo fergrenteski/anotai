@@ -3,8 +3,9 @@ import {authFetch} from "./utils/authFetch.js";
 import {notificar} from "./utils/notification.js";
 import {confirmModal} from "./utils/confirmModal.js";
 import {loadUserProfile} from "./utils/loadUserProfile.js";
+import {initNotifications} from "./utils/notificationsWS.js";
 
-let user = JSON.parse(localStorage.getItem('user'));
+let user = JSON.parse(sessionStorage.getItem('user'));
 let appState = null; // Estado global da aplicação
 let groupIdParam = null;
 let listIdParam = null;
@@ -1245,6 +1246,9 @@ async function updateProductState(product, buy) {
 document.addEventListener('DOMContentLoaded', async () => {
     await loadURLParams();
     await loadUserProfile();
+    if (user && user.userId) {
+        initNotifications(user.userId, authFetch);
+    }
     categories = await loadProductCategories();
     await startApp();
 });

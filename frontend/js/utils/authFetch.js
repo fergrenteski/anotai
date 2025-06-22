@@ -45,7 +45,7 @@ export function authFetch(url, options = {}) {
         .catch(err => {
             modal(err.message).then(() => {
                 if(err.status === 401 || err.status === 403) {
-                    localStorage.removeItem('user');
+                    sessionStorage.removeItem('user');
                     window.location.href = 'index.html';
                 }
             });

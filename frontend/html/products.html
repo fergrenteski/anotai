@@ -10,22 +10,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 </head>
 <body>
-<div class="header">
-    <div class="logo" id="logo">Anota-ai</div>
-    <nav>
-        <a href="groups.html">GRUPOS</a>
-        <a href="#" id="list-link">LISTAS</a>
-    </nav>
-    <div class="user-area" id="userArea">
-        <span id="logout">SAIR</span>
-        <div class="user-icon" id="userInitials"></div>
-        <span id="userName">Usuário</span>
-    </div>
-</div>
+<div id="header-container"></div>
 <div class="container-breadcrumb">
     <div id="breadcrumb"></div>
 </div>
 <div class="container" id="app"></div>
+<script type="module" src="../js/utils/header.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script type="module" src="../js/utils/navigation.js"></script>
 <script type="module" src="../js/utils/breadcrumb.js"></script>

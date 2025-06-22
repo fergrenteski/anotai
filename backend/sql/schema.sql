@@ -7,6 +7,10 @@ DROP VIEW IF EXISTS vw_lists;
 DROP VIEW IF EXISTS vw_user_groups;
 DROP VIEW IF EXISTS vw_products;
 DROP VIEW IF EXISTS vw_groups;
+DROP VIEW IF EXISTS vw_notifications;
+
+-- Trigger
+DROP TRIGGER IF EXISTS trg_notify_new_notification ON notifications;
 
 -- Tabelas que dependem de outras
 DROP TABLE IF EXISTS group_users;
@@ -16,6 +20,8 @@ DROP TABLE IF EXISTS user_group_invite_keys;
 DROP TABLE IF EXISTS user_reset_password_keys;
 DROP TABLE IF EXISTS user_email_verified_keys;
 DROP TABLE IF EXISTS user_logs;
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS notification_types;
 
 -- Tabelas de referência
 DROP TABLE IF EXISTS groups;
@@ -34,6 +40,7 @@ CREATE TABLE users
     user_id        SERIAL PRIMARY KEY,
     name           VARCHAR(100)        NOT NULL,
     email          VARCHAR(100) UNIQUE NOT NULL,
+    genero          TEXT,
     bio            TEXT,
     email_verified BOOLEAN             NOT NULL DEFAULT FALSE,
     password_hash  VARCHAR(255)        NOT NULL,
@@ -42,8 +49,6 @@ CREATE TABLE users
     updated_at     TIMESTAMP                    DEFAULT CURRENT_TIMESTAMP,
     expired_at     TIMESTAMP
 );
-insert into users (user_id, name, email, bio, email_verified, password_hash, image_path, created_at, updated_at, expired_at)
-values  (1, 'admin', 'admin@gmail.com', null, true, '$2a$10$qsHt.rPpn35fyWUc6WTi5eqZaRg1KL1Q5S9jl4E2eOhIAy719Ihli', null, '2025-05-31 23:01:47.596437', '2025-05-31 23:01:47.596437', null);
 
 CREATE TABLE request_logs
 (
@@ -374,4 +379,65 @@ SELECT
     vg.category_name as group_type,
     vg.user_admin_name as invited_by
 FROM user_group_invite_keys ugik
-LEFT JOIN vw_groups vg on ugik.group_id = vg.group_id
+LEFT JOIN vw_groups vg on ugik.group_id = vg.group_id;
+
+-- Tipos de notificação
+CREATE TABLE notification_types (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL
+);
+
+INSERT INTO notification_types (name) VALUES
+  ('Grupo'),
+  ('Convites'),
+  ('Lista'),
+  ('Produtos');
+
+-- Tabela de notificação
+CREATE TABLE notifications (
+   id SERIAL PRIMARY KEY,
+   user_id INTEGER NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+   type_id INTEGER NOT NULL REFERENCES notification_types(id),
+   message TEXT NOT NULL,
+   is_read BOOLEAN DEFAULT FALSE,
+   created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Função para Acionar o envio de Notificação
+CREATE OR REPLACE FUNCTION notify_new_notification()
+    RETURNS TRIGGER AS $$
+DECLARE
+    notif_data JSON;
+BEGIN
+    SELECT json_build_object(
+                   'id', NEW.id,
+                   'user_id', NEW.user_id,
+                   'message', NEW.message,
+                   'is_read', NEW.is_read,
+                   'created_at', NEW.created_at,
+                   'type', nt.name
+           )
+    INTO notif_data
+    FROM notification_types nt
+    WHERE nt.id = NEW.type_id;
+
+    PERFORM pg_notify('new_notification', notif_data::text);
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_notify_new_notification
+    AFTER INSERT ON notifications
+    FOR EACH ROW
+EXECUTE FUNCTION notify_new_notification();
+
+CREATE OR REPLACE VIEW vw_notifications AS
+SELECT  n.id,
+        n.user_id,
+        n.type_id,
+        nt.name,
+        n.is_read,
+        n.message,
+        n.created_at
+FROM notifications n
+LEFT JOIN notification_types nt on nt.id = n.type_id;

@@ -228,7 +228,8 @@ class UserController {
                 userId: user.user_id,
                 name: user.name,
                 bio: user.bio,
-                image: fileBuffer ? `data:image/${ext};base64,${fileBuffer.toString('base64')}` : null
+                image: fileBuffer ? `data:image/${ext};base64,${fileBuffer.toString('base64')}` : null,
+                genero: user.genero,
             }
 
             res.status(200).json({ success: true, message: 'Imagem em base64', data: data
@@ -242,7 +243,7 @@ class UserController {
     // atualizar imagem de perfil
     async updateProfile(req, res) {
         const userId = req.usuario.id;
-        const { name, bio } = req.body;
+        const { name, bio, genero } = req.body;
 
         const haveImg = req.file;
 
@@ -255,7 +256,7 @@ class UserController {
         }
 
         try {
-            await this.userService.updateProfile(userId, name, bio, relativePath);
+            await this.userService.updateProfile(userId, name, bio, relativePath, genero);
             res.status(200).json({ success: true, message: 'Perfil Salvo com sucesso.'});
         } catch (err) {
             console.error(err);

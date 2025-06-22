@@ -5,6 +5,7 @@ const {gerarTokenEmail} = require("../utils/validators");
 const {runQuery} = require("../utils/queryHelper");
 const EmailService = require("../services/EmailService");
 const GroupService = require("../services/GroupService");
+const NotificationService = require("../services/NotificationService");
 
 class MemberController {
     constructor() {
@@ -12,6 +13,7 @@ class MemberController {
         this.memberService = new MemberService();
         this.emailService = new EmailService();
         this.groupService = new GroupService();
+        this.notificationService = new NotificationService();
     }
 
     /**
@@ -51,6 +53,7 @@ class MemberController {
         const groupId = parseInt(req.params.groupId);
         const email = req.body.email;
         let userId = null;
+        const user = req.usuario;
         try{
             const rows = await this.userService.getUserByEmail(email);
             // Verificação se o usuário existe
@@ -73,6 +76,8 @@ class MemberController {
             await this.memberService.createUserInviteToken(parseInt(userId), groupId, email, emailToken, expiresAt);
             // Envia o email para o usuário
             await this.emailService.enviarConviteEmail(parseInt(userId), groupId, group.group_name, email, emailToken);
+            // Cria a notificação para o usuário
+            await this.notificationService.create(userId, 2, `Você foi convidado ao grupo ${group.group_name} pelo(a) ${user.name}`)
             // Retorno de sucesso
             return res.status(200).json({ success: true, message: "Membro convidado ao grupo"});
         } catch (error){
@@ -86,10 +91,24 @@ class MemberController {
         const groupId = req.params.groupId;
         const memberId = req.params.memberId;
         const sair = req.params.sair === 'sair';
+        const user = req.usuario;
 
         try {
+            // Obtém o grupo
+            const { rows } = await this.groupService.getById(groupId);
+            const group = rows[0];
+            // Deleta relação de grupo e usuário
             await this.memberService.delete(parseInt(memberId), parseInt(groupId));
+            // Deleta convite
             if(!sair) await this.memberService.deleteInvite(parseInt(memberId), parseInt(groupId));
+            // Notificação de Remover usuário
+            if(!sair) await this.notificationService.create(memberId, 1, `Você foi removido do grupo ${group.group_name} pelo(a) ${user.name}`);
+            // Notificação para o admin indicando que usuário saiu
+            if(sair) {
+                const { rows } = await this.userService.getProfile(memberId);
+                const member = rows[0];
+                await this.notificationService.create(group.user_admin_id, 1, `O usuário ${member.name} saiu do seu grupo ${group.group_name}`);
+            }
             return res.status(200).json({ success: true, message: sair ? "Você saiu do grupo" : "Membro removido com sucesso" });
         } catch (error) {
             console.error("Erro ao remover usuário: ", error);
@@ -121,6 +140,14 @@ class MemberController {
             await runQuery(`${accept ? "update" : "delete"}_user_group_member`, [memberId, groupId]);
             // Deleta os Tokens
             await runQuery("delete_invite_token_by_user_token", [invite]);
+            // Busca o grupo
+            const { rows } = await this.groupService.getById(groupId);
+            const group = rows[0];
+            // Busca Usuário
+            const { rows: memberRows } = await this.userService.getProfile(memberId);
+            const member = memberRows[0];
+            // Cria a notificação para o Admin
+            await this.notificationService.create(group.user_admin_id, 1, `O usuário ${member.name} ${accept ? "Aceitou" : "Recusou"} seu convite de grupo ${group.group_name}`);
             // Retorna a resposta
             return res.status(200).json({success: true, message: `Convite de grupo ${accept ? "Aceitado" : "Rejeitado"}`})
         } catch (error) {

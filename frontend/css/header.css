@@ -94,3 +94,200 @@ nav a:hover {
 .page-active {
     color: #7367f0;
 }
+
+.notification-icon {
+    position: relative;
+    font-size: 16px;
+    cursor: pointer;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Badge vermelho */
+.notification-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 16px;
+    height: 16px;
+    background: red;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: bold;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s ease;
+}
+
+.badge-pulse {
+    animation: pulse-bounce 0.5s ease;
+}
+
+@keyframes pulse-bounce {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.4); }
+    100% { transform: scale(1); }
+}
+
+.notification-list, .notification-popup {
+    /* NÃO aplicar transform, deixar estático */
+    position: absolute;
+    top: 40px;
+    right: 0;
+    width: 300px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    z-index: 1000;
+    padding: 0.5rem 0;
+    font-family: sans-serif;
+}
+.notification-items {
+    overflow: scroll;
+    max-height: 170px;
+}
+
+.notification-message {
+    font-weight: bold;
+    flex: 1;
+    font-size: 0.8rem;
+    color: #333;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.notification-btn {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #555;
+    font-size: 1rem;
+    transition: color 0.2s ease;
+}
+
+.notification-btn:hover {
+    color: #1e90ff;
+}
+
+.notification-btn.danger:hover {
+    color: #e74c3c;
+}
+
+.notification-item.empty {
+    text-align: center;
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.notification-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    font-weight: bold;
+    border-bottom: 1px solid #ddd;
+}
+
+.notification-count {
+    background: #00bcd4;
+    color: white;
+    border-radius: 50%;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+}
+
+.notification-wrapper {
+    position: relative;
+    overflow: hidden;
+}
+
+/* BACKDROP DE MARCAR COMO LIDA (à esquerda) */
+.read-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 50%;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding-left: 1rem;
+    font-weight: bold;
+    z-index: 0;
+}
+
+/* BACKDROP DE EXCLUIR (à direita) */
+.delete-backdrop {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 50%;
+    background-color: #ffdddd;
+    color: red;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding-right: 1rem;
+    font-weight: bold;
+    z-index: 0;
+}
+
+/* ITEM DA NOTIFICAÇÃO */
+.notification-item {
+    position: relative;
+    z-index: 1;
+    background: white;
+    padding: 1rem;
+    border-bottom: 1px solid #ccc;
+    transition: transform 0.2s ease;
+    touch-action: pan-y; /* para evitar conflito de scroll vertical */
+}
+
+.notification-item:hover {
+    background: #f9f9f9;
+}
+
+.notification-type {
+    font-size: 0.8rem;
+    color: gray;
+}
+
+.notification-item.unread::after {
+    content: "";
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    background: red;
+    border-radius: 50%;
+}
+
+.notification-footer {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.32);
+}
+
+.notification-footer button {
+    background: #e0e0e0;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.notification-footer button:hover {
+    background: #ccc;
+}

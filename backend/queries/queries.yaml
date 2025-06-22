@@ -371,8 +371,40 @@ queries:
 
   update_user_profile: >
     UPDATE users
-    SET name = $1, bio = $2, image_path = $3, updated_at = CURRENT_TIMESTAMP
+    SET name = $1, bio = $2, image_path = $3, updated_at = CURRENT_TIMESTAMP, genero = $5
     WHERE user_id = $4;
 
   select_user_profile: >
-    SELECT user_id, name, bio, image_path FROM users WHERE user_id = $1;
+    SELECT user_id, name, bio, genero, image_path FROM users WHERE user_id = $1;
+
+  # Buscar notificações
+  select_notifications_by_user_id: >
+    SELECT * FROM vw_notifications
+    WHERE user_id = $1;
+
+  # Marcar todas as Notificações como lidas
+  update_notification_status_by_user_id: >
+    UPDATE notifications
+    SET is_read = TRUE
+    WHERE user_id = $1;
+
+  # Marcar Notificação específica como lida
+  update_notification_status_by_id: >
+    UPDATE notifications
+    SET is_read = TRUE
+    WHERE id = $1;
+
+  # Deletar todas as NotificaçÕes
+  delete_notification_by_user_id: >
+    DELETE FROM notifications
+    WHERE user_id = $1;
+
+  # Deletar Notificação específica
+  delete_notification_by_id: >
+    DELETE FROM notifications
+    WHERE id = $1;
+
+  # Criar notificações
+  create_notification_by_user_id: >
+    INSERT INTO notifications (user_id, type_id, message)
+    VALUES ($1, $2, $3);

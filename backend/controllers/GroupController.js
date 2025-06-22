@@ -1,11 +1,14 @@
 // Importa bibliotecas e funçöes:
 const GroupService = require("../services/GroupService");
 const MemberService = require("../services/MemberService");
+const NotificationService = require("../services/NotificationService");
 
 class GroupController {
     constructor() {
         this.groupService = new GroupService();
         this.memberService = new MemberService();
+        this.notificationService = new NotificationService();
+
     }
 
     /**
@@ -99,13 +102,25 @@ class GroupController {
 
         // Obtém o ID do grupo passado na URL.
         const groupId = req.params.groupId;
+        const user = req.usuario;
         try {
-           
+            // Busca o grupo a ser deletado
+            const { rows: groups } = await this.groupService.getById(groupId);
+            // Pega o primeiro
+            const group = groups[0]
+            // Busca todos os membros do grupo
+            const { rows: members } = await this.memberService.getAll(groupId);
+            // Filtra os membros tirando o usuário que deletou o grupo
+            const otherMembers = members.filter(member => member.user_id !== user.id);
             // Deleta o grupo
             const { rows } = await this.groupService.delete(groupId);
-            
             // Deleta a relação de usuário e grupos
             await this.memberService.deleteGroup(groupId);
+            // Cria uma notificação pra acada usuário do grupo
+            otherMembers.forEach(member =>  {
+                this.notificationService.create(member.user_id, 1, `O Grupo ${group.group_name} foi excluído pelo(a) ${user.name}`)
+            })
+
             return res.status(200).json({ success: true, data: rows, message: `Grupo excluído com sucesso.` });
 
         } catch (error) {
