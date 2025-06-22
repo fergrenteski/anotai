@@ -67,21 +67,26 @@ function renderTabs() {
 
 function renderLogoutButon() {
     const div = document.getElementById('userArea');
-    const icon = document.createElement('i');
-    icon.className = 'fa-solid fa-right-from-bracket';
-    div.appendChild(icon);
-    icon.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        e.preventDefault()
-        confirmModal("Tem certeza que deseja sair?")
-            .then(async resposta => {
-                if(resposta) {
-                    localStorage.removeItem('user');
-                    localStorage.removeItem('token');
-                    window.location.href = 'index.html';
-                }
+    const icon = document.getElementById('logout');
+    if(!icon) {
+        const icon = document.createElement('i');
+        icon.id = 'logout';
+        icon.className = 'fa-solid fa-right-from-bracket';
+        div.appendChild(icon);
+        icon.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            e.preventDefault()
+            confirmModal("Tem certeza que deseja sair?")
+                .then(async resposta => {
+                    if(resposta) {
+                        localStorage.removeItem('user');
+                        localStorage.removeItem('token');
+                        window.location.href = 'index.html';
+                    }
+                })
         })
-    })
+    }
+
 }
 
 
