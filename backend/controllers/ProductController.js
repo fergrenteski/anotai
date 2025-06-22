@@ -1,8 +1,10 @@
 const ProductService = require("../services/ProductService");
+const NotificationService = require("../services/NotificationService");
 
 class ProductController {
     constructor() {
         this.productService = new ProductService();
+        this.notificationService = new NotificationService();
     }
 
     /**
@@ -142,9 +144,14 @@ class ProductController {
 
     async delete(req, res) {
 
-        const {productId} = req.params;
+        const { productId } = req.params;
 
+        const user = req.usuario;
         try {
+            const { rows } = await this.productService.getById(productId);
+            const product = rows[0];
+            // Se existe comprador
+            if(product.purchased_by && user.id !== product.purchased_by) await this.notificationService.create(product.purchased_by, 4, `O usuário ${user.name} excluiu o produto ${product.product_name} comprado por você`);
             await this.productService.delete(productId);
             return res.status(200).json({success: true, message: "Produto Deletado com sucesso"});
         } catch (error) {

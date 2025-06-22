@@ -403,3 +403,8 @@ queries:
   delete_notification_by_id: >
     DELETE FROM notifications
     WHERE id = $1;
+
+  # Criar notificações
+  create_notification_by_user_id: >
+    INSERT INTO notifications (user_id, type_id, message)
+    VALUES ($1, $2, $3);

@@ -1,9 +1,13 @@
 // Importa bibliotecas e funçöes:
 const ListService = require("../services/ListService");
+const NotificationService = require("../services/NotificationService");
+const MemberService = require("../services/MemberService");
 
 class ListController {
     constructor() {
         this.listService = new ListService();
+        this.memberService = new MemberService();
+        this.notificationService = new NotificationService();
     }
 
     async getAll(req, res) {
@@ -80,10 +84,22 @@ class ListController {
 
     async delete(req, res) {
         try {
-
+            // Usuário
+            const user = req.usuario;
             // Obtém o ID do grupo da URL
             const listId = req.params.listId;
-
+            // Obtém informações da lista
+            const { rows } = await this.listService.getById(listId);
+            const list = rows[0];
+            // Lista de membros do grupo
+            const { rows: memberRows } = await this.memberService.getAll(list.group_id)
+            // Filtra os membros tirando o usuário que deletou o grupo
+            const otherMembers = memberRows.filter(member => member.user_id !== list.created_by);
+            // Cria uma notificação pra acada usuário do grupo
+            otherMembers.forEach(member =>  {
+                this.notificationService.create(member.user_id, 3, `A Lista ${list.list_name} foi excluído pelo(a) ${user.name}`)
+            })
+            // Deleta a Lista
             await this.listService.delete(listId);
             return res.status(200).json({ success: true, message: "Lista Excluida com sucesso!"});
 

@@ -33,6 +33,10 @@ class NotificationService {
         return await runQuery("delete_notification_by_user_id", [userId]);
     }
 
+    async create(userId, type, message) {
+        return await runQuery("create_notification_by_user_id", [userId, type, message]);
+    }
+
 }
 // Exporta a classe MemberService
 module.exports = NotificationService;
