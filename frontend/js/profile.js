@@ -70,7 +70,18 @@ function renderLogoutButon() {
     const icon = document.createElement('i');
     icon.className = 'fa-solid fa-right-from-bracket';
     div.appendChild(icon);
-
+    icon.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        e.preventDefault()
+        confirmModal("Tem certeza que deseja sair?")
+            .then(async resposta => {
+                if(resposta) {
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('token');
+                    window.location.href = 'index.html';
+                }
+        })
+    })
 }
 
 
