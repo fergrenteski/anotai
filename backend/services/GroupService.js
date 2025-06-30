@@ -70,6 +70,10 @@ class GroupService {
         // Executa a consulta SQL expire_group com o parâmetro groupId
         return runQuery("delete_group", [groupId]);
     }
+
+    async updateAdmin(userId, groupId) {
+        return runQuery("update_admin", [userId, groupId]);
+    }
 }
 // Exporta a classe GroupService
 module.exports = GroupService;

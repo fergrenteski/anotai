@@ -1,6 +1,10 @@
 // Importa bibliotecas e funçöes:
 const UserService = require("../services/UserService");
 const EmailService = require("../services/EmailService");
+const GroupService = require("../services/GroupService");
+const MemberService = require("../services/MemberService");
+const NotificationService = require("../services/NotificationService");
+const ListService = require("../services/ListService");
 const {gerarTokenEmail} = require("../utils/validators");
 const {runQuery} = require("../utils/queryHelper");
 const path = require("path");
@@ -10,6 +14,10 @@ class UserController {
     constructor() {
         this.userService = new UserService();
         this.emailService = new EmailService();
+        this.groupService = new GroupService();
+        this.memberService = new MemberService();
+        this.notificationService = new NotificationService();
+        this.listService = new ListService();
     }
 
     /**
@@ -261,6 +269,49 @@ class UserController {
         } catch (err) {
             console.error(err);
             res.status(500).json({ success: false, message: 'Erro ao salvar Perfil.' });
+        }
+    }
+
+    async deleteProfile(req, res) {
+        const userDeleted = req.usuario;
+        try {
+            // Busca todos os grupos do usuário
+            const { rows: groups } = await this.groupService.getAllGroupsByUserId(userDeleted.id);
+            // Verifica se ele possui grupos
+            if(groups && groups.length > 0){
+                for (const group of groups) {
+                    // Coloca algum membro como admin
+                    const { rows } = await this.memberService.getAll(group.group_id)
+                    if( rows && rows.length > 0){
+                        // Usuarios disponiveis
+                        const availableUsers = rows.filter((user) => user.user_id !== userDeleted.id);
+                        const user = availableUsers[0];
+
+                        // atualiza o Admin
+                        await this.groupService.updateAdmin(user.user_id, group.group_id);
+                        const { rows: groupRows } = await this.groupService.getById(group.group_id);
+                        const groupName = groupRows[0].group_name;
+
+                        await this.notificationService.create(user.user_id, 1, `Você se tornou lider do grupo ${groupName}, pois o usuário ${userDeleted.name} excluíu sua conta`);
+
+                        // Pega todas as listas de Grupo
+                        const { rows: listRows } = await this.listService.getAllListsByGroupId(group.group_id);
+                        // Filtra a que são do usuário
+                        const listsUserDeleted = listRows.filter((list) => list.created_by === userDeleted.id);
+                        // Percorre as listas
+                        for(const list of listsUserDeleted) {
+                            await this.listService.updateAdmin(user.user_id, list.list_id);
+                        }
+
+                    }
+                }
+            }
+
+            await this.userService.delete(userDeleted.id);
+            res.status(200).json({ success: true, message: 'Perfil Deletado com sucesso.'});
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ success: false, message: 'Erro ao deletar Perfil.' });
         }
     }
 }

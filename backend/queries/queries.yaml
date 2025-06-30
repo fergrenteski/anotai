@@ -66,6 +66,10 @@ queries:
     VALUES ($1, $2, $3) 
     RETURNING user_id, name, email;
 
+  # Deleta um usuário
+  delete_user_by_id: >
+    DELETE FROM users WHERE user_id = $1
+
   # Registra ação de cadastro de usuário
   insert_user_log_register: >
     INSERT INTO user_logs (user_id, action) 
@@ -246,6 +250,12 @@ queries:
     WHERE user_id = $1 AND group_id = $2
     RETURNING *;
 
+  # Atualiza o Admin
+  update_admin: >
+    UPDATE groups 
+    SET user_admin_id = $1
+    WHERE group_id = $2;
+
   # Deleta a relação de grupo
   delete_user_group_member: >
     DELETE FROM group_users
@@ -368,6 +378,11 @@ queries:
   #Deletar uma lista
   delete_list_by_id: >
    DELETE FROM lists WHERE list_id = $1;
+
+  update_list_admin_by_id: >
+    UPDATE lists
+    SET created_by = $1 
+    WHERE list_id = $2;
 
   update_user_profile: >
     UPDATE users

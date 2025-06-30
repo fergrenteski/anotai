@@ -28,6 +28,10 @@ class ListService {
     async delete(listId) {
         return runQuery("delete_list_by_id", [listId]);
     }
+
+    async updateAdmin(userId, listId) {
+        return runQuery("update_list_admin_by_id", [userId, listId]);
+    }
 }
 // Exporta a classe ListService
 module.exports = ListService;

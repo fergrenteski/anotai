@@ -39,6 +39,7 @@ const upload = multer({ storage, fileFilter });
 // Rota com ID para permitir uso no multer e controller
 router.get('/profile', verificarToken, (req, res) => UserController.getProfile(req,res));
 router.put('/profile', verificarToken, upload.single('image'), (req, res) => UserController.updateProfile(req, res));
+router.delete('/profile', verificarToken, (req, res) => UserController.deleteProfile(req, res));
 
 // Rota de cadastro do usuário
 router.post("/cadastro", (req, res) => UserController.cadastro(req, res));
