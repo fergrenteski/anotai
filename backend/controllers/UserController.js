@@ -282,7 +282,7 @@ class UserController {
                 for (const group of groups) {
                     // Coloca algum membro como admin
                     const { rows } = await this.memberService.getAll(group.group_id)
-                    if( rows && rows.length > 0){
+                    if( rows && rows.length > 1){
                         // Usuarios disponiveis
                         const availableUsers = rows.filter((user) => user.user_id !== userDeleted.id);
                         const user = availableUsers[0];
