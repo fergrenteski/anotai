@@ -174,6 +174,7 @@ class UserService {
      * @param {string} name - Novo nome.
      * @param {string} bio - Nova bio.
      * @param {string} image_path - URL da nova imagem de perfil.
+     * @param genero Genero
      */
     async updateProfile(userId, name, bio, image_path, genero) {
         await runQuery("update_user_profile", [name, bio, image_path, userId, genero]);
@@ -195,6 +196,15 @@ class UserService {
      */
     async deletarTokenResetPass(token) {
         await runQuery("delete_token_reset_pass_by_token", [token]);
+    }
+
+    /**
+     * Deleta o usuário
+     * @param userId Identificador de Usuário.
+     * @returns {Promise<void>}
+     */
+    async delete(userId) {
+        await runQuery("delete_user_by_id", [userId]);
     }
 
 }

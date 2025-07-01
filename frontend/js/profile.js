@@ -5,6 +5,7 @@ import {confirmModal} from "./utils/confirmModal.js";
 // Variáveis
 let appState = null;
 let imagemFoiRemovida = false;
+let user = JSON.parse( sessionStorage.getItem("user"));
 
 // Elemento raiz da aplicação
 const appElement = document.getElementById('app');
@@ -32,7 +33,9 @@ function renderApp() {
         case "geral":
             if (appState.activeTab === "profile") {
                 renderProfile();
-            } else {
+            } else if(appState.activeTab === "deletar") {
+                renderDeletarConta();
+            } else if(appState.activeTab === "senha") {
                 renderAlterarsenha();
             }
             break;
@@ -54,13 +57,21 @@ function renderTabs() {
     });
     tabsContainer.appendChild(meuPerfilTab);
 
-    const convitesTab = document.createElement('div');
-    convitesTab.className = `tab ${appState.activeTab === 'senha' ? 'active' : ''}`;
-    convitesTab.textContent = `Alterar Senha`;
-    convitesTab.addEventListener('click', () => {
+    const alterarSenhaTab = document.createElement('div');
+    alterarSenhaTab.className = `tab ${appState.activeTab === 'senha' ? 'active' : ''}`;
+    alterarSenhaTab.textContent = `Alterar Senha`;
+    alterarSenhaTab.addEventListener('click', () => {
         startApp("geral", 'senha');
     });
-    tabsContainer.appendChild(convitesTab);
+    tabsContainer.appendChild(alterarSenhaTab);
+
+    const deletarConta = document.createElement('div');
+    deletarConta.className = `tab ${appState.activeTab === 'deletar' ? 'active' : ''}`;
+    deletarConta.textContent = `Deletar Conta`;
+    deletarConta.addEventListener('click', () => {
+        startApp("geral", 'deletar');
+    });
+    tabsContainer.appendChild(deletarConta);
 
     appElement.appendChild(tabsContainer);
 }
@@ -79,8 +90,8 @@ function renderLogoutButon() {
             confirmModal("Tem certeza que deseja sair?")
                 .then(async resposta => {
                     if(resposta) {
-                        localStorage.removeItem('user');
-                        localStorage.removeItem('token');
+                        sessionStorage.removeItem('user');
+                        sessionStorage.removeItem('token');
                         window.location.href = 'index.html';
                     }
                 })
@@ -253,7 +264,74 @@ async function renderProfile() {
 
 async function renderAlterarsenha() {
     notificar('Alterar senha ainda não implementado');
-    startApp('geral', 'profile');
+    await startApp('geral', 'profile');
+}
+
+async function renderDeletarConta() {
+    // Título
+    const h1 = document.createElement('h2');
+    h1.textContent = 'Exclusão de conta';
+    h1.style.textAlign = 'center';
+    h1.style.marginBottom = '20px';
+    appElement.appendChild(h1);
+
+    // Campos de texto
+    const fieldsDiv = document.createElement('form');
+    fieldsDiv.className = 'profile-fields';
+    fieldsDiv.method = 'POST';
+
+    const labelNome = document.createElement('label');
+    labelNome.htmlFor = 'bio-nome';
+    labelNome.textContent = `Confirme seu nome "${user.name}"`;
+    fieldsDiv.appendChild(labelNome);
+
+    const p = document.createElement('p');
+    p.textContent = "Excluíndo a conta, todos seus grupos e listas serão transferidos para outro usuário. Os produtos criados e comprados por você serão excluídos!";
+    fieldsDiv.appendChild(p);
+
+    const inputNome = document.createElement('input');
+    inputNome.type = 'text';
+    inputNome.placeholder = 'Digite seu nome';
+    inputNome.id = 'confirm-name';
+    inputNome.required = true;
+
+    inputNome.oninput = () => {
+        let igual = inputNome.value  === user.name
+        saveButton.disabled = !igual
+        saveButton.style.opacity = igual ? '1' : '0.1';
+    }
+
+    fieldsDiv.appendChild(inputNome);
+
+    const saveButton = document.createElement('button');
+    saveButton.className = 'save-btn';
+    saveButton.textContent = 'Deletar Perfil';
+    saveButton.disabled = true;
+    saveButton.style.opacity = '0.1';
+
+    saveButton.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        confirmModal("Tem certeza que deseja excluír seu Perfil?")
+            .then(async (resposta) => {
+                if(resposta) {
+                    await authFetch("http://localhost:3000/api/user/profile", {
+                        method: 'DELETE',
+                    })
+                    sessionStorage.removeItem('user');
+                    sessionStorage.removeItem('token');
+                    notificar("Perfil Excluído com sucesso!").then(
+                        () => {
+                            window.location.href = 'index.html';
+                        }
+                    )
+                }
+        })
+    })
+    fieldsDiv.appendChild(saveButton);
+
+    appElement.appendChild(fieldsDiv);
+
 }
 async function deleteProfileImage() {
     const img = document.getElementById('profileImage');
