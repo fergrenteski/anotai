@@ -26,6 +26,7 @@ services:
       - anotaai_db
     volumes:
       - ./backend/sql/schema.sql:/schema.sql
+      - ./backend/sql/test.sql:/test.sql
     networks:
       - anotaai_network
     entrypoint: ["/bin/sh", "-c"]
@@ -36,6 +37,9 @@ services:
       echo 'Banco de dados pronto, executando script SQL';
       PGPASSWORD=${POSTGRES_PASSWORD} psql -h anotaai_db -U ${POSTGRES_USER} -d ${POSTGRES_DB} -f /schema.sql;
       echo 'Schema criado com sucesso!';
+      echo 'executando script SQL de carga';
+            PGPASSWORD=${POSTGRES_PASSWORD} psql -h anotaai_db -U ${POSTGRES_USER} -d ${POSTGRES_DB} -f /test.sql;
+            echo 'Carga feita com sucesso!';
       "
 
   anotaai_backend:
